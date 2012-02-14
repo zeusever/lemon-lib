@@ -1,0 +1,98 @@
+#cmakedefine LEMON_TEXT_CONVERTER_WIN32
+
+#cmakedefine LEMON_TEXT_CONVERTER_ICU
+
+#cmakedefine LEMON_TEXT_CONVERTER_ICONV
+
+#cmakedefine LEMON_USE_WIN32_FIBER
+
+#cmakedefine LEMON_HAS_DLFCN_H
+
+#cmakedefine LEMON_USE_GCC_BUIDIN_ATOMIC_FUNCTION
+
+#cmakedefine LEMON_USE_GCC_EXT_ATOMICITY_H
+
+#cmakedefine LEMON_USE_GCC_BITS_ATOMICITY_H
+
+#cmakedefine LEMON_HAS_PTHREAD
+
+#cmakedefine LEMON_HAS_WIN32_THREAD
+
+#cmakedefine LEMON_SYSTEM_BIGEND
+
+#cmakedefine LEMON_RANDOM_WINCRYPT
+
+#cmakedefine LEMON_RANDOM_URANDOM
+
+#cmakedefine LEMON_RANDOM_PRNGD
+
+#cmakedefine LEMON_UUID_WIN32RPC
+
+#cmakedefine LEMON_UUID_BUILDIN
+
+#cmakedefine LEMON_UUID_LIBUUID
+
+#cmakedefine LEMON_HAS_INTTYPES_H
+
+#cmakedefine LEMON_HAS_STDINT_H
+
+#cmakedefine LEMON_HAS_STDBOOL_H
+
+#cmakedefine LEMON_USE_WIN32_FTIME
+
+#cmakedefine LEMON_HAS_GETTIMEOFDAY
+
+#cmakedefine LEMON_HAS_GMTIME_R
+
+#cmakedefine LEMON_HAS_GMTIME
+
+#cmakedefine LEMON_HAS_LOCALTIME_R
+
+#cmakedefine LEMON_HAS_LOCALTIME
+
+#cmakedefine LEMON_HAS_UCONTEXT_H
+
+
+//define the macro to indicate the wchar_t length
+#define LEMON_WCHAR_SIZE ${LEMON_WCHAR_SIZE}
+
+#include <errno.h>
+#include <stdio.h>
+
+#ifdef LEMON_HAS_INTTYPES_H
+#	include <inttypes.h>
+#endif 
+
+#ifdef LEMON_HAS_STDINT_H
+#       include <stdint.h>
+#endif //LEMON_HAS_INTTYPES_H
+
+
+#ifdef WIN32
+#	define WIN32_LEAN_AND_MEAN  
+#	include <Windows.h>
+#	include <WinSock2.h>
+#	include <Ws2tcpip.h>
+#	include <tchar.h>
+#	pragma comment(lib,"Ws2_32.lib")
+#endif //WIN32
+
+typedef ${SBYTE_T} lemon_sbyte_t;
+
+typedef ${BYTE_T} lemon_byte_t;
+
+typedef ${SBYTE_T} lemon_int8_t;
+
+typedef ${BYTE_T} lemon_uint8_t;
+
+typedef ${INT16_T} lemon_int16_t;
+
+typedef ${UINT16_T} lemon_uint16_t;
+
+typedef ${INT32_T} lemon_int32_t;
+
+typedef ${UINT32_T} lemon_uint32_t;
+
+typedef ${INT64_T} lemon_int64_t;
+
+typedef ${UINT64_T} lemon_uint64_t;

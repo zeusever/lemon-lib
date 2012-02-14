@@ -1,0 +1,6 @@
+lemon_c_cxx_files(SRC)
+if(WIN32)
+	lemon_dll_project(lemon-sys ${SRC})
+else()
+	lemon_library_project(lemon-sys ${SRC})
+endif()
