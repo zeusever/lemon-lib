@@ -2,6 +2,8 @@
 #include <lemon/memory/fixobj.h>
 #include <lemon/memory/errorcode.h>
 
+#define LEMON_MEMORY_MALLOC
+
 typedef struct LemonMemoryChunk{
 	
 	lemon_byte_t			FirstAvailableBlock;
@@ -20,7 +22,12 @@ LEMON_MEMORY_PRIVATE void
 	__lemon_in	  LemonMemoryChunk * next,	
 	__lemon_in size_t blockSize)
 {
+
+#ifndef LEMON_MEMORY_MALLOC
 	chunk->Data = new lemon_byte_t[blockSize * UCHAR_MAX];
+#else
+	chunk->Data = (lemon_byte_t*)malloc(blockSize * UCHAR_MAX);
+#endif 
 
 	chunk->FirstAvailableBlock = 0;
 
@@ -38,7 +45,11 @@ LEMON_MEMORY_PRIVATE void
 
 LEMON_MEMORY_PRIVATE void LemonUninitializeMemoryChunk(LemonMemoryChunk * chunk)
 {
+#ifndef LEMON_MEMORY_MALLOC
 	delete[] chunk->Data;
+#else
+	free(chunk->Data);
+#endif 
 }
 
 
@@ -124,8 +135,11 @@ LEMON_MEMORY_API
 		allocator->Chunks = chunk->NextChunk;
 
 		LemonUninitializeMemoryChunk(chunk);
-
+#ifndef LEMON_MEMORY_MALLOC
 		delete chunk;
+#else
+		free(chunk);
+#endif //
 	};
 
 	LEMON_FREE_HANDLE(allocator);
@@ -157,8 +171,11 @@ LEMON_MEMORY_API
 	}
 
 	// last alloc new chunk
-
+#ifndef LEMON_MEMORY_MALLOC
 	LemonMemoryChunk * chunk = new LemonMemoryChunk();
+#else
+	LemonMemoryChunk * chunk = (LemonMemoryChunk*)malloc(sizeof(LemonMemoryChunk));
+#endif
 
 	LemonInitializeMemoryChunk(chunk,allocator->Chunks,blockSize);
 
