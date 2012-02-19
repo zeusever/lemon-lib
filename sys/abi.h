@@ -105,6 +105,8 @@ LEMON_SYS_API LemonUuid LEMON_UNITTEST_ERROR_CATALOG;
 #define LEMON_ALLOC_HANDLE(t,name)\
 	t name = new LEMON_HANDLE_STRUCT_NAME(t)();memset(name,0,sizeof(LEMON_HANDLE_STRUCT_NAME(t)));
 
+#define LEMON_HANDLE_EXTEND(name,base) struct LEMON_HANDLE_STRUCT_NAME(name) : public LEMON_HANDLE_STRUCT_NAME(base)
+
 #define LEMON_FREE_HANDLE(name) delete name
 
 #else
