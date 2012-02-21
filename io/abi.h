@@ -16,6 +16,8 @@ LEMON_DECLARE_HANDLE(LemonIo);
 
 LEMON_DECLARE_HANDLE(LemonIoData);
 
+LEMON_DECLARE_HANDLE(LemonSocket);
+
 LEMON_DECLARE_HANDLE(LemonIoDevice);
 
 typedef void(*LemonAsyncIoCallback)(

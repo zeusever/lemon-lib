@@ -10,5 +10,6 @@ assembly =
 	  NOT_SUPPORT_ASYNC = "current io object not support async io";
 	  NOT_SUPPORT_ADDRESS_FAMILY = "not support address";
 	  INVALID_ADDRESS_STRING = "invalid address string";
+	  FILE_NOT_FOUND = "invalid address string";
       };
    }

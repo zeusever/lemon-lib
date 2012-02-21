@@ -17,6 +17,14 @@ LEMON_IO_API
 
 	LemonFixObjectAllocator allocator = LEMON_HANDLE_NULL_VALUE;
 
+	LemonFixObjectAllocator acceptAllocator = LEMON_HANDLE_NULL_VALUE;
+
+	LemonMutex	allocatorMutex = LEMON_HANDLE_NULL_VALUE;
+
+	LemonMutex acceptAllocatorMutex = LEMON_HANDLE_NULL_VALUE;
+
+	HANDLE		timerQueue = NULL;
+
 	//LEMON_ALLOC_HANDLE(LemonIoDevice,ioDevice);
 
 	//create IOCP port
@@ -28,6 +36,15 @@ LEMON_IO_API
 
 		goto Error;
 	}
+
+	timerQueue = CreateTimerQueue();
+
+	if(NULL == timerQueue){
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+
+		goto Error;
+	}
+
 	//create fix object allocator
 	
 	allocator = LemonCreateFixObjectAllocator(sizeof(LEMON_HANDLE_STRUCT_NAME(LemonIoData)),errorCode);
@@ -39,21 +56,54 @@ LEMON_IO_API
 		goto Error;
 	}
 
+	acceptAllocator = LemonCreateFixObjectAllocator(sizeof(LEMON_HANDLE_STRUCT_NAME(LemonAcceptIoData)),errorCode);
+
+	if(LEMON_FAILED(*errorCode)){
+
+		acceptAllocator = LEMON_HANDLE_NULL_VALUE;
+
+		goto Error;
+	}
+
+	allocatorMutex = LemonCreateMutex(errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	acceptAllocatorMutex = LemonCreateMutex(errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
 	LEMON_ALLOC_HANDLE(LemonIoDevice,device);
 
 	device->Allocator = allocator;
+
+	device->AcceptAllocator = acceptAllocator;
 
 	device->CompletionPort = port;
 
 	device->WorkingThreads = 0;
 
+	device->AcceptAllocatorMutex = acceptAllocatorMutex;
+
+	device->AllocatorMutex = allocatorMutex;
+
+	device->TimerQueue = timerQueue;
+
 	return device;
 
 Error:
 
+	if(acceptAllocator) LemonReleaseFixObjectAllocator(acceptAllocator);
+
 	if(allocator) LemonReleaseFixObjectAllocator(allocator);
 
 	if(port) CloseHandle(port);
+
+	if(allocatorMutex) LemonReleaseMutex(allocatorMutex);
+
+	if(acceptAllocatorMutex) LemonReleaseMutex(acceptAllocatorMutex);
+
+	if(timerQueue) DeleteTimerQueue(timerQueue);
 
 	return LEMON_HANDLE_NULL_VALUE;
 }
@@ -66,7 +116,15 @@ LEMON_IO_API
 {
 	LemonReleaseFixObjectAllocator(device->Allocator);
 
+	LemonReleaseFixObjectAllocator(device->AcceptAllocator);
+
 	CloseHandle(device->CompletionPort);
+
+	LemonReleaseMutex(device->AcceptAllocatorMutex);
+
+	LemonReleaseMutex(device->AllocatorMutex);
+
+	DeleteTimerQueue(device->TimerQueue);
 
 	LEMON_FREE_HANDLE(device);
 }
@@ -111,7 +169,7 @@ LEMON_IO_API
 		
 		ioData->Callback(ioData->UserData,numberOfBytes,&ioErrorCode);
 
-		LemonReleaseIoData(ioData);
+		ioData->Release(ioData);
 	}
 
 	LemonAtomicDecrement(&device->WorkingThreads);
@@ -169,7 +227,13 @@ LEMON_IO_PRIVATE
 	__lemon_in void * userData,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
+	LemonMutexLock(device->AllocatorMutex,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) return LEMON_HANDLE_NULL_VALUE;
+
 	LemonIoData data = (LemonIoData)LemonFixObjectAlloc(device->Allocator);
+
+	LemonMutexUnLock(device->AllocatorMutex,errorCode);
 
 	if(NULL == data){
 
@@ -178,11 +242,15 @@ LEMON_IO_PRIVATE
 		return LEMON_HANDLE_NULL_VALUE;
 	}
 
+	memset(data,0,sizeof(LEMON_HANDLE_STRUCT_NAME(LemonIoData)));
+
 	data->Callback = callback;
 
 	data->UserData = userData;
 
 	data->IoDevice = device;
+
+	data->Release = &LemonReleaseIoData;
 
 	return data;
 }

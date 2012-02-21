@@ -21,15 +21,40 @@
 
 #define LEMON_IOCP_IO (ULONG_PTR)2
 
+#define LEMON_ACCEPTEX_ADDRESS_LENGTH (sizeof(sockaddr_in6) + 16)
+
 LEMON_IMPLEMENT_HANDLE(LemonIoData){
 	
 	OVERLAPPED					Overlapped;
+
+	void						(*Release)(LemonIoData data);
 
 	LemonAsyncIoCallback		Callback;
 
 	void						*UserData;	
 
 	LemonIoDevice				IoDevice;
+
+	WSABUF						Buffer;
+};
+
+LEMON_DECLARE_HANDLE(LemonAcceptIoData);
+
+LEMON_HANDLE_EXTEND(LemonAcceptIoData,LemonIoData){
+
+	LemonSocket				Listen;
+
+	LemonSocket				Peer;
+	
+	void					*AcceptUserData;
+
+	LemonAsyncIoCallback	AcceptCallback;
+
+	lemon_byte_t			AcceptBuffer[LEMON_ACCEPTEX_ADDRESS_LENGTH * 2];
+
+	struct sockaddr			*Address;
+
+	socklen_t				*AddressSize;
 };
 
 LEMON_IMPLEMENT_HANDLE(LemonIo){
@@ -53,10 +78,18 @@ LEMON_IMPLEMENT_HANDLE(LemonIoDevice){
 	//! Windows IOCP port. 
 	HANDLE						CompletionPort;
 
+	HANDLE						TimerQueue;
+
 	//! the working thread attach to the io device. 
 	lemon_atomic_t				WorkingThreads;
 
 	LemonFixObjectAllocator		Allocator;
+
+	LemonFixObjectAllocator		AcceptAllocator;
+
+	LemonMutex					AllocatorMutex;
+
+	LemonMutex					AcceptAllocatorMutex;
 };
 
 
