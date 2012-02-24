@@ -297,6 +297,18 @@ LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
 	}
 }
 
+LEMON_SYS_API lemon_thread_id_t LemonGetThreadId(LemonThread t)
+{
+	return t->Id;
+}
+
+LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	return ::GetCurrentThreadId();
+}
+
 //////////////////////////////////////////////////////////////////
 //atomic_t
 

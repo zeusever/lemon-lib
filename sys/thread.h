@@ -17,6 +17,12 @@ typedef pthread_key_t LemonTls;
 typedef unsigned int LemonTls;
 #endif 
 
+#ifdef WIN32
+typedef DWORD lemon_thread_id_t;
+#else
+typedef int	lemon_thread_id_t;
+#endif 
+
 LEMON_DECLARE_HANDLE(LemonMutex);
 
 LEMON_DECLARE_HANDLE(LemonThread);
@@ -78,6 +84,10 @@ LEMON_SYS_API
 LEMON_SYS_API void LemonReleaseThread(__lemon_in LemonThread t);
 
 LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode);
+
+LEMON_SYS_API lemon_thread_id_t LemonGetThreadId(LemonThread t);
+
+LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode);
 
 //////////////////////////////////////////////////////////////////
 //atomic_t
