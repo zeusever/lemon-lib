@@ -9,7 +9,7 @@ LEMON_SYS_API LemonRandomDevice LemonCreateRandomDevice(LemonErrorInfo * errorCo
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	const char * providerName = MS_DEF_PROV_A;
+	/*const char * providerName = MS_DEF_PROV_A;
 
 	char buffer[128] = {0};
 
@@ -20,7 +20,7 @@ LEMON_SYS_API LemonRandomDevice LemonCreateRandomDevice(LemonErrorInfo * errorCo
 	for(DWORD i = 0; ; ++ i)
 	{
 		length = sizeof(buffer);
-
+		
 		if(!::CryptEnumProvidersA(i,NULL,0,&type,buffer,&length))
 		{
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
@@ -29,11 +29,18 @@ LEMON_SYS_API LemonRandomDevice LemonCreateRandomDevice(LemonErrorInfo * errorCo
 		}
 
 		if(strcmp(buffer,providerName) == 0) break;
-	}
+	}*/
 
 	HCRYPTPROV handle;
 
-	if(!CryptAcquireContextA(&handle, NULL, providerName, type, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) 
+	/*if(!CryptAcquireContextA(&handle, NULL, providerName, type, CRYPT_VERIFYCONTEXT | CRYPT_SILENT)) 
+	{
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+
+		return NULL;
+	}*/
+
+	if(!CryptAcquireContext(&handle,NULL,NULL,PROV_RSA_FULL,CRYPT_VERIFYCONTEXT | CRYPT_SILENT))
 	{
 		LEMON_WIN32_ERROR(*errorCode,GetLastError());
 
