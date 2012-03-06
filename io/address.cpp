@@ -60,7 +60,7 @@ LEMON_IO_API void LemonAddressFromString(
 		return;
 	}
 
-	if(AF_INET6 == af && bufferSize < sizeof(in_addr6)){
+	if(AF_INET6 == af && bufferSize < sizeof(in6_addr)){
 		LEMON_USER_ERROR(*errorCode,LEMON_SYS_BUFFER_TOO_SMALL);
 
 		return;

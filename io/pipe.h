@@ -21,6 +21,13 @@ typedef enum LemonPipeOpenMode{
 }LemonPipeOpenMode;
 
 #else
+
+typedef enum LemonPipeOpenMode{
+	LEMON_PIPE_PUSH,
+	LEMON_PIPE_PULL,
+	LEMON_PIPE_DUPLEX
+}LemonPipeOpenMode;
+
 #endif
 
 LEMON_IO_API 

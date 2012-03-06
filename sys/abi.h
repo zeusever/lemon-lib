@@ -116,7 +116,7 @@ LEMON_SYS_API LemonUuid LEMON_UNITTEST_ERROR_CATALOG;
 
 #define LEMON_FREE_HANDLE(name) free(name)
 
-#endif __cplusplus
+#endif //__cplusplus
 
 
 #endif //LEMON_SYS_ABI_H
