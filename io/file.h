@@ -54,7 +54,48 @@ typedef enum LemonFileSeekType{
 #define LEMON_MAX_PATH MAX_PATH
 
 #else
+#include <limits.h>
+#include <stdio.h>
+#include <unistd.h>
 
+typedef enum LemonFileDesiredAccess{
+
+  LEMON_FILE_READ,
+	
+  LEMON_FILE_WRITE,
+	
+  LEMON_FILE_EXECUTE,
+
+  LEMON_FILE_ALL
+
+} LemonFileDesiredAccess;
+
+
+typedef enum LemonFileShareMode{
+  LEMON_FILE_SHARE_DELETE,
+  LEMON_FILE_SHARE_READ,
+  LEMON_FILE_SHARE_WRITE
+}LemonFileShareMode;
+
+typedef enum LemonFileCreationDisposition{
+  LEMON_FILE_CREATE_ALWAYS,
+  LEMON_FILE_CREATE_NEW,
+  LEMON_FILE_OPEN_ALWAYS,
+  LEMON_FILE_OPEN_EXISTING,
+  LEMON_FILE_TRUNCATE_EXISTING
+}LemonFileCreationDisposition;
+
+typedef enum LemonFileSeekType{
+
+  LemonFileBegin = SEEK_SET,
+
+  LemonFileCurrent = SEEK_CUR,
+
+  LemonFileEnd = SEEK_END
+
+}LemonFileSeekType;
+
+#define LEMON_MAX_PATH 4096
 
 #endif
 

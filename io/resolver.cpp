@@ -17,9 +17,14 @@ LEMON_IO_API
 
 	LEMON_ALLOC_HANDLE(LemonResovler,resolver);
 
-	if(0 != ::getaddrinfo(nodeName,serverName,NULL,&resolver->handle)){
-		
+	int ec = ::getaddrinfo(nodeName,serverName,NULL,&resolver->handle);
+
+	if(0 != ec){
+#ifdef WIN32	     
 		LEMON_WIN32_ERROR(*errorCode,WSAGetLastError());
+#else
+		LEMON_POSIX_ERROR(*errorCode,ec);
+#endif //UNIX
 		
 		LEMON_FREE_HANDLE(resolver);
 
