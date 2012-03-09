@@ -192,7 +192,7 @@ LEMON_IO_API
 			
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
 
-			return i - 1;
+			return i;
 		}
 	}
 

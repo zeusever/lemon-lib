@@ -113,7 +113,7 @@ LEMON_IO_API LemonDirectoryEnumerator LemonDirectoryChildren
 
 	searchString += "\\*";
 
-	LEMON_ALLOC_HANDLE(LemonDirectoryEnumerator,enumerator);
+	LemonDirectoryEnumerator enumerator = new LEMON_HANDLE_STRUCT_NAME(LemonDirectoryEnumerator)();
 
 	enumerator->path = searchString;
 
@@ -170,4 +170,179 @@ LEMON_IO_API void LemonReleaseDirectoryEnumerator(LemonDirectoryEnumerator enume
 
 
 #else
+#include <stdio.h>
+#include <errno.h>
+#include <unistd.h>
+#include <string.h>
+#include <dirent.h>
+#include <sys/stat.h>
+
+LEMON_IO_API
+	size_t
+	LemonGetCurrentDirectory(
+	__lemon_in char * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_inout LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	memset(buffer,0,bufferSize);
+
+	const char * result = getcwd(buffer,bufferSize);
+
+	if(NULL == result){
+
+		LEMON_POSIX_ERROR(*errorCode,errno);
+
+		return 0;
+	}
+
+	return strlen(result);
+}
+
+LEMON_IO_API void LemonSetCurrentDirectory(const char * directory,LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(0 != chdir(directory)){
+
+		LEMON_POSIX_ERROR(*errorCode,errno);
+	}
+}
+
+LEMON_IO_API void LemonRemoveDirectory(const char * directory,LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(rmdir(directory) != 0){
+
+		LEMON_POSIX_ERROR(*errorCode,errno);
+	}
+
+}
+
+LEMON_IO_API void LemonCreateDirectory(const char * directory,LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(0 != mkdir(directory,0777)){
+		LEMON_POSIX_ERROR(*errorCode,errno);
+	}
+}
+
+LEMON_IO_API lemon_bool LemonIsDirectory(const char * directory,LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	struct stat st;
+
+	if(0 != lstat(directory,&st)){
+
+		if(ENOENT != errno){
+
+			LEMON_POSIX_ERROR(*errorCode,errno);
+		}
+
+		return lemon_false;
+	}
+
+	return S_ISDIR(st.st_mode)?lemon_true:lemon_false;
+}
+
+LEMON_IO_API lemon_bool LemonCheckFileExist(const char * file,LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(0 != access(file,0)){
+
+		if(ENOENT != errno) LEMON_POSIX_ERROR(*errorCode,errno);
+
+		return lemon_false;
+	}
+
+	return lemon_true;
+}
+
+LEMON_IO_API void LemonDeleteFile(const char * file,LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(0 != unlink(file)){
+		LEMON_POSIX_ERROR(*errorCode,errno);
+	}
+}
+
+LEMON_IO_API void LemonMoveFile(const char * source,const char * target,LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(0 != rename(source,target)){
+
+		LEMON_POSIX_ERROR(*errorCode,errno);
+
+	}
+}
+
+LEMON_IMPLEMENT_HANDLE(LemonDirectoryEnumerator)
+{
+	DIR *Dir;
+
+	dirent * Entry;
+
+	std::string path;
+};
+
+LEMON_IO_API LemonDirectoryEnumerator LemonDirectoryChildren
+	(
+	const char * directory,
+	LemonErrorInfo * errorCode
+	)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	LemonDirectoryEnumerator enumerator = new LEMON_HANDLE_STRUCT_NAME(LemonDirectoryEnumerator)();
+
+	enumerator->path = directory;
+
+	enumerator->Dir = NULL;
+
+	return enumerator;
+
+}
+
+LEMON_IO_API const char* LemonDirectoryEnumeratorNext
+	(
+	LemonDirectoryEnumerator enumerator,
+	LemonErrorInfo * errorCode
+	)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(enumerator->Dir == NULL){
+
+		enumerator->Dir = opendir(enumerator->path.c_str());
+
+		if(NULL == enumerator->Dir ){
+
+			LEMON_POSIX_ERROR(*errorCode,errno);
+
+			return NULL;
+		}
+
+	}
+
+	enumerator->Entry = readdir(enumerator->Dir);
+
+	if(NULL == enumerator->Entry) return NULL;
+
+	return enumerator->Entry->d_name;
+}
+
+LEMON_IO_API void LemonReleaseDirectoryEnumerator(LemonDirectoryEnumerator enumerator)
+{
+	closedir(enumerator->Dir);
+
+	delete enumerator;
+}
+
 #endif //

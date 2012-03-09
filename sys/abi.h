@@ -100,6 +100,8 @@ LEMON_SYS_API LemonUuid LEMON_UNITTEST_ERROR_CATALOG;
 
 #define LEMON_CHECK_HANDLE(handle) (handle != LEMON_HANDLE_NULL_VALUE)
 
+#define LEMON_HANDLE_IMPLEMENT_SIZEOF(handle) sizeof(LEMON_HANDLE_STRUCT_NAME(handle))
+
 #ifdef __cplusplus
 
 #define LEMON_ALLOC_HANDLE(t,name)\

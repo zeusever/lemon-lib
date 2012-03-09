@@ -111,4 +111,8 @@ LEMON_IO_API
 	return LemonFileSeek(file,0,LemonFileCurrent,errorCode);
 }
 
+#else
+
+
+
 #endif //WIN32
