@@ -23,6 +23,8 @@
 #define __lemon_free
 
 #define __lemon_buffer(length)
+
+#define __lemon_nullable(val)
 //////////////////////////////////////////////////////////////////////////
 
 typedef struct LemonVersion{

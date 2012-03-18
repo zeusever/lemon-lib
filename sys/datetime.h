@@ -28,6 +28,10 @@ typedef struct LemonTime{
 	int Microseconds;
 }LemonTime;
 
+typedef int64_t LemonTimeDuration;
+
+#define LEMON_TIME_INFINITE (size)-1
+
 typedef struct LemonDateTime{
 	unsigned int Year;
 	unsigned int Month;
