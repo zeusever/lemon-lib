@@ -328,9 +328,11 @@ LEMON_IO_API
 
 	if(!WriteFile(io->Handle.FileHandle,&buffer[offset],(DWORD)writeSize,&written,(LPOVERLAPPED)data)){
 
-		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+		if(ERROR_IO_PENDING != GetLastError()){
+			LEMON_WIN32_ERROR(*errorCode,GetLastError()); 
 
-		goto Error;
+			goto Error;
+		}
 	}
 
 	return;
@@ -402,9 +404,11 @@ LEMON_IO_API
 
 	if(!ReadFile(io->Handle.FileHandle,&buffer[offset],(DWORD)readSize,NULL,(LPOVERLAPPED)data)){
 
-		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+		if(ERROR_IO_PENDING != GetLastError()){
+			LEMON_WIN32_ERROR(*errorCode,GetLastError()); 
 
-		goto Error;
+			goto Error;
+		}
 	}
 
 	return;

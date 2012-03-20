@@ -91,8 +91,11 @@ LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCo
 
 //////////////////////////////////////////////////////////////////
 //atomic_t
-
+#ifdef WIN32
+typedef volatile LONG lemon_atomic_t;
+#else
 typedef volatile lemon_int32_t lemon_atomic_t;
+#endif 
 
 LEMON_SYS_API lemon_int32_t LemonAtomicIncrement(lemon_atomic_t* source);
 
