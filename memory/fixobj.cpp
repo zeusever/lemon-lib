@@ -17,6 +17,11 @@ typedef struct LemonMemoryChunk{
 
 }LemonMemoryChunk;
 
+void BlockCheckSet(lemon_byte_t * block,size_t blockSize)
+{
+	memset(block,0xcd,blockSize);
+}
+
 LEMON_MEMORY_PRIVATE void 
 	LemonInitializeMemoryChunk(
 	__lemon_inout LemonMemoryChunk * chunk,
@@ -40,7 +45,9 @@ LEMON_MEMORY_PRIVATE void
 
 	for(lemon_byte_t i = 0; i != UCHAR_MAX; p += blockSize){
 
-		*p = ++ i;
+		BlockCheckSet(p,blockSize);
+
+		p[0] = ++ i;
 	}
 }
 
@@ -61,9 +68,11 @@ LEMON_MEMORY_PRIVATE void* LemonMemoryChunkAlloc(LemonMemoryChunk * chunk,size_t
 	lemon_byte_t * block = chunk->Data + chunk->FirstAvailableBlock * blockSize;
 
 	/// <summary> update the first available block.  </summary>
-	chunk->FirstAvailableBlock = *block;
+	chunk->FirstAvailableBlock = block[0];
 
 	-- chunk->AvailableBlocks;
+
+	memset(block,0,blockSize);
 
 	return block;
 }
@@ -75,8 +84,10 @@ LEMON_MEMORY_PRIVATE void LemonMemoryChunkFree(LemonMemoryChunk * chunk,void * b
 	lemon_byte_t * blockRelease = static_cast<lemon_byte_t*>(block);
 	//alignment check
 	assert((blockRelease - chunk->Data) % blockSize == 0);
+
+	BlockCheckSet(blockRelease,blockSize);
 	//update the next available link list
-	*blockRelease = chunk->FirstAvailableBlock;
+	blockRelease[0] = chunk->FirstAvailableBlock;
 	//update available blocks link list header
 	chunk->FirstAvailableBlock = static_cast<lemon_byte_t>((blockRelease - chunk->Data)/blockSize);
 	//truncation check

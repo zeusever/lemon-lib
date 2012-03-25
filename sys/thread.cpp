@@ -121,18 +121,12 @@ LEMON_IMPLEMENT_HANDLE(LemonConditionVariable){
 
 	HANDLE					Event;
 
-	LemonMutex				NotifyMutex;
-
 	lemon_atomic_t			BlockThreads;
 };
 
 LEMON_SYS_API LemonConditionVariable LemonCreateConditionVariable(__lemon_inout LemonErrorInfo * errorCode){
 
 	LEMON_RESET_ERRORINFO(*errorCode);
-
-	LemonMutex notifyMutex = LemonCreateMutex(errorCode);
-
-	if(LEMON_FAILED(*errorCode)) return LEMON_HANDLE_NULL_VALUE;
 
 	HANDLE ev = CreateEventW(NULL,FALSE,FALSE,NULL);
 
@@ -145,9 +139,9 @@ LEMON_SYS_API LemonConditionVariable LemonCreateConditionVariable(__lemon_inout 
 
 	LemonConditionVariable cv = new LEMON_HANDLE_STRUCT_NAME(LemonConditionVariable)();
 
-	cv->Event = ev;
+	cv->BlockThreads = 0;
 
-	cv->NotifyMutex = notifyMutex;
+	cv->Event = ev;
 
 	return cv;
 }
@@ -155,8 +149,6 @@ LEMON_SYS_API LemonConditionVariable LemonCreateConditionVariable(__lemon_inout 
 LEMON_SYS_API void LemonReleaseConditionVariable(__lemon_in LemonConditionVariable cv){
 
 	::CloseHandle(cv->Event);
-
-	LemonReleaseMutex(cv->NotifyMutex);
 
 	delete cv;
 }
@@ -168,69 +160,46 @@ LEMON_SYS_API void LemonConditionVariableWait(
 
 		LEMON_RESET_ERRORINFO(*errorCode);
 
-		LemonMutexUnLock(mutex,errorCode);
-
-		if(LEMON_FAILED(*errorCode)) return;
-
 		LemonAtomicIncrement(&cv->BlockThreads);
 
-		if(WAIT_OBJECT_0 != ::WaitForSingleObject(cv->Event,INFINITE)){
+		LemonMutexUnLock(mutex,errorCode);
 
-			LemonAtomicDecrement(&cv->BlockThreads);
+		if(LEMON_FAILED(*errorCode)) goto Error;
+
+		if(WAIT_OBJECT_0 != ::WaitForSingleObject(cv->Event,INFINITE)){
 
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
 		}
 
 		LemonMutexLock(mutex,errorCode);
+
+Error:
+		LemonAtomicDecrement(&cv->BlockThreads);
 }
 
 LEMON_SYS_API void LemonConditionVariableNotify(__lemon_in LemonConditionVariable  cv,LemonErrorInfo * errorCode){
+
 	LEMON_RESET_ERRORINFO(*errorCode);
-
-	if(LEMON_FAILED(*errorCode)) return;
-
-	LemonMutexLock(cv->NotifyMutex,errorCode);
-
-	if(LEMON_FAILED(*errorCode)) return;
-
-	if(0 == cv->BlockThreads) goto FINALLY;
 
 	if(!SetEvent(cv->Event)){
 
 		LEMON_WIN32_ERROR(*errorCode,GetLastError());
-
-		goto FINALLY;
 	}
-
-	LemonAtomicDecrement(&cv->BlockThreads);
-
-FINALLY:
-	LemonMutexUnLock(cv->NotifyMutex,errorCode);
 }
 
 LEMON_SYS_API void LemonConditionVariableNotifyAll(__lemon_in LemonConditionVariable  cv,LemonErrorInfo * errorCode){
 
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	LemonMutexLock(cv->NotifyMutex,errorCode);
-
-	if(LEMON_FAILED(*errorCode)) return;
-
-	while(cv->BlockThreads > 0){
+	for(size_t blockThreads = cv->BlockThreads;blockThreads != 0; -- blockThreads){
 
 		if(!SetEvent(cv->Event)){
 
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
 
-			goto FINALLY;
+			return;
 		}
-
-		LemonAtomicDecrement(&cv->BlockThreads);
-
 	}
-
-FINALLY:
-	LemonMutexUnLock(cv->NotifyMutex,errorCode);
 }
 
 //////////////////////////////////////////////////////////////////
