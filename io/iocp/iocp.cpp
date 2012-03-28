@@ -1,4 +1,4 @@
-
+#include <assert.h>
 #include <lemon/io/iocp/iocp.h>
 #include <lemon/sys/errorcode.h>
 #include <lemon/io/errorcode.h>
@@ -176,7 +176,7 @@ LEMON_IO_API
 }
 
 LEMON_IO_API
-	size_t LemonStopAllIoDeviceWorkThread(
+	void LemonStopAllIoDeviceWorkThread(
 	__lemon_in LemonIoDevice device,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
@@ -192,11 +192,9 @@ LEMON_IO_API
 			
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
 
-			return i;
+			return;
 		}
 	}
-
-	return workingThreads;
 }
 
 LEMON_IO_API 
@@ -260,7 +258,19 @@ LEMON_IO_PRIVATE
 	LemonReleaseIoData(
 	__lemon_free LemonIoData data)
 {
-	LemonFixObjectFree(data->IoDevice->Allocator,data);
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LemonIoDevice device = data->IoDevice;
+
+	LemonMutexLock(device->AllocatorMutex,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
+
+	LemonFixObjectFree(device->Allocator,data);
+
+	LemonMutexUnLock(device->AllocatorMutex,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
 }
 
 

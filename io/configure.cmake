@@ -2,7 +2,12 @@ include(CheckIncludeFiles)
 include(CheckFunctionExists)
 
 if(WIN32)
-  set(LEMON_ASYNC_IO_IOCP TRUE)
+  lemon_option(
+	LEMON_ASYNC_IO
+	DEFAULT IOCP
+	VALUES IOCP SELECT
+	DESCRIPTION "the library build type,for lemon_library_project function")
+
   set(LEMON_SUPPORT_IPV6 TRUE)
   return()
 endif(WIN32)

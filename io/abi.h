@@ -138,7 +138,7 @@ LEMON_IO_API
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 LEMON_IO_API
-	size_t LemonStopAllIoDeviceWorkThread(
+	void LemonStopAllIoDeviceWorkThread(
 	__lemon_in LemonIoDevice device,
 	__lemon_inout LemonErrorInfo *errorCode);
 

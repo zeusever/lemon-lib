@@ -1,4 +1,5 @@
 #cmakedefine LEMON_ASYNC_IO_IOCP
+#cmakedefine LEMON_ASYNC_IO_SELECT
 #cmakedefine LEMON_HAS_INET_NTOP
 #cmakedefine LEMON_HAS_INET_PTON
 #cmakedefine LEMON_SUPPORT_IPV6

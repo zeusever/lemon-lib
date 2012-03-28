@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <lemon/io/socket.h>
 #include <lemon/io/errorcode.h>
 #include <lemon/sys/errorcode.h>
@@ -53,7 +54,19 @@ LEMON_IO_PRIVATE
 	void 
 	LemonReleaseAcceptIoData(__lemon_free LemonIoData data)
 {
-	LemonFixObjectFree(data->IoDevice->AcceptAllocator,data);
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LemonIoDevice device = data->IoDevice;
+
+	LemonMutexLock(device->AllocatorMutex,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
+
+	LemonFixObjectFree(device->AcceptAllocator,data);
+
+	LemonMutexUnLock(device->AllocatorMutex,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
 }
 
 void LemonAcceptCallback(
@@ -101,7 +114,7 @@ void LemonAcceptCallback(
 
 	data->AcceptCallback(data->AcceptUserData,numberOfBytesTransferred,errorCode);
 
-	LemonReleaseAcceptIoData(data);
+	//LemonReleaseAcceptIoData(data);
 }
 
 LEMON_IO_PRIVATE 
