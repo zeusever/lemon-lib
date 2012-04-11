@@ -82,6 +82,7 @@ LEMON_SYS_API
 
 	if(0 == MultiByteToWideChar(CP_ACP,0,source,(int)sourceLength,buffer,required)){
 		LEMON_WIN32_ERROR(*ec,GetLastError());
+		delete buffer;
 		return 0;
 	}
 
@@ -92,6 +93,8 @@ LEMON_SYS_API
 	}else if(targetLength == 0){
 		LEMON_USER_ERROR(*ec,LEMON_SYS_BUFFER_TOO_SMALL);
 	}
+
+	delete buffer;
 
 	return (size_t)required;
 }
@@ -115,6 +118,7 @@ LEMON_SYS_API
 
 	if(0 == MultiByteToWideChar(CP_UTF8,0,source,(int)sourceLength,buffer,required)){
 		LEMON_WIN32_ERROR(*ec,GetLastError());
+		delete buffer;
 		return 0;
 	}
 	//
@@ -128,7 +132,56 @@ LEMON_SYS_API
 		LEMON_USER_ERROR(*ec,LEMON_SYS_BUFFER_TOO_SMALL);
 	}
 
+	delete buffer;
+
 	return (size_t)required;
+}
+
+LEMON_SYS_API 
+	size_t 
+	LemonUTF16ToLocale(
+	__lemon_in const lemon_utf16_t * source __lemon_buffer(sourceLength),
+	__lemon_in size_t sourceLength,
+	__lemon_in char * target __lemon_buffer(targetLength),
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo * ec)
+{
+	int required = WideCharToMultiByte(CP_ACP,0,source,(int)sourceLength,target,(int)targetLength,NULL,NULL);
+
+	if(0 == required){
+		LEMON_WIN32_ERROR(*ec,GetLastError());
+	}
+
+	return (size_t)required;
+}
+
+LEMON_SYS_API 
+	size_t 
+	LemonLocaleToUTF16(
+	__lemon_in const char * source __lemon_buffer(sourceLength),
+	__lemon_in size_t sourceLength,
+	__lemon_in lemon_utf16_t * target __lemon_buffer(targetLength),
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo * ec)
+{
+	int required = MultiByteToWideChar(CP_ACP,0,source,(int)sourceLength,target,(int)targetLength);
+	if(0 == required){
+		LEMON_WIN32_ERROR(*ec,GetLastError());
+	}
+
+	return (size_t)required;
+}
+
+LEMON_SYS_API
+	size_t LemonLocaleCodePageMaxCharSize(__lemon_inout LemonErrorInfo * ec)
+{
+	CPINFOEX info;
+
+	if(!GetCPInfoEx(CP_ACP,0,&info)){
+		LEMON_WIN32_ERROR(*ec,GetLastError());
+	}
+
+	return info.MaxCharSize;
 }
 
 #elif defined(LEMON_TEXT_CONVERTER_ICU)

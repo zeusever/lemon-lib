@@ -57,4 +57,26 @@ LEMON_SYS_API
 	__lemon_in size_t targetLength,
 	__lemon_inout LemonErrorInfo * ec);
 
+LEMON_SYS_API 
+	size_t 
+	LemonUTF16ToLocale(
+	__lemon_in const lemon_utf16_t * source __lemon_buffer(sourceLength),
+	__lemon_in size_t sourceLength,
+	__lemon_in char * target __lemon_buffer(targetLength),
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo * ec);
+
+
+LEMON_SYS_API 
+	size_t 
+	LemonLocaleToUTF16(
+	__lemon_in const char * source __lemon_buffer(sourceLength),
+	__lemon_in size_t sourceLength,
+	__lemon_in lemon_utf16_t * target __lemon_buffer(targetLength),
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo * ec);
+
+LEMON_SYS_API
+	size_t LemonLocaleCodePageMaxCharSize(__lemon_inout LemonErrorInfo * ec);
+
 #endif //LEMON_SYS_TEXT_H

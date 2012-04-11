@@ -28,71 +28,71 @@ LEMON_DECLARE_HANDLE(LemonDirectoryEnumerator);
  *@brief  Retrieves the current directory for the current process.
  *
  *@return	If the function succeeds, the return value specifies the number 
- *			of characters that are written to the buffer, not including the 
- *			terminating null character.If the function fails, the return 
+ *			of lemon_syschar_tacters that are written to the buffer, not including the 
+ *			terminating null lemon_syschar_tacter.If the function fails, the return 
  *			value is zero.If the buffer that is pointed to by buffer is not 
  *			large enough, the return value specifies the required size of 
- *			the buffer, in characters, including the null-terminating character. 
+ *			the buffer, in lemon_syschar_tacters, including the null-terminating lemon_syschar_tacter. 
  *			
  */
 LEMON_IO_API 
 	size_t		
 	LemonGetCurrentDirectory(
-	__lemon_in char * buffer __lemon_buffer(bufferSize),
+	__lemon_in lemon_syschar_t * buffer __lemon_buffer(bufferSize),
 	__lemon_in size_t bufferSize,
 	__lemon_inout LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
 	void						
 	LemonSetCurrentDirectory(
-	const char * directory,
+	const lemon_syschar_t * directory,
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
 	void						
 	LemonRemoveDirectory(
-	const char * directory,
+	const lemon_syschar_t * directory,
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
 	void						
 	LemonCreateDirectory(
-	const char * directory,
+	const lemon_syschar_t * directory,
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
 	lemon_bool				
 	LemonIsDirectory(
-	const char * directory,
+	const lemon_syschar_t * directory,
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
 	lemon_bool				
 	LemonCheckFileExist(
-	const char * file,
+	const lemon_syschar_t * file,
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
 	void						
 	LemonDeleteFile(
-	const char * file,
+	const lemon_syschar_t * file,
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
 	void						
 	LemonMoveFile(
-	const char * source,
-	const char * target,
+	const lemon_syschar_t * source,
+	const lemon_syschar_t * target,
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
 	LemonDirectoryEnumerator	
 	LemonDirectoryChildren(
-	const char * directory,
+	const lemon_syschar_t * directory,
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
-	const char *				
+	const lemon_syschar_t *				
 	LemonDirectoryEnumeratorNext(
 	LemonDirectoryEnumerator enumerator,
 	LemonErrorInfo * errorCode);

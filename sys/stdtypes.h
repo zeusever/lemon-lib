@@ -48,4 +48,12 @@ typedef lemon_int32_t lemon_bool;
 #define NULL 0
 #endif 
 
+#ifdef WIN32
+typedef wchar_t lemon_syschar_t;
+#define LEMON_TEXT(msg) L##msg
+#else
+typedef char lemon_syschar_t;
+#define LEMON_TEXT(msg) msg
+#endif
+
 #endif //LEMON_ABI_STDTYPES_H
