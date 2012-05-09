@@ -21,6 +21,22 @@ typedef lemon_int16_t lemon_utf16_t;
 typedef wchar_t lemon_utf32_t;
 #endif //LEMON_USE_BUILDIN_WCHAR_T_AS_CHAR_T
 
+#ifdef LEMON_CHAR_T_AS_UTF16
+
+typedef lemon_utf16_t lemon_char_t; 
+
+#define LEMON_TEXT(msg)  L##msg
+
+#else
+
+typedef lemon_utf8_t lemon_char_t;
+
+#define LEMON_TEXT(msg)  msg
+
+#endif
+
+
+
 #ifndef LEMON_HAS_STDBOOL_H
 
 typedef lemon_int32_t lemon_bool;
@@ -46,14 +62,6 @@ typedef lemon_int32_t lemon_bool;
 
 #ifndef NULL
 #define NULL 0
-#endif 
-
-#ifdef WIN32
-typedef wchar_t lemon_syschar_t;
-#define LEMON_TEXT(msg) L##msg
-#else
-typedef char lemon_syschar_t;
-#define LEMON_TEXT(msg) msg
 #endif
 
 #endif //LEMON_ABI_STDTYPES_H

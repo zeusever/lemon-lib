@@ -6,7 +6,7 @@
 LEMON_IO_API 
 	size_t		
 	LemonGetCurrentDirectory(
-	__lemon_in lemon_syschar_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in lemon_char_t * buffer __lemon_buffer(bufferSize),
 	__lemon_in size_t bufferSize,
 	__lemon_inout LemonErrorInfo * errorCode)
 {
@@ -21,7 +21,7 @@ LEMON_IO_API
 	return length;
 }
 
-LEMON_IO_API void LemonSetCurrentDirectory(const lemon_syschar_t * directory,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonSetCurrentDirectory(const lemon_char_t * directory,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -31,7 +31,7 @@ LEMON_IO_API void LemonSetCurrentDirectory(const lemon_syschar_t * directory,Lem
 	}
 }
 
-LEMON_IO_API void LemonRemoveDirectory(const lemon_syschar_t * directory,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonRemoveDirectory(const lemon_char_t * directory,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -42,7 +42,7 @@ LEMON_IO_API void LemonRemoveDirectory(const lemon_syschar_t * directory,LemonEr
 
 }
 
-LEMON_IO_API void LemonCreateDirectory(const lemon_syschar_t * directory,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonCreateDirectory(const lemon_char_t * directory,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -52,7 +52,7 @@ LEMON_IO_API void LemonCreateDirectory(const lemon_syschar_t * directory,LemonEr
 	} 
 }
 
-LEMON_IO_API lemon_bool LemonIsDirectory(const lemon_syschar_t * directory,LemonErrorInfo * errorCode)
+LEMON_IO_API lemon_bool LemonIsDirectory(const lemon_char_t * directory,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -61,7 +61,7 @@ LEMON_IO_API lemon_bool LemonIsDirectory(const lemon_syschar_t * directory,Lemon
 	return ((FILE_ATTRIBUTE_DIRECTORY & attributes) == FILE_ATTRIBUTE_DIRECTORY)?lemon_true:lemon_false;
 }
 
-LEMON_IO_API lemon_bool LemonCheckFileExist(const lemon_syschar_t * file,LemonErrorInfo * errorCode)
+LEMON_IO_API lemon_bool LemonCheckFileExist(const lemon_char_t * file,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -70,7 +70,7 @@ LEMON_IO_API lemon_bool LemonCheckFileExist(const lemon_syschar_t * file,LemonEr
 	return (INVALID_FILE_ATTRIBUTES != attributes)?lemon_true:lemon_false;
 }
 
-LEMON_IO_API void LemonDeleteFile(const lemon_syschar_t * file,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonDeleteFile(const lemon_char_t * file,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -80,7 +80,7 @@ LEMON_IO_API void LemonDeleteFile(const lemon_syschar_t * file,LemonErrorInfo * 
 	}
 }
 
-LEMON_IO_API void LemonMoveFile(const lemon_syschar_t * source,const lemon_syschar_t * target,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonMoveFile(const lemon_char_t * source,const lemon_char_t * target,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -103,7 +103,7 @@ LEMON_IMPLEMENT_HANDLE(LemonDirectoryEnumerator)
 
 LEMON_IO_API LemonDirectoryEnumerator LemonDirectoryChildren
 	(
-	const lemon_syschar_t * directory,
+	const lemon_char_t * directory,
 	LemonErrorInfo * errorCode
 	)
 {
@@ -123,7 +123,7 @@ LEMON_IO_API LemonDirectoryEnumerator LemonDirectoryChildren
 
 }
 
-LEMON_IO_API const lemon_syschar_t* LemonDirectoryEnumeratorNext
+LEMON_IO_API const lemon_char_t* LemonDirectoryEnumeratorNext
 	(
 	LemonDirectoryEnumerator enumerator,
 	LemonErrorInfo * errorCode
@@ -180,7 +180,7 @@ LEMON_IO_API void LemonReleaseDirectoryEnumerator(LemonDirectoryEnumerator enume
 LEMON_IO_API
 	size_t
 	LemonGetCurrentDirectory(
-	__lemon_in lemon_syschar_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in lemon_char_t * buffer __lemon_buffer(bufferSize),
 	__lemon_in size_t bufferSize,
 	__lemon_inout LemonErrorInfo * errorCode)
 {
@@ -188,7 +188,7 @@ LEMON_IO_API
 
 	memset(buffer,0,bufferSize);
 
-	const lemon_syschar_t * result = getcwd(buffer,bufferSize);
+	const lemon_char_t * result = getcwd(buffer,bufferSize);
 
 	if(NULL == result){
 
@@ -200,7 +200,7 @@ LEMON_IO_API
 	return strlen(result);
 }
 
-LEMON_IO_API void LemonSetCurrentDirectory(const lemon_syschar_t * directory,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonSetCurrentDirectory(const lemon_char_t * directory,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -210,7 +210,7 @@ LEMON_IO_API void LemonSetCurrentDirectory(const lemon_syschar_t * directory,Lem
 	}
 }
 
-LEMON_IO_API void LemonRemoveDirectory(const lemon_syschar_t * directory,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonRemoveDirectory(const lemon_char_t * directory,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -221,7 +221,7 @@ LEMON_IO_API void LemonRemoveDirectory(const lemon_syschar_t * directory,LemonEr
 
 }
 
-LEMON_IO_API void LemonCreateDirectory(const lemon_syschar_t * directory,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonCreateDirectory(const lemon_char_t * directory,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -230,7 +230,7 @@ LEMON_IO_API void LemonCreateDirectory(const lemon_syschar_t * directory,LemonEr
 	}
 }
 
-LEMON_IO_API lemon_bool LemonIsDirectory(const lemon_syschar_t * directory,LemonErrorInfo * errorCode)
+LEMON_IO_API lemon_bool LemonIsDirectory(const lemon_char_t * directory,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -249,7 +249,7 @@ LEMON_IO_API lemon_bool LemonIsDirectory(const lemon_syschar_t * directory,Lemon
 	return S_ISDIR(st.st_mode)?lemon_true:lemon_false;
 }
 
-LEMON_IO_API lemon_bool LemonCheckFileExist(const lemon_syschar_t * file,LemonErrorInfo * errorCode)
+LEMON_IO_API lemon_bool LemonCheckFileExist(const lemon_char_t * file,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -263,7 +263,7 @@ LEMON_IO_API lemon_bool LemonCheckFileExist(const lemon_syschar_t * file,LemonEr
 	return lemon_true;
 }
 
-LEMON_IO_API void LemonDeleteFile(const lemon_syschar_t * file,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonDeleteFile(const lemon_char_t * file,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -272,7 +272,7 @@ LEMON_IO_API void LemonDeleteFile(const lemon_syschar_t * file,LemonErrorInfo * 
 	}
 }
 
-LEMON_IO_API void LemonMoveFile(const lemon_syschar_t * source,const lemon_syschar_t * target,LemonErrorInfo * errorCode)
+LEMON_IO_API void LemonMoveFile(const lemon_char_t * source,const lemon_char_t * target,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -294,7 +294,7 @@ LEMON_IMPLEMENT_HANDLE(LemonDirectoryEnumerator)
 
 LEMON_IO_API LemonDirectoryEnumerator LemonDirectoryChildren
 	(
-	const lemon_syschar_t * directory,
+	const lemon_char_t * directory,
 	LemonErrorInfo * errorCode
 	)
 {
@@ -310,7 +310,7 @@ LEMON_IO_API LemonDirectoryEnumerator LemonDirectoryChildren
 
 }
 
-LEMON_IO_API const lemon_syschar_t* LemonDirectoryEnumeratorNext
+LEMON_IO_API const lemon_char_t* LemonDirectoryEnumeratorNext
 	(
 	LemonDirectoryEnumerator enumerator,
 	LemonErrorInfo * errorCode
