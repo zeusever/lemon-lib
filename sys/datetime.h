@@ -23,9 +23,9 @@
 
 typedef struct LemonTime{
 	//! the seconds. 
-	time_t Seconds;
+	time_t			Seconds;
 	//! the microseconds. 
-	int Microseconds;
+	lemon_int32_t	Microseconds;
 }LemonTime;
 
 typedef int64_t LemonTimeDuration;

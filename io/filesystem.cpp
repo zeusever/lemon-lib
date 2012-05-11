@@ -80,6 +80,21 @@ LEMON_IO_API void LemonDeleteFile(const lemon_char_t * file,LemonErrorInfo * err
 	}
 }
 
+LEMON_IO_API 
+	void						
+	LemonCopyFile(
+	const lemon_char_t * source,
+	const lemon_char_t * target,
+	LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(!::CopyFileW(source,target,TRUE))
+	{
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+	}
+}
+
 LEMON_IO_API void LemonMoveFile(const lemon_char_t * source,const lemon_char_t * target,LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);

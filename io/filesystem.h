@@ -86,6 +86,13 @@ LEMON_IO_API
 	LemonErrorInfo * errorCode);
 
 LEMON_IO_API 
+	void						
+	LemonCopyFile(
+	const lemon_char_t * source,
+	const lemon_char_t * target,
+	LemonErrorInfo * errorCode);
+
+LEMON_IO_API 
 	LemonDirectoryEnumerator	
 	LemonDirectoryChildren(
 	const lemon_char_t * directory,

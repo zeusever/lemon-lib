@@ -63,6 +63,26 @@ LEMON_SYS_API
 
 #ifdef LEMON_TEXT_CONVERTER_WIN32
 
+LEMON_SYS_API
+	size_t LemonToASCII(
+	__lemon_in const lemon_char_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_byte_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	size_t length = WideCharToMultiByte(CP_ACP,0,source,(int)sourceLength,(LPSTR)target,(int)targetLength,NULL,NULL);
+
+	if(0 == length)
+	{
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+	}
+
+	return length;
+}
+
 
 #elif defined(LEMON_TEXT_CONVERTER_ICU)
 #	error "not implement"

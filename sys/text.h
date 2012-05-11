@@ -24,4 +24,12 @@ LEMON_SYS_API
 	__lemon_in const char * source,
 	__lemon_inout lemon_byte_t * val);
 
+LEMON_SYS_API
+	size_t LemonToASCII(
+	__lemon_in const lemon_char_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_byte_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode);
+
 #endif //LEMON_SYS_TEXT_H
