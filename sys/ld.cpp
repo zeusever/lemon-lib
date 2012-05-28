@@ -4,12 +4,12 @@
 LEMON_SYS_API 
 	LemonDLL 
 	LemonLoadLibrary(
-	__lemon_in const char *path,
+	__lemon_in const lemon_char_t *path,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	HMODULE module = ::LoadLibraryA(path);
+	HMODULE module = ::LoadLibraryW(path);
 
 	if(NULL == module){
 		LEMON_WIN32_ERROR(*errorCode,GetLastError());

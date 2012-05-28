@@ -28,7 +28,7 @@ LEMON_DECLARE_HANDLE(LemonDLL);
 LEMON_SYS_API 
 	LemonDLL 
 	LemonLoadLibrary(
-	__lemon_in const char *path,
+	__lemon_in const lemon_char_t *path,
 	__lemon_inout LemonErrorInfo *errorCode);
 
 
