@@ -1,0 +1,61 @@
+/**
+* 
+* @file     ringbuffer
+* @brief    Copyright (C) 2012  yayanyang All Rights Reserved 
+* @author   yayanyang
+* @version  1.0.0.0  
+* @date     2012/06/01
+*/
+#ifndef LEMON_MEMORY_RINGBUFFER_H
+#define LEMON_MEMORY_RINGBUFFER_H
+#include <lemon/sys/abi.h>
+#include <lemon/memory/configure.h>
+
+LEMON_DECLARE_HANDLE(LemonRingBuffer);
+
+LEMON_MEMORY_API 
+	LemonRingBuffer 
+	LemonCreateRingBuffer(
+	__lemon_in size_t blocks,
+	__lemon_in size_t blockSize,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_MEMORY_API
+	void LemonReleaseRingBuffer(__lemon_free LemonRingBuffer ringBuffer);
+
+
+LEMON_MEMORY_API
+	void*
+	LemonRingBufferWriteFront(
+	__lemon_in LemonRingBuffer buffer,
+	__lemon_in void * data,
+	__lemon_in size_t dataLength);
+
+LEMON_MEMORY_API
+	void*
+	LemonRingBufferWriteBack(
+	__lemon_in LemonRingBuffer buffer,
+	__lemon_in void * data,
+	__lemon_in size_t dataLength);
+
+
+LEMON_MEMORY_API
+	void
+	LemonRingBufferDirectWrite(
+	__lemon_in LemonRingBuffer buffer,
+	__lemon_in void * block,
+	__lemon_in void * data,
+	__lemon_in size_t dataLength);
+
+LEMON_MEMORY_API
+	void *
+	LemonRingBufferReadBack(
+	__lemon_in LemonRingBuffer buffer);
+
+LEMON_MEMORY_API
+	void *
+	LemonRingBufferReadFront(
+	__lemon_in LemonRingBuffer buffer);
+
+
+#endif //LEMON_MEMORY_RINGBUFFER_H
