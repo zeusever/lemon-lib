@@ -38,6 +38,8 @@ LEMON_MEMORY_API
 	__lemon_in size_t blockSize,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
+	LEMON_RESET_ERRORINFO(*errorCode);
+
 	LEMON_ALLOC_HANDLE(LemonRingBuffer,buffer);
 
 	size_t realBlockSize = blockSize + sizeof(LemonRingBufferBlock);
@@ -84,6 +86,8 @@ LEMON_MEMORY_API
 		page = page->Next;
 	}
 
+	buffer->Front->Prev = buffer->Back;
+
 	buffer->Back->Next = buffer->Front;
 
 	buffer->ValidBlocks = blocks;
@@ -102,7 +106,7 @@ LEMON_MEMORY_API
 
 		page = page->Next;
 
-		delete [] page;
+		delete [] current;
 	}
 
 	LEMON_FREE_HANDLE(ringBuffer);
