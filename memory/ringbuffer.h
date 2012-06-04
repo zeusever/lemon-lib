@@ -18,6 +18,7 @@ LEMON_MEMORY_API
 	LemonCreateRingBuffer(
 	__lemon_in size_t blocks,
 	__lemon_in size_t blockSize,
+	__lemon_in size_t blocksPerPage,
 	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_MEMORY_API
@@ -42,7 +43,6 @@ LEMON_MEMORY_API
 LEMON_MEMORY_API
 	void
 	LemonRingBufferDirectWrite(
-	__lemon_in LemonRingBuffer buffer,
 	__lemon_in void * block,
 	__lemon_in void * data,
 	__lemon_in size_t dataLength);
@@ -56,6 +56,9 @@ LEMON_MEMORY_API
 	void *
 	LemonRingBufferReadFront(
 	__lemon_in LemonRingBuffer buffer);
+
+LEMON_MEMORY_API
+	size_t LemonRingBufferCapacity(__lemon_in LemonRingBuffer buffer);
 
 
 #endif //LEMON_MEMORY_RINGBUFFER_H

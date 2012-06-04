@@ -1,3 +1,6 @@
+#include <assert.h>
+#include <memory.h>
+#include <stddef.h>
 #include <lemon/memory/ringbuffer.h>
 
 #define LEMON_RING_BUFFER_PAGE_SIZE 1024 * 1024
@@ -27,6 +30,8 @@ LEMON_IMPLEMENT_HANDLE(LemonRingBuffer){
 	size_t					ValidBlocks;
 
 	size_t					BlockSize;
+
+	size_t					PageSize;
 };
 
 
@@ -36,23 +41,26 @@ LEMON_MEMORY_API
 	LemonCreateRingBuffer(
 	__lemon_in size_t blocks,
 	__lemon_in size_t blockSize,
+	__lemon_in size_t blocksPerPage,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
 	LEMON_ALLOC_HANDLE(LemonRingBuffer,buffer);
 
+	buffer->BlockSize = blockSize;
+
 	size_t realBlockSize = blockSize + sizeof(LemonRingBufferBlock);
 
-	size_t blocksPerPage = (LEMON_RING_BUFFER_PAGE_SIZE - sizeof(LemonRingBufferPage))/ realBlockSize;
+	buffer->PageSize  = realBlockSize * blocksPerPage;
 
-	size_t pages = (blocks + blocksPerPage)/ blocksPerPage;
+	size_t pages = blocks / blocksPerPage + blocks % blocksPerPage ? 1 : 0;
 
 	for(size_t i = 0 ; i < pages; ++ i)
 	{
-		LemonRingBufferPage * page = (LemonRingBufferPage *) new lemon_byte_t[LEMON_RING_BUFFER_PAGE_SIZE];
+		LemonRingBufferPage * page = (LemonRingBufferPage *) new lemon_byte_t[buffer->PageSize];
 
-		memset(page,0,LEMON_RING_BUFFER_PAGE_SIZE);
+		memset(page,0,buffer->PageSize);
 
 		if(buffer->Pages)
 		{
@@ -90,7 +98,7 @@ LEMON_MEMORY_API
 
 	buffer->Back->Next = buffer->Front;
 
-	buffer->ValidBlocks = blocks;
+	buffer->ValidBlocks = pages * blocksPerPage;
 
 	return buffer;
 }
@@ -113,50 +121,102 @@ LEMON_MEMORY_API
 }
 
 
-//LEMON_MEMORY_API
-//	void*
-//	LemonRingBufferWriteFront(
-//	__lemon_in LemonRingBuffer buffer,
-//	__lemon_in void * data,
-//	__lemon_in size_t dataLength)
-//{
+LEMON_MEMORY_API
+	void*
+	LemonRingBufferWriteFront(
+	__lemon_in LemonRingBuffer buffer,
+	__lemon_in void * data,
+	__lemon_in size_t dataLength)
+{
+	LemonRingBufferBlock *current = buffer->Front;
+
+	if(buffer->ValidBlocks == 0)
+	{
+		buffer->Front = buffer->Front->Next;
+
+		buffer->Back = buffer->Back->Next;
+
+		return current->Block;
+	}
+	else
+	{
+		buffer->Front = buffer->Front->Next;
+
+		memcpy(current->Block,data,dataLength);
+
+		-- buffer->ValidBlocks;
+
+		return NULL;
+	}
+}
 //
-//}
+LEMON_MEMORY_API
+	void*
+	LemonRingBufferWriteBack(
+	__lemon_in LemonRingBuffer buffer,
+	__lemon_in void * data,
+	__lemon_in size_t dataLength)
+{
+	LemonRingBufferBlock *current = buffer->Back;
+
+	if(buffer->ValidBlocks == 0)
+	{
+		buffer->Front = buffer->Front->Prev;
+
+		buffer->Back = buffer->Back->Prev;
+
+		return current->Block;
+	}
+	else
+	{
+		buffer->Back = buffer->Back->Prev;
+
+		memcpy(current->Block,data,dataLength);
+
+		-- buffer->ValidBlocks;
+
+		return NULL;
+	}
+}
 //
-//LEMON_MEMORY_API
-//	void*
-//	LemonRingBufferWriteBack(
-//	__lemon_in LemonRingBuffer buffer,
-//	__lemon_in void * data,
-//	__lemon_in size_t dataLength)
-//{
 //
-//}
+LEMON_MEMORY_API
+	void
+	LemonRingBufferDirectWrite(
+	__lemon_in void * block,
+	__lemon_in void * data,
+	__lemon_in size_t dataLength)
+{
+	memcpy(block,data,dataLength);
+}
 //
+LEMON_MEMORY_API
+	void *
+	LemonRingBufferReadBack(
+	__lemon_in LemonRingBuffer buffer)
+{
+	buffer->Back = buffer->Back->Next;
+
+	buffer->ValidBlocks ++ ;
+
+	return buffer->Back->Block;
+}
 //
-//LEMON_MEMORY_API
-//	void
-//	LemonRingBufferDirectWrite(
-//	__lemon_in LemonRingBuffer buffer,
-//	__lemon_in void * block,
-//	__lemon_in void * data,
-//	__lemon_in size_t dataLength)
-//{
-//
-//}
-//
-//LEMON_MEMORY_API
-//	void *
-//	LemonRingBufferReadBack(
-//	__lemon_in LemonRingBuffer buffer)
-//{
-//
-//}
-//
-//LEMON_MEMORY_API
-//	void *
-//	LemonRingBufferReadFront(
-//	__lemon_in LemonRingBuffer buffer)
-//{
-//
-//}
+LEMON_MEMORY_API
+	void *
+	LemonRingBufferReadFront(
+	__lemon_in LemonRingBuffer buffer)
+{
+	buffer->Front = buffer->Front->Prev;
+
+	buffer->ValidBlocks ++ ;
+
+	return buffer->Front->Block;
+}
+
+
+LEMON_MEMORY_API
+	size_t LemonRingBufferCapacity(__lemon_in LemonRingBuffer buffer)
+{
+	return buffer->ValidBlocks;
+}
