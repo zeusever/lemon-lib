@@ -29,6 +29,8 @@ LEMON_IMPLEMENT_HANDLE(LemonRingBuffer){
 
 	size_t					ValidBlocks;
 
+	size_t					Capacity;
+
 	size_t					BlockSize;
 
 	size_t					PageSize;
@@ -98,7 +100,7 @@ LEMON_MEMORY_API
 
 	buffer->Back->Next = buffer->Front;
 
-	buffer->ValidBlocks = pages * blocksPerPage;
+	buffer->Capacity = buffer->ValidBlocks = pages * blocksPerPage;
 
 	return buffer;
 }
@@ -218,5 +220,11 @@ LEMON_MEMORY_API
 LEMON_MEMORY_API
 	size_t LemonRingBufferCapacity(__lemon_in LemonRingBuffer buffer)
 {
-	return buffer->ValidBlocks;
+	return buffer->Capacity;
+}
+
+LEMON_MEMORY_API
+	size_t LemonRingBufferLength(__lemon_in LemonRingBuffer buffer)
+{
+	 return buffer->Capacity - buffer->ValidBlocks;
 }

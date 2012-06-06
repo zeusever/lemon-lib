@@ -60,5 +60,8 @@ LEMON_MEMORY_API
 LEMON_MEMORY_API
 	size_t LemonRingBufferCapacity(__lemon_in LemonRingBuffer buffer);
 
+LEMON_MEMORY_API
+	size_t LemonRingBufferLength(__lemon_in LemonRingBuffer buffer);
+
 
 #endif //LEMON_MEMORY_RINGBUFFER_H
