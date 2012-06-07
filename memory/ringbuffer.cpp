@@ -197,6 +197,8 @@ LEMON_MEMORY_API
 	LemonRingBufferReadBack(
 	__lemon_in LemonRingBuffer buffer)
 {
+	if(LemonRingBufferLength(buffer) == 0) return NULL;
+
 	buffer->Back = buffer->Back->Next;
 
 	buffer->ValidBlocks ++ ;
@@ -209,6 +211,8 @@ LEMON_MEMORY_API
 	LemonRingBufferReadFront(
 	__lemon_in LemonRingBuffer buffer)
 {
+	if(LemonRingBufferLength(buffer) == 0) return NULL;
+
 	buffer->Front = buffer->Front->Prev;
 
 	buffer->ValidBlocks ++ ;
