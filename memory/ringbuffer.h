@@ -13,6 +13,8 @@
 
 LEMON_DECLARE_HANDLE(LemonRingBuffer);
 
+LEMON_DECLARE_HANDLE(LemonRingBufferIterator);
+
 LEMON_MEMORY_API 
 	LemonRingBuffer 
 	LemonCreateRingBuffer(
@@ -56,6 +58,32 @@ LEMON_MEMORY_API
 	void *
 	LemonRingBufferReadFront(
 	__lemon_in LemonRingBuffer buffer);
+
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferFront(
+	__lemon_in LemonRingBuffer buffer);
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferBack(
+	__lemon_in LemonRingBuffer buffer);
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferIteratorIncrement(
+	__lemon_in LemonRingBufferIterator iter);
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferIteratorDecrement(
+	__lemon_in LemonRingBufferIterator iter);
+
+LEMON_MEMORY_API
+	void *
+	LemonRingBufferIteratorDereference(
+	__lemon_in LemonRingBufferIterator iter);
 
 LEMON_MEMORY_API
 	size_t LemonRingBufferCapacity(__lemon_in LemonRingBuffer buffer);

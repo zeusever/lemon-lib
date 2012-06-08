@@ -232,3 +232,43 @@ LEMON_MEMORY_API
 {
 	 return buffer->Capacity - buffer->ValidBlocks;
 }
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferFront(
+	__lemon_in LemonRingBuffer buffer)
+{
+	return (LemonRingBufferIterator)buffer->Front;
+}
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferBack(
+	__lemon_in LemonRingBuffer buffer)
+{
+	return (LemonRingBufferIterator)buffer->Back;
+}
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferIteratorIncrement(
+	__lemon_in LemonRingBufferIterator iter)
+{
+	return (LemonRingBufferIterator)((LemonRingBufferBlock*)iter)->Next;
+}
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferIteratorDecrement(
+	__lemon_in LemonRingBufferIterator iter)
+{
+	return (LemonRingBufferIterator)((LemonRingBufferBlock*)iter)->Prev;
+}
+
+LEMON_MEMORY_API
+	void *
+	LemonRingBufferIteratorDereference(
+	__lemon_in LemonRingBufferIterator iter)
+{
+	return ((LemonRingBufferBlock*)iter)->Block;
+}
