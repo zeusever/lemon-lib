@@ -70,6 +70,12 @@ LEMON_MEMORY_API
 	LemonRingBufferBack(
 	__lemon_in LemonRingBuffer buffer);
 
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferEnd(
+	__lemon_in LemonRingBuffer buffer);
+
 LEMON_MEMORY_API
 	LemonRingBufferIterator
 	LemonRingBufferIteratorIncrement(

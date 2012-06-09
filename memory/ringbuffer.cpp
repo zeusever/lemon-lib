@@ -238,7 +238,7 @@ LEMON_MEMORY_API
 	LemonRingBufferFront(
 	__lemon_in LemonRingBuffer buffer)
 {
-	return (LemonRingBufferIterator)buffer->Front;
+	return (LemonRingBufferIterator)buffer->Front->Prev;
 }
 
 LEMON_MEMORY_API
@@ -246,7 +246,7 @@ LEMON_MEMORY_API
 	LemonRingBufferBack(
 	__lemon_in LemonRingBuffer buffer)
 {
-	return (LemonRingBufferIterator)buffer->Back;
+	return (LemonRingBufferIterator)buffer->Back->Next;
 }
 
 LEMON_MEMORY_API
@@ -254,7 +254,7 @@ LEMON_MEMORY_API
 	LemonRingBufferIteratorIncrement(
 	__lemon_in LemonRingBufferIterator iter)
 {
-	return (LemonRingBufferIterator)((LemonRingBufferBlock*)iter)->Next;
+	return (LemonRingBufferIterator)((LemonRingBufferBlock*)iter)->Prev;
 }
 
 LEMON_MEMORY_API
@@ -262,7 +262,7 @@ LEMON_MEMORY_API
 	LemonRingBufferIteratorDecrement(
 	__lemon_in LemonRingBufferIterator iter)
 {
-	return (LemonRingBufferIterator)((LemonRingBufferBlock*)iter)->Prev;
+	return (LemonRingBufferIterator)((LemonRingBufferBlock*)iter)->Next;
 }
 
 LEMON_MEMORY_API
@@ -271,4 +271,12 @@ LEMON_MEMORY_API
 	__lemon_in LemonRingBufferIterator iter)
 {
 	return ((LemonRingBufferBlock*)iter)->Block;
+}
+
+LEMON_MEMORY_API
+	LemonRingBufferIterator
+	LemonRingBufferEnd(
+	__lemon_in LemonRingBuffer buffer)
+{
+	return (LemonRingBufferIterator)buffer->Back;
 }
