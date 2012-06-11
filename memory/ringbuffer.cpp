@@ -100,6 +100,8 @@ LEMON_MEMORY_API
 
 	buffer->Back->Next = buffer->Front;
 
+	buffer->Front = buffer->Back;
+
 	buffer->Capacity = buffer->ValidBlocks = pages * blocksPerPage;
 
 	return buffer;
@@ -159,21 +161,19 @@ LEMON_MEMORY_API
 	__lemon_in void * data,
 	__lemon_in size_t dataLength)
 {
-	LemonRingBufferBlock *current = buffer->Back;
-
 	if(buffer->ValidBlocks == 0)
 	{
 		buffer->Front = buffer->Front->Prev;
 
 		buffer->Back = buffer->Back->Prev;
 
-		return current->Block;
+		return buffer->Back->Block;
 	}
 	else
 	{
 		buffer->Back = buffer->Back->Prev;
 
-		memcpy(current->Block,data,dataLength);
+		memcpy(buffer->Back->Block,data,dataLength);
 
 		-- buffer->ValidBlocks;
 
@@ -199,11 +199,13 @@ LEMON_MEMORY_API
 {
 	if(LemonRingBufferLength(buffer) == 0) return NULL;
 
+	LemonRingBufferBlock * val = buffer->Back;
+
 	buffer->Back = buffer->Back->Next;
 
 	buffer->ValidBlocks ++ ;
 
-	return buffer->Back->Block;
+	return val->Block;
 }
 //
 LEMON_MEMORY_API
@@ -246,7 +248,7 @@ LEMON_MEMORY_API
 	LemonRingBufferBack(
 	__lemon_in LemonRingBuffer buffer)
 {
-	return (LemonRingBufferIterator)buffer->Back->Next;
+	return (LemonRingBufferIterator)buffer->Back;
 }
 
 LEMON_MEMORY_API
@@ -271,12 +273,4 @@ LEMON_MEMORY_API
 	__lemon_in LemonRingBufferIterator iter)
 {
 	return ((LemonRingBufferBlock*)iter)->Block;
-}
-
-LEMON_MEMORY_API
-	LemonRingBufferIterator
-	LemonRingBufferEnd(
-	__lemon_in LemonRingBuffer buffer)
-{
-	return (LemonRingBufferIterator)buffer->Back;
 }
