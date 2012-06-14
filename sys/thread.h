@@ -89,6 +89,8 @@ LEMON_SYS_API lemon_thread_id_t LemonGetThreadId(LemonThread t);
 
 LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode);
 
+LEMON_SYS_API void LemonSleep(size_t milliseconds);
+
 //////////////////////////////////////////////////////////////////
 //atomic_t
 #ifdef WIN32

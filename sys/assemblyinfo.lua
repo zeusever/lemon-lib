@@ -16,5 +16,8 @@ assembly =
       LD_ERROR = "can't load share library";
       LD_GET_METHOD_ERROR = "can't get the library export function";
       COROUTINE_EXIT = "can't resume a coroutine which had exit";
+	  OPEN_LUA_ERROR = "can't open the lua vm";
+	  PO_TYPE_ERROR ="";
+	  LUA_DOFILE_ERROR="";
       };
    }

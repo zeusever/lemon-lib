@@ -322,6 +322,11 @@ LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCo
 	return ::GetCurrentThreadId();
 }
 
+LEMON_SYS_API void LemonSleep(size_t milliseconds)
+{
+	::Sleep((DWORD)milliseconds);
+}
+
 //////////////////////////////////////////////////////////////////
 //atomic_t
 

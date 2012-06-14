@@ -239,6 +239,33 @@ LEMON_IO_API
 		return LEMON_HANDLE_NULL_VALUE;
 	}
 
+	if(SOCK_DGRAM == type){
+
+		BOOL     bNewBehavior   =   FALSE;
+
+		DWORD   dwBytesReturned   =   0;
+
+		DWORD   status = WSAIoctl(
+			handle,
+			SIO_UDP_CONNRESET,
+			&bNewBehavior,
+			sizeof(bNewBehavior),
+			NULL,   
+			0,   
+			&dwBytesReturned, 
+			NULL,
+			NULL);
+
+		if(SOCKET_ERROR == status){
+
+			::closesocket(handle);
+
+			LEMON_WIN32_ERROR(*errorCode,WSAGetLastError());
+
+			return LEMON_HANDLE_NULL_VALUE;
+		}
+	}
+
 	return LemonCreateSocketImp(handle,device,errorCode);
 }
 
