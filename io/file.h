@@ -24,4 +24,26 @@ LEMON_IO_API
 
 LEMON_IO_API void LemonCloseFile(__lemon_in LemonIo io);
 
+LEMON_IO_API
+	size_t
+	LemonWriteFileTimeout(
+	__lemon_in LemonIo io,
+	__lemon_in const lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in size_t offset,
+	__lemon_in size_t writeSize,
+	__lemon_in size_t timeout,//milliseconds
+	__lemon_inout LemonErrorInfo * errorCode);
+
+LEMON_IO_API 
+	size_t
+	LemonReadFileTimeout(
+	__lemon_in LemonIo io,
+	__lemon_in lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in size_t offset,
+	__lemon_in size_t readSize,
+	__lemon_in size_t timeout,//milliseconds
+	__lemon_inout LemonErrorInfo * errorCode);
+
 #endif //LEMON_IO_FILE_H

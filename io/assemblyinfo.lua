@@ -11,5 +11,7 @@ assembly =
 	  NOT_SUPPORT_ADDRESS_FAMILY = "not support address";
 	  INVALID_ADDRESS_STRING = "invalid address string";
 	  FILE_NOT_FOUND = "invalid address string";
+	  NOT_SUPPORT_IO_DEVICE_BOUND_FILE="";
+	  OPTION_TIMEOUT="";
       };
    }

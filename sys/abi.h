@@ -83,6 +83,8 @@ LEMON_SYS_API LemonUuid LEMON_UNITTEST_ERROR_CATALOG;
 	errorinfo.File = __FILE__;\
 	errorinfo.Lines = __LINE__;
 
+#define LEMON_ERRORINOF_EQ(lhs,rhs) ((memcmp(lhs.Error.Catalog,rhs.Error.Catalog,sizeof(LemonUuid)) == 0) && (lhs.Error.Code == rhs.Error.Code))
+
 #define LEMON_WIN32_ERROR(errorinfo,ec) LEMON_MAKE_ERRORINFO((errorinfo),LEMON_WIN32_ERROR_CATALOG,ec)
 
 #define LEMON_COM_ERROR(errorinfo,ec) LEMON_MAKE_ERRORINFO((errorinfo),LEMON_COM_ERROR_CATALOG,ec)
