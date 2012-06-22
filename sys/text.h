@@ -41,4 +41,22 @@ LEMON_SYS_API
 	__lemon_in size_t targetLength,
 	__lemon_inout LemonErrorInfo *errorCode);
 
+
+LEMON_SYS_API
+	size_t LemonToUTF8(
+	__lemon_in const lemon_char_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_byte_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+
+LEMON_SYS_API
+	size_t LemonFromUTF8(
+	__lemon_in const lemon_byte_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_char_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode);
+
 #endif //LEMON_SYS_TEXT_H

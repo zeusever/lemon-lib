@@ -492,7 +492,7 @@ LEMON_IO_API
 		}
 	}
 
-	DWORD code = ::WaitForSingleObject(overlapped.hEvent,timeout);
+	DWORD code = ::WaitForSingleObject(overlapped.hEvent,(DWORD)timeout);
 
 	if(WAIT_FAILED == code){
 
@@ -570,7 +570,7 @@ LEMON_IO_API
 		}
 	}
 
-	DWORD code = ::WaitForSingleObject(overlapped.hEvent,timeout);
+	DWORD code = ::WaitForSingleObject(overlapped.hEvent,(DWORD)timeout);
 
 	if(WAIT_FAILED == code){
 
