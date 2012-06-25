@@ -72,21 +72,21 @@ LEMON_PLAY_PRIVATE
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
+	/*LemonMutexLock(queue->Mutex,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;*/
+
 	queue->Thread = LemonCreateThread(&LemonPlayQueueBackThread,queue,errorCode);
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
-	LemonMutexLock(queue->Mutex,errorCode);
-
-	if(LEMON_FAILED(*errorCode)) goto Error;
-
-	LemonConditionVariableWait(queue->Condition,queue->Mutex,errorCode);
+	/*LemonConditionVariableWait(queue->Condition,queue->Mutex,errorCode);
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
 	LemonMutexUnLock(queue->Mutex,errorCode);
 
-	if(LEMON_FAILED(*errorCode)) goto Error;
+	if(LEMON_FAILED(*errorCode)) goto Error;*/
 
 	return queue;
 Error:
@@ -371,9 +371,9 @@ void LemonPlayQueueBackThread(void * userData)
 
 	if(LEMON_FAILED(errorCode)) goto Error;
 
-	LemonConditionVariableNotify(queue->Condition,&errorCode);
+	/*LemonConditionVariableNotify(queue->Condition,&errorCode);
 
-	if(LEMON_FAILED(errorCode)) goto Finally;
+	if(LEMON_FAILED(errorCode)) goto Finally;*/
 
 	while(!queue->Exit){
 

@@ -442,4 +442,160 @@ LEMON_IO_PRIVATE
 	}
 }
 
+LEMON_IO_API
+	size_t
+	LemonWriteFileTimeout(
+	__lemon_in LemonIo io,
+	__lemon_in const lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in size_t offset,
+	__lemon_in size_t writeSize,
+	__lemon_in size_t timeout,//milliseconds
+	__lemon_inout LemonErrorInfo * errorCode)
+{
+	DWORD read = 0;
+
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(LEMON_IOCP_CHECK(io)){
+
+		LEMON_USER_ERROR(*errorCode,LEMON_IO_NOT_SUPPORT_IO_DEVICE_BOUND_FILE);
+
+		return 0;
+	}
+
+	if(bufferSize < offset + writeSize){
+
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_BUFFER_TOO_SMALL);
+
+		return 0;
+	}
+
+	OVERLAPPED overlapped = {0};
+
+	overlapped.hEvent = CreateEvent(NULL,TRUE,FALSE,NULL);
+
+	if(overlapped.hEvent == NULL){
+
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+
+		return 0;
+	}
+
+	if(!WriteFile(io->Handle.FileHandle,&buffer[offset],(DWORD)writeSize,&read,&overlapped)){
+
+		if(ERROR_IO_PENDING != GetLastError()){
+
+			LEMON_WIN32_ERROR(*errorCode,GetLastError());
+
+			goto FINALLY;
+		}
+	}
+
+	DWORD code = ::WaitForSingleObject(overlapped.hEvent,(DWORD)timeout);
+
+	if(WAIT_FAILED == code){
+
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+
+	}else if(WAIT_TIMEOUT == code){
+
+		if(!CancelIo(io->Handle.FileHandle)){
+			LEMON_WIN32_ERROR(*errorCode,GetLastError());
+		}else{
+			LEMON_USER_ERROR(*errorCode,LEMON_IO_OPTION_TIMEOUT);
+		}
+
+	}else{
+
+		BOOL result = GetOverlappedResult(io->Handle.FileHandle,&overlapped,&read,FALSE);
+
+		result;assert(result);
+	}
+
+FINALLY:
+
+	CloseHandle(overlapped.hEvent);
+
+	return read;
+}
+
+LEMON_IO_API 
+	size_t
+	LemonReadFileTimeout(
+	__lemon_in LemonIo io,
+	__lemon_in lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in size_t offset,
+	__lemon_in size_t readSize,
+	__lemon_in size_t timeout,//milliseconds
+	__lemon_inout LemonErrorInfo * errorCode)
+{
+	DWORD read = 0;
+
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(LEMON_IOCP_CHECK(io)){
+
+		LEMON_USER_ERROR(*errorCode,LEMON_IO_NOT_SUPPORT_IO_DEVICE_BOUND_FILE);
+
+		return 0;
+	}
+
+	if(bufferSize < offset + readSize){
+
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_BUFFER_TOO_SMALL);
+
+		return 0;
+	}
+
+	OVERLAPPED overlapped = {0};
+
+	overlapped.hEvent = CreateEvent(NULL,TRUE,FALSE,NULL);
+
+	if(overlapped.hEvent == NULL){
+
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+
+		return 0;
+	}
+
+	if(!ReadFile(io->Handle.FileHandle,&buffer[offset],(DWORD)readSize,&read,&overlapped)){
+
+		if(ERROR_IO_PENDING != GetLastError()){
+
+			LEMON_WIN32_ERROR(*errorCode,GetLastError());
+
+			goto FINALLY;
+		}
+	}
+
+	DWORD code = ::WaitForSingleObject(overlapped.hEvent,(DWORD)timeout);
+
+	if(WAIT_FAILED == code){
+
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+
+	}else if(WAIT_TIMEOUT == code){
+
+		if(!CancelIo(io->Handle.FileHandle)){
+			LEMON_WIN32_ERROR(*errorCode,GetLastError());
+		}else{
+			LEMON_USER_ERROR(*errorCode,LEMON_IO_OPTION_TIMEOUT);
+		}
+
+	}else{
+
+		BOOL result = GetOverlappedResult(io->Handle.FileHandle,&overlapped,&read,FALSE);
+
+		result;assert(result);
+	}
+
+FINALLY:
+
+	CloseHandle(overlapped.hEvent);
+
+	return read;
+}
+
 #endif //LEMON_ASYNC_IO_IOCP

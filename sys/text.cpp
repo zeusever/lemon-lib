@@ -103,6 +103,47 @@ LEMON_SYS_API
 	return length;
 }
 
+LEMON_SYS_API
+	size_t LemonToUTF8(
+	__lemon_in const lemon_char_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_byte_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	size_t length = WideCharToMultiByte(CP_UTF8,0,source,(int)sourceLength,(LPSTR)target,(int)targetLength,NULL,NULL);
+
+	if(0 == length)
+	{
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+	}
+
+	return length;
+}
+
+
+LEMON_SYS_API
+	size_t LemonFromUTF8(
+	__lemon_in const lemon_byte_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_char_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	size_t length =  MultiByteToWideChar(CP_UTF8,0,(LPSTR)source,(int)sourceLength,target,(int)targetLength);
+
+	if(0 == length)
+	{
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+	}
+
+	return length;
+}
+
 
 #elif defined(LEMON_TEXT_CONVERTER_ICU)
 #	error "not implement"
