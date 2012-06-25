@@ -93,6 +93,8 @@ LEMON_SYS_API LemonUuid LEMON_UNITTEST_ERROR_CATALOG;
 
 #define LEMON_USER_ERROR(errorinfo,ec) {(errorinfo).Error = ec;(errorinfo).File = __FILE__; (errorinfo).Lines = __LINE__;}
 
+#define LEMON_CHECK_ERROR(lhs,rhs) ((memcmp(lhs.Catalog,rhs.Catalog,sizeof(LemonUuid)) == 0) && (lhs.Code == rhs.Code))
+
 ///////////////////////////////////////////////////////////////////////////
 //Handle define
 // 

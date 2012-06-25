@@ -128,9 +128,7 @@ LEMON_MEMORY_API
 LEMON_MEMORY_API
 	void*
 	LemonRingBufferWriteFront(
-	__lemon_in LemonRingBuffer buffer,
-	__lemon_in void * data,
-	__lemon_in size_t dataLength)
+	__lemon_in LemonRingBuffer buffer)
 {
 	LemonRingBufferBlock *current = buffer->Front;
 
@@ -146,20 +144,16 @@ LEMON_MEMORY_API
 	{
 		buffer->Front = buffer->Front->Next;
 
-		memcpy(current->Block,data,dataLength);
-
 		-- buffer->ValidBlocks;
 
-		return NULL;
+		return current->Block;
 	}
 }
 //
 LEMON_MEMORY_API
 	void*
 	LemonRingBufferWriteBack(
-	__lemon_in LemonRingBuffer buffer,
-	__lemon_in void * data,
-	__lemon_in size_t dataLength)
+	__lemon_in LemonRingBuffer buffer)
 {
 	if(buffer->ValidBlocks == 0)
 	{
@@ -173,24 +167,12 @@ LEMON_MEMORY_API
 	{
 		buffer->Back = buffer->Back->Prev;
 
-		memcpy(buffer->Back->Block,data,dataLength);
-
 		-- buffer->ValidBlocks;
 
-		return NULL;
+		return buffer->Back->Block;
 	}
 }
-//
-//
-LEMON_MEMORY_API
-	void
-	LemonRingBufferDirectWrite(
-	__lemon_in void * block,
-	__lemon_in void * data,
-	__lemon_in size_t dataLength)
-{
-	memcpy(block,data,dataLength);
-}
+
 //
 LEMON_MEMORY_API
 	void *

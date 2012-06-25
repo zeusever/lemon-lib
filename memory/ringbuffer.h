@@ -30,24 +30,13 @@ LEMON_MEMORY_API
 LEMON_MEMORY_API
 	void*
 	LemonRingBufferWriteFront(
-	__lemon_in LemonRingBuffer buffer,
-	__lemon_in void * data,
-	__lemon_in size_t dataLength);
+	__lemon_in LemonRingBuffer buffer);
 
 LEMON_MEMORY_API
 	void*
 	LemonRingBufferWriteBack(
-	__lemon_in LemonRingBuffer buffer,
-	__lemon_in void * data,
-	__lemon_in size_t dataLength);
+	__lemon_in LemonRingBuffer buffer);
 
-
-LEMON_MEMORY_API
-	void
-	LemonRingBufferDirectWrite(
-	__lemon_in void * block,
-	__lemon_in void * data,
-	__lemon_in size_t dataLength);
 
 LEMON_MEMORY_API
 	void *
