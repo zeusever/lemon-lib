@@ -1,5 +1,5 @@
 #include <lemon/sys/thread.h>
-
+#include <lemon/sys/errorcode.h>
 #ifdef LEMON_HAS_WIN32_THREAD
 //////////////////////////////////////////////////////////////////
 //tls
@@ -257,6 +257,10 @@ LEMON_IMPLEMENT_HANDLE(LemonThread){
 	LemonThreadProc				Proc;
 
 	void						*UserData;
+
+	LemonThread					Next;
+
+	LemonThreadGroup			Group;
 };
 
 static unsigned int __stdcall ProcWrapper(void* data){
@@ -275,7 +279,7 @@ LEMON_SYS_API LemonThread LemonCreateThread(
 
 		LEMON_RESET_ERRORINFO(*errorCode);
 
-		LemonThread ct = new LEMON_HANDLE_STRUCT_NAME(LemonThread)();
+		LEMON_ALLOC_HANDLE(LemonThread,ct);
 
 		ct->Proc = proc;  ct->UserData = userData;
 
@@ -297,7 +301,7 @@ LEMON_SYS_API void LemonReleaseThread(__lemon_in LemonThread t){
 
 	CloseHandle((HANDLE)t->Handle);
 
-	delete t;
+	LEMON_FREE_HANDLE(t);
 }
 
 LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
@@ -608,6 +612,135 @@ LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
 # error "not implement"
 #endif //LEMON_USE_WIN32_THREAD
 
+
+LEMON_IMPLEMENT_HANDLE(LemonThreadGroup){
+
+	size_t					Threads;
+
+	LemonThread				Group;
+};
+
+LEMON_SYS_API
+	LemonThreadGroup 
+	LemonCreateThreadGroup(
+	__lemon_inout	LemonErrorInfo	*errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	LEMON_ALLOC_HANDLE(LemonThreadGroup,group);
+
+	return group;
+}
+
+LEMON_SYS_API
+	void
+	LemonCloseThreadGroup(
+	__lemon_free LemonThreadGroup group)
+{
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LemonThreadGroupReset(group,&errorCode);
+
+	LEMON_FREE_HANDLE(group);
+}
+
+
+LEMON_SYS_API
+	void LemonThreadGroupReset(
+	__lemon_in LemonThreadGroup group,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	LemonThread iter = group->Group;
+
+	while(iter){
+
+		LemonThread current = iter;
+
+		iter = iter->Next;
+
+		LemonReleaseThread(current);
+	}
+
+	group->Threads = 0;
+}
+
+
+LEMON_SYS_API
+	void LemonThreadGroupAdd(
+	__lemon_in LemonThreadGroup group,
+	__lemon_in LemonThread t,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(t->Group){
+
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_THREAD_GROUP_MULTI_ADD);
+
+		return;
+	}
+
+	if(LEMON_FAILED(*errorCode)) return;
+
+	t->Group = group;
+
+	t->Next = group->Group;
+
+	group->Group = t;
+
+	++ group->Threads;
+}
+
+
+LEMON_SYS_API
+	void LemonThreadGroupJoin(
+	__lemon_in LemonThreadGroup group,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	for(LemonThread iter = group->Group; iter != LEMON_HANDLE_NULL_VALUE; iter = iter->Next){
+
+		LemonThreadJoin(iter,errorCode);
+
+		if(LEMON_FAILED(*errorCode)) return;
+	}
+}
+
+
+LEMON_SYS_API 
+	size_t 
+	LemonThreadGroupCreateThread(
+	__lemon_in		LemonThreadGroup group,
+	__lemon_in		LemonThreadProc proc,
+	__lemon_in		void			*userData,
+	__lemon_in		size_t			threadNumber,
+	__lemon_inout	LemonErrorInfo	*errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	for(size_t i = 0; i < threadNumber; ++ i){
+
+		LemonThread current = LemonCreateThread(proc,userData,errorCode);
+
+		if(LEMON_FAILED(*errorCode)) return i;
+
+		LemonThreadGroupAdd(group,current,errorCode);
+
+		if(LEMON_FAILED(*errorCode)){
+
+			LemonReleaseThread(current);
+
+			return i;
+		}
+
+		++ group->Threads;
+	}
+
+	return threadNumber;
+}
 
 #ifdef LEMON_USE_GCC_BUIDIN_ATOMIC_FUNCTION
 

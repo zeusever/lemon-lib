@@ -19,5 +19,6 @@ assembly =
 	  OPEN_LUA_ERROR = "can't open the lua vm";
 	  PO_TYPE_ERROR ="";
 	  LUA_DOFILE_ERROR="";
+	  THREAD_GROUP_MULTI_ADD="";
       };
    }

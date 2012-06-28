@@ -27,6 +27,8 @@ LEMON_DECLARE_HANDLE(LemonMutex);
 
 LEMON_DECLARE_HANDLE(LemonThread);
 
+LEMON_DECLARE_HANDLE(LemonThreadGroup);
+
 LEMON_DECLARE_HANDLE(LemonConditionVariable);
 
 //////////////////////////////////////////////////////////////////
@@ -90,6 +92,47 @@ LEMON_SYS_API lemon_thread_id_t LemonGetThreadId(LemonThread t);
 LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode);
 
 LEMON_SYS_API void LemonSleep(size_t milliseconds);
+
+
+LEMON_SYS_API
+	LemonThreadGroup 
+	LemonCreateThreadGroup(
+	__lemon_inout	LemonErrorInfo	*errorCode);
+
+LEMON_SYS_API
+	void
+	LemonCloseThreadGroup(
+	__lemon_free LemonThreadGroup group);
+
+
+LEMON_SYS_API
+	void LemonThreadGroupReset(
+	__lemon_in LemonThreadGroup group,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+
+LEMON_SYS_API
+	void LemonThreadGroupAdd(
+	__lemon_in LemonThreadGroup group,
+	__lemon_in LemonThread t,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+
+LEMON_SYS_API
+	void LemonThreadGroupJoin(
+	__lemon_in LemonThreadGroup group,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+
+LEMON_SYS_API 
+	size_t 
+	LemonThreadGroupCreateThread(
+	__lemon_in		LemonThreadGroup group,
+	__lemon_in		LemonThreadProc proc,
+	__lemon_in		void			*userData,
+	__lemon_in		size_t			threadNumber,
+	__lemon_inout	LemonErrorInfo	*errorCode);
+
 
 //////////////////////////////////////////////////////////////////
 //atomic_t
