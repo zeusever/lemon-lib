@@ -131,4 +131,24 @@ LEMON_SYS_API LemonUuid LEMON_UNITTEST_ERROR_CATALOG;
 #endif //__cplusplus
 
 
+//////////////////////////////////////////////////////////////////////////
+//Lemon Trace Log
+// 
+
+#define LEMON_TRACELOG_DEBUG										0x01
+
+#define LEMON_TRACELOG_MESSAGE										0x02
+
+#define LEMON_TRACELOG_WARNING										0x04
+
+#define LEMON_TRACELOG_ERROR										0x08
+
+typedef struct LemonTraceLogFlag{
+	// The trace log catalog
+	const LemonUuid *	Catalog;
+	// The id of flag
+	size_t				Id;
+}LemonTraceLogFlag;
+
+
 #endif //LEMON_SYS_ABI_H

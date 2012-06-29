@@ -7,18 +7,58 @@ assembly =
    -- the project errorcode define
    errorcode=
       {
-      NOT_IMPLEMENT="current code not implement";
-      UUID_CREATE_ERROR = "can't create uuid";
-      BUFFER_TOO_SMALL = "the buffer is too small to copy data";
-      UNITTEST_FAILED = "the unittest condition check error";
-      RESOURCE_ERROR = "the system resource invalid";
-      INVALID_UUID_STRING = "invalid uuid string";
-      LD_ERROR = "can't load share library";
-      LD_GET_METHOD_ERROR = "can't get the library export function";
-      COROUTINE_EXIT = "can't resume a coroutine which had exit";
-	  OPEN_LUA_ERROR = "can't open the lua vm";
-	  PO_TYPE_ERROR ="";
-	  LUA_DOFILE_ERROR="";
-	  THREAD_GROUP_MULTI_ADD="";
+		{
+			name = "NOT_IMPLEMENT";
+		};
+		
+		{
+			name = "UUID_CREATE_ERROR";
+		};
+		
+		{
+			name = "BUFFER_TOO_SMALL";
+		};
+		
+		{
+			name = "UNITTEST_FAILED";
+		};
+		
+		{
+			name = "RESOURCE_ERROR";
+		};
+		
+		{
+			name = "INVALID_UUID_STRING";
+		};
+		
+		{
+			name = "LD_ERROR";
+		};
+		
+		
+		{
+			name = "LD_GET_METHOD_ERROR";
+		};
+		
+		{
+			name = "COROUTINE_EXIT";
+		};
+		
+		{
+			name = "OPEN_LUA_ERROR";
+		};
+		
+		{
+			name = "PO_TYPE_ERROR";
+		};
+		
+		{
+			name = "LUA_DOFILE_ERROR";
+		};
+		
+		{
+			name = "THREAD_GROUP_MULTI_ADD";
+		};
+		
       };
    }

@@ -7,6 +7,9 @@ assembly =
    -- the project errorcode define
    errorcode=
       {
-      SMALLOBJ_ALLOC_TOO_LARGE = "the required block size if out of the SmallObjAllocator max block size";
+		{
+			name = "SMALLOBJ_ALLOC_TOO_LARGE";
+			description = "the required block size if out of the SmallObjAllocator max block size";
+		};
       };
    }

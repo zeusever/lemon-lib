@@ -7,11 +7,29 @@ assembly =
    -- the project errorcode define
    errorcode=
       {
-	  NOT_SUPPORT_ASYNC = "current io object not support async io";
-	  NOT_SUPPORT_ADDRESS_FAMILY = "not support address";
-	  INVALID_ADDRESS_STRING = "invalid address string";
-	  FILE_NOT_FOUND = "invalid address string";
-	  NOT_SUPPORT_IO_DEVICE_BOUND_FILE="";
-	  OPTION_TIMEOUT="";
+		{ 
+			name = "NOT_SUPPORT_ASYNC";
+			description = "current io object not support async io";
+		};
+		
+	    {
+			name = "NOT_SUPPORT_ADDRESS_FAMILY";
+		};
+		
+		{
+			name = "INVALID_ADDRESS_STRING";
+		};
+		
+		{
+			name = "FILE_NOT_FOUND";
+		};
+		
+		{
+			name = "NOT_SUPPORT_IO_DEVICE_BOUND_FILE";
+		};
+		
+		{
+			name = "OPTION_TIMEOUT";
+		};
       };
    }
