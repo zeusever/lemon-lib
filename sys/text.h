@@ -25,7 +25,7 @@ LEMON_SYS_API
 	__lemon_inout lemon_byte_t * val);
 
 LEMON_SYS_API
-	size_t LemonToASCII(
+	size_t LemonToLocale(
 	__lemon_in const lemon_char_t * source,
 	__lemon_in size_t sourceLength,
 	__lemon_inout lemon_byte_t * target,
@@ -34,7 +34,7 @@ LEMON_SYS_API
 
 
 LEMON_SYS_API
-	size_t LemonFromASCII(
+	size_t LemonFromLocale(
 	__lemon_in const lemon_byte_t * source,
 	__lemon_in size_t sourceLength,
 	__lemon_inout lemon_char_t * target,

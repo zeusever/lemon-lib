@@ -64,7 +64,7 @@ LEMON_SYS_API
 #ifdef LEMON_TEXT_CONVERTER_WIN32
 
 LEMON_SYS_API
-	size_t LemonToASCII(
+	size_t LemonToLocale(
 	__lemon_in const lemon_char_t * source,
 	__lemon_in size_t sourceLength,
 	__lemon_inout lemon_byte_t * target,
@@ -84,7 +84,7 @@ LEMON_SYS_API
 }
 
 LEMON_SYS_API
-	size_t LemonFromASCII(
+	size_t LemonFromLocale(
 	__lemon_in const lemon_byte_t * source,
 	__lemon_in size_t sourceLength,
 	__lemon_inout lemon_char_t * target,

@@ -13,7 +13,7 @@ namespace lemon{namespace ppc{namespace core{
 #ifdef WIN32
 		std::ifstream stream(fileName);
 #else
-		std::ifstream stream(lemon::to_ascii(fileName));
+		std::ifstream stream(lemon::to_locale(fileName));
 #endif //WIN32
 
 		if(!stream.is_open())
