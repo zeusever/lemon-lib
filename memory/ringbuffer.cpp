@@ -56,7 +56,7 @@ LEMON_MEMORY_API
 
 	buffer->PageSize  = realBlockSize * blocksPerPage;
 
-	size_t pages = blocks / blocksPerPage + blocks % blocksPerPage ? 1 : 0;
+	size_t pages = blocks / blocksPerPage + (blocks % blocksPerPage ? 1 : 0);
 
 	for(size_t i = 0 ; i < pages; ++ i)
 	{

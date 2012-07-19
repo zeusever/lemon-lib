@@ -9,6 +9,8 @@
 #ifndef lua_h
 #define lua_h
 
+#define LUA_COMPAT_MODULE
+
 #include <stdarg.h>
 #include <stddef.h>
 
