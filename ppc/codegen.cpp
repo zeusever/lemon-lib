@@ -2,7 +2,7 @@
 #include <lemon/ppc/errorcode.h>
 namespace lemon{namespace ppc{namespace core{
 
-	void CxxCodeGen::Generate(const char * macroName,const char * tag,std::ostream & stream,AST & ast)
+	void CxxCodeGen::Generate(size_t moduleId,const char * tag,std::ostream & stream,AST & ast)
 	{
 		stream << "#include <lemonxx/mpl/inttypes.hpp>" << std::endl << std::endl;
 
@@ -28,7 +28,7 @@ namespace lemon{namespace ppc{namespace core{
 
 			stream << ">" << std::endl;
 
-			stream << "\tvoid operator()(Writer *writer,size_t level,const LemonPPCFlag & flag";
+			stream << "\tvoid operator()(Writer *writer,size_t level,const LemonPPCFlag & flag,const char *";
 
 			for(size_t i = 0; i < iter->args - 4; ++ i)
 			{
@@ -39,7 +39,7 @@ namespace lemon{namespace ppc{namespace core{
 
 			stream << "\t{" << std::endl;
 
-			stream << "\t\tlemon::ppc::write_header(writer,level,flag," << iter->args - 4 << ");" << std::endl;
+			stream << "\t\tlemon::ppc::write_header(writer,level,flag," << moduleId << iter->args - 4 << ");" << std::endl;
 
 			for(size_t i = 0; i < iter->args - 4; ++ i)
 			{

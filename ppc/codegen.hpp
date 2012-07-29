@@ -17,7 +17,9 @@ namespace lemon{namespace ppc{namespace core{
 	{
 	public:
 
-		void Generate(const char * macroName,const char * tag,std::ostream & stream,AST & ast);
+		CxxCodeGen(const char * macroName,const char * assemblyGuid);
+
+		void Generate(size_t moduleId,const char * tag,std::ostream & stream,AST & ast);
 
 	};
 
