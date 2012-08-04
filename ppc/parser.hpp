@@ -14,7 +14,7 @@
 
 namespace lemon{namespace ppc{namespace core{
 
-	struct AST : private lemon::nocopyable
+	struct AST
 	{
 		struct Metadata{std::string formatter; size_t lines; size_t args; };
 
