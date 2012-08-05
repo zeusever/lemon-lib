@@ -28,6 +28,8 @@ namespace lemon{namespace ppc{namespace core{
 
 			NodeList.push_back(d);
 		}
+
+		size_t Size() const { return NodeList.size(); }
 	};
 
 	class Parser : private lemon::nocopyable

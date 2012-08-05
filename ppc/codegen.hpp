@@ -13,12 +13,14 @@
 
 namespace lemon{namespace ppc{namespace core{
 
+	class Package;
+
 	class CXXCodeGen : private lemon::nocopyable
 	{
 	public:
 		
 		
-		CXXCodeGen(const lemon::uuid_t & packageId,const char * macroname,const char * catalogs,size_t moduleId);
+		CXXCodeGen(const Package &package,size_t moduleId);
 
 		void Generate(std::ostream & stream,const AST & ast);
 
@@ -43,6 +45,8 @@ namespace lemon{namespace ppc{namespace core{
 		void SuffixG();
 
 	private:
+
+		const Package					&_package;
 
 		const lemon::uuid_t				_packageId;
 

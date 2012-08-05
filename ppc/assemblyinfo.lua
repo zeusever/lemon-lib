@@ -25,5 +25,11 @@ assembly =
 		{
 			name = "FILE_WRITE_ERROR";
 		};
+		{
+			name = "INVALID_ASSEMBLYINFO_LUA_FILE";
+		};
+		{
+			name = "OPENT_OBJECT_CXX_FILE_ERROR";
+		};
 	  };
    }

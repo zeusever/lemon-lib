@@ -2,11 +2,12 @@
 #include <algorithm>
 #include <lemon/ppc/codegen.hpp>
 #include <lemon/ppc/errorcode.h>
+#include <lemon/ppc/package.hpp>
 #include <lemonxx/function/bind.hpp>
 namespace lemon{namespace ppc{namespace core{
 
-	CXXCodeGen::CXXCodeGen(const lemon::uuid_t & packageId,const char * macroname,const char * catalogs,size_t moduleId)
-		:_packageId(packageId),_macroname(macroname),_catalogs(catalogs),_moduleId(moduleId)
+	CXXCodeGen::CXXCodeGen(const Package &package,size_t moduleId)
+		:_package(package),_packageId(package.Guid()),_macroname(package.TraceLogMacroName()),_moduleId(moduleId)
 	{
 		SuffixG();
 	}
@@ -84,15 +85,13 @@ namespace lemon{namespace ppc{namespace core{
 
 	void CXXCodeGen::CatalogG(std::ostream & stream)
 	{
-		std::stringstream ss(string_replaceall<char>(_catalogs,";"," "));
+		const Package::Catalog & catalog  = _package.GetCatalog();
 
 		size_t counter = 0;
 
-		while(!ss.eof())
+		for(size_t i = 0 ; i < catalog.size(); ++i)
 		{
-			std::string flag;
-
-			ss >> flag;
+			std::string flag = catalog[i].Text;
 
 			if(!flag.empty())
 			{

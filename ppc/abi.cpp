@@ -4,9 +4,7 @@
 //LEMON_PPC_API
 //	LemonPPCPackage 
 //	LemonCreatePPC(
-//	__lemon_in const lemon_char_t * name,
-//	__lemon_in const char * macroname,
-//	__lemon_in const LemonUuid * id,
+//	__lemon_in const lemon_char_t * assemblyFile,
 //	__lemon_inout LemonErrorInfo *errorCode)
 //{
 //

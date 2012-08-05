@@ -17,29 +17,71 @@
 
 namespace lemon{namespace ppc{namespace core{
 
+	struct CatalogItem
+	{
+		std::string			Text;
+
+		size_t				Value;
+	};
+
+	struct ErrorInfoMetadata
+	{
+		std::string			Name;
+
+		std::string			Description;
+	};
+
 	class Package : private lemon::nocopyable
 	{
 	public:
 
-		typedef std::vector<AST>			ASTs;
+		typedef std::vector<AST>				ASTs;
+
+		typedef std::vector<CatalogItem>		Catalog;
+
+		typedef std::vector<ErrorInfoMetadata>	ErrorInfos;
 		
-		Package(const lemon::String & name,const std::string & macroname,const std::string & catalogs,const lemon::uuid_t & id);
+		Package(const char * assemblyFile);
 
 		void Scan(const lemon::String & source,const lemon::String object);
 
 		void Generate(const lemon::String & object);
 
+		const ASTs & GetASTs() const { return _asts; }
+
+		const Catalog & GetCatalog() const { return _catalog; }
+
+		const lemon::uuid_t	&Guid() const { return _guid; }
+
+		const std::string TraceLogMacroName() const { return _traceLogMacroName; }
+
+		const std::string GetName() const { return _name ; }
+
 	private:
 
-		const lemon::String				_name;
+		void ParseLuaFile(const char *assemblyFile);
 
-		const std::string				_macroname;
+		void Name(const char *name);
 
-		const std::string				_catalogs;
+		void SetGuid(const char *guidString);
 
-		const lemon::uuid_t				_id;
+		void PushErrorInfo(const char *name,const char *description);
+
+		void SetTraceLogMacroName(const std::string & val) { _traceLogMacroName = val; }
+
+	private:
 
 		ASTs							_asts;
+
+		Catalog							_catalog;
+
+		ErrorInfos						_errorinfos;
+
+		lemon::uuid_t					_guid;
+
+		std::string						_traceLogMacroName;
+
+		std::string						_name;
 	};
 
 }}}
