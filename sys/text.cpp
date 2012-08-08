@@ -20,6 +20,54 @@ LEMON_SYS_API
 #endif 
 }
 
+LEMON_SYS_API
+	lemon_char_t * 
+	lemon_copy_string(
+	__lemon_in const lemon_char_t * val)
+{
+#ifdef WIN32
+	size_t length = (wcslen(val) + 1) * sizeof(lemon_char_t);
+#else
+	size_t length = (strlen(val) + 1) * sizeof(lemon_char_t);
+#endif //
+
+	lemon_char_t * object = (lemon_char_t*)malloc(length);
+
+	memcpy(object,val,length);
+
+	return object;
+}
+
+LEMON_SYS_API
+	size_t lemon_strlen(__lemon_in const lemon_char_t * val)
+{
+#ifdef WIN32
+	return wcslen(val);
+#else
+	return strlen(val);
+#endif //
+}
+
+LEMON_SYS_API 
+	int 
+	lemon_strcmp(
+	__lemon_in const lemon_char_t * lhs,
+	__lemon_in const lemon_char_t * rhs)
+{
+#ifdef WIN32
+	return wcscmp(lhs,rhs);
+#else
+	return strcmp(lhs,rhs);
+#endif //
+}
+
+LEMON_SYS_API
+	void lemon_free_string(
+	__lemon_free lemon_char_t  * string)
+{
+	free(string);
+}
+
 LEMON_SYS_API 
 	const char * 
 	LemonReadHexNumber(

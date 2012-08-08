@@ -4,11 +4,11 @@ include(CheckFunctionExists)
 
 
 if(WIN32)
-  include(${CMAKE_CURRENT_SOURCE_DIR}/win32.cmake)
+  include(${PROJECT_SOURCE_DIR}/sources/lemon/sys/win32.cmake)
 else()
-  include(${CMAKE_CURRENT_SOURCE_DIR}/unix.cmake)
+  include(${PROJECT_SOURCE_DIR}/sources/lemon/sys/unix.cmake)
 endif()
-include(${CMAKE_CURRENT_SOURCE_DIR}/inttypes.cmake)
+include(${PROJECT_SOURCE_DIR}/sources/lemon/sys/inttypes.cmake)
 
 CHECK_FUNCTION_EXISTS(localtime_r LEMON_HAS_LOCALTIME_R)
 CHECK_FUNCTION_EXISTS(gmtime_r LEMON_HAS_GMTIME_R)

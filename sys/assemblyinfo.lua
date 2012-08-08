@@ -4,6 +4,27 @@ assembly =
    name = "lemon-sys";
    -- the project guid
    guid = "{ 0x612c9e2e, 0x2341, 0x4a7d, { 0x8a, 0x11, 0x3c, 0x2e, 0x8e, 0x58, 0xc8, 0x53 } }";
+
+   trace = 
+	  {
+		name = "LEMON_SYS_TRACE";
+		
+		catalog = 
+		{
+			{
+				name = "LEMON_SYS_FILESYSTEM";
+
+				description = "filesytem trace";
+			};
+
+			{
+				name = "LEMON_SYS_COROUTINE";
+
+				description = "coruinte trace";
+			};
+		};
+	  };
+
    -- the project errorcode define
    errorcode=
       {
@@ -64,5 +85,8 @@ assembly =
 			name = "NOT_FOUND_ENV";
 		};
 		
+		{
+			name = "INVALID_VERSION_STRING";
+		};
       };
    }

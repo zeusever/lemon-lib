@@ -18,6 +18,24 @@ LEMON_SYS_API
 	__lemon_in const char * formater,
 	__lemon_in ...);
 
+LEMON_SYS_API
+	size_t lemon_strlen(__lemon_in const lemon_char_t * val);
+
+LEMON_SYS_API 
+	int 
+	lemon_strcmp(
+	__lemon_in const lemon_char_t * lhs,
+	__lemon_in const lemon_char_t * rhs);
+
+LEMON_SYS_API
+	lemon_char_t * 
+	lemon_copy_string(
+	__lemon_in const lemon_char_t * val);
+
+LEMON_SYS_API
+	void lemon_free_string(
+	__lemon_free lemon_char_t  * string);
+
 LEMON_SYS_API 
 	const char * 
 	LemonReadHexNumber(
