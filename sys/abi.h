@@ -10,6 +10,7 @@
 #define LEMON_SYS_ABI_H
 #include <lemon/sys/stdtypes.h>
 #include <lemon/sys/configure.h>
+
 ///////////////////////////////////////////////////////////////////////////
 //function attribute macro
 #define __lemon_in
@@ -219,5 +220,10 @@ typedef struct LemonResourceTraceEvent{
 }LemonResourceTraceEvent;
 
 #define LEMON_MAKE_TRACE_EVENT_SEQUENCE(fileid,lines)     ((((lemon_uint32_t)fileid) << 16 ) & 0xffff0000  | (((lemon_uint32_t)lines) & 0xffff))
+
+
+//////////////////////////////////////////////////////////////////////////
+
+LEMON_SYS_API const lemon_char_t * LemonI18nText(__lemon_in const LemonUuid* id,__lemon_in const lemon_char_t * msg);
 
 #endif //LEMON_SYS_ABI_H

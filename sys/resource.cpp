@@ -3,6 +3,51 @@
 #include <lemon/sys/resource.h>
 #include <lemon/sys/errorcode.h>
 #include <lemon/sys/text.h>
+
+typedef struct LemonResourceTextBinary{
+
+	lemon_uint32_t				Type;
+	
+	lemon_uint32_t				Global;
+
+	lemon_uint32_t				Locale;
+
+}LemonResourceTextBinary;
+
+typedef struct LemonResourceErrorInfoBinary{
+
+	lemon_uint32_t				Type;
+
+	lemon_uint32_t				Code;
+	
+	lemon_uint32_t				Name;
+
+	lemon_uint32_t				Description;
+
+}LemonResourceErrorInfoBinary;
+
+typedef struct LemonResourceTraceCatalogBinary{
+
+	lemon_uint32_t				Type;
+	
+	lemon_uint32_t				Value;
+
+	lemon_uint32_t				Name;
+
+	lemon_uint32_t				Description;
+
+}LemonResourceTraceCatalogBinary;
+
+typedef struct LemonResourceTraceEventBinary{
+
+	lemon_uint32_t				Type;
+
+	lemon_uint32_t				Sequence;
+
+	lemon_uint32_t				Text;					
+
+}LemonResourceTraceEventBinary;
+
 typedef union {
 	LemonResourceErrorInfo			ErrorInfo;
 
@@ -14,6 +59,18 @@ typedef union {
 
 } LemonResourceItem;
 
+
+typedef union {
+	LemonResourceErrorInfoBinary			ErrorInfo;
+
+	LemonResourceTextBinary					Text;
+
+	LemonResourceTraceCatalogBinary			TraceCatalog;
+
+	LemonResourceTraceEventBinary			TraceEvent;
+
+} LemonResourceBinaryItem;
+
 LEMON_IMPLEMENT_HANDLE(LemonResourceIterator)
 {
 	LemonResourceIterator				Prev;
@@ -24,11 +81,15 @@ LEMON_IMPLEMENT_HANDLE(LemonResourceIterator)
 
 	LemonResourceItem					Item;
 
+	LemonResourceBinaryItem				BinaryItem;
+
 	void(*Release)(LemonResource,LemonResourceIterator self);
 };
 
 LEMON_IMPLEMENT_HANDLE(LemonResource)
 {
+	lemon_uint32_t					LocaleId;
+
 	LemonUuid						Uuid;
 
 	LemonVersion					Version;
@@ -46,6 +107,8 @@ LEMON_SYS_API
 	LEMON_ALLOC_HANDLE(LemonResource,resource);
 
 	resource->Uuid = LemonUuidGenerate(errorCode);
+
+	resource->LocaleId = 1033;
 
 	if(LEMON_FAILED(*errorCode))
 	{
@@ -531,4 +594,308 @@ LEMON_SYS_API
 	}
 
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+
+typedef struct LemonResourceUTF8String{
+	
+	struct LemonResourceUTF8String		*Next;
+
+	lemon_uint32_t						Offset;
+
+	size_t								Length;
+
+	lemon_utf8_t						String[1];
+
+}LemonResourceUTF8String;
+
+
+typedef struct LemonResourceStringTable{
+
+	LemonResourceUTF8String	*Header;
+
+	LemonResourceUTF8String	*Tail;
+
+}LemonResourceStringTable;
+
+LEMON_SYS_PRIVATE
+	void __LemonResourceReleaseUTF8String(__lemon_free LemonResourceUTF8String * string)
+{
+	free(string);
+}
+
+LEMON_SYS_PRIVATE
+	lemon_uint32_t 
+	__LemonResourceStringTableAdd(
+	__lemon_in LemonResourceStringTable * table,
+	__lemon_in const lemon_char_t *source,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	size_t sourceSize = lemon_strlen(source) + 1;
+
+	size_t length = sourceSize * 6;
+
+	LemonResourceUTF8String * string = (LemonResourceUTF8String *)malloc(length + sizeof(LemonResourceUTF8String));
+
+	memset(string,0,length + sizeof(LemonResourceUTF8String));
+
+	string->Length = LemonToUTF8(source,sourceSize,(lemon_byte_t*)string->String,length,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) return (lemon_uint32_t)-1;
+
+	if(table->Header == NULL){
+
+		string->Offset = 0;
+
+		table->Header = string;
+
+		table->Tail = string;
+
+	}else{
+
+		string->Offset = table->Tail->Offset + (lemon_uint32_t)table->Tail->Length;
+
+		table->Tail->Next = string;
+
+		table->Tail = string;
+	}
+
+	return htonl(string->Offset);
+}
+
+LEMON_SYS_API
+	void LemonResourceWrite(
+	__lemon_in LemonResource  resource,
+	__lemon_in LemonIoWriter writer,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	LemonResourceStringTable stringTable = {NULL,NULL};
+
+	LemonResourceIterator iter = resource->Items;
+
+	lemon_uint32_t itemTableSize = 0;
+
+	lemon_uint32_t	localeId = htonl(resource->LocaleId);
+
+	LemonVersion version = 
+	{
+		htons(resource->Version.Major),
+
+		htons(resource->Version.Minor),
+
+		htons(resource->Version.Build),
+
+		htons(resource->Version.Reversion)
+	};
+
+	while(iter)
+	{
+		switch(iter->Type)
+		{
+		case LEMON_RESOURCE_TTEXT:
+			{
+				itemTableSize += sizeof(LemonResourceTextBinary);
+
+				iter->BinaryItem.Text.Type = htonl(LEMON_RESOURCE_TTEXT);
+
+				iter->BinaryItem.Text.Global = __LemonResourceStringTableAdd(&stringTable,iter->Item.Text.Global,errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;
+
+				iter->BinaryItem.Text.Locale = __LemonResourceStringTableAdd(&stringTable,iter->Item.Text.Locale,errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;
+
+				break;
+			}
+
+		case LEMON_RESOURCE_TERRORINFO:
+			{
+				itemTableSize += sizeof(LemonResourceErrorInfoBinary);
+
+				iter->BinaryItem.ErrorInfo.Type = htonl(LEMON_RESOURCE_TERRORINFO);
+
+				iter->BinaryItem.ErrorInfo.Name = __LemonResourceStringTableAdd(&stringTable,iter->Item.ErrorInfo.Name,errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				iter->BinaryItem.ErrorInfo.Description = __LemonResourceStringTableAdd(&stringTable,iter->Item.ErrorInfo.Description,errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				iter->BinaryItem.ErrorInfo.Code = htonl(iter->Item.ErrorInfo.Code);
+
+				break;
+			}
+
+		case LEMON_RESOURCE_TTRACECATALOG:
+			{
+				itemTableSize += sizeof(LemonResourceTraceCatalogBinary);
+
+				iter->BinaryItem.TraceCatalog.Type = htonl(LEMON_RESOURCE_TTRACECATALOG);
+
+				iter->BinaryItem.TraceCatalog.Name = __LemonResourceStringTableAdd(&stringTable,iter->Item.TraceCatalog.Name,errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				iter->BinaryItem.TraceCatalog.Description = __LemonResourceStringTableAdd(&stringTable,iter->Item.TraceCatalog.Description,errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				iter->BinaryItem.TraceCatalog.Value = htonl(iter->Item.TraceCatalog.Value);
+
+				break;
+			}
+
+		case LEMON_RESOURCE_TTRACEEVENT:
+			{
+				itemTableSize += sizeof(LemonResourceTraceEventBinary);
+
+				iter->BinaryItem.TraceEvent.Type = htonl(LEMON_RESOURCE_TTRACEEVENT);
+
+				iter->BinaryItem.TraceEvent.Text = __LemonResourceStringTableAdd(&stringTable,iter->Item.TraceEvent.Text,errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				iter->BinaryItem.TraceEvent.Sequence = htonl(iter->Item.TraceEvent.Sequence);
+
+				break;
+			}
+		}
+
+		iter = iter->Next;
+	}
+
+	
+	// write locale id 
+	writer.Write(writer.UserData,(const lemon_byte_t*)&localeId,sizeof(localeId),errorCode);
+	
+	if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+	// write version 
+
+	writer.Write(writer.UserData,(const lemon_byte_t*)&version,sizeof(version),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Finally;;
+	//write uuid
+	writer.Write(writer.UserData,(const lemon_byte_t*)&resource->Uuid,sizeof(LemonUuid),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+	lemon_uint32_t stringTableSize = 0;
+
+	if(stringTable.Tail)
+	{
+		stringTableSize = stringTable.Tail->Offset + (lemon_uint32_t)stringTable.Tail->Length;
+	}
+
+	stringTableSize = htonl(stringTableSize);
+
+	//write string table length
+	writer.Write(writer.UserData,(const lemon_byte_t*)&stringTableSize,sizeof(stringTableSize),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Finally;;
+	//write string table strings
+	LemonResourceUTF8String *string = stringTable.Header;
+
+	while(string)
+	{
+		writer.Write(writer.UserData,(const lemon_byte_t*)&string->String,string->Length,errorCode);
+
+		if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+		string = string->Next;
+	}
+
+	itemTableSize = htonl(itemTableSize);
+
+	//write item table length
+	writer.Write(writer.UserData,(const lemon_byte_t*)&itemTableSize,sizeof(itemTableSize),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+	iter = resource->Items;
+
+	while(iter)
+	{
+		switch(iter->Type)
+		{
+		case LEMON_RESOURCE_TTEXT:
+			{
+				writer.Write(writer.UserData,(const lemon_byte_t*)&iter->BinaryItem.Text,sizeof(LemonResourceTextBinary),errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				break;
+			}
+
+		case LEMON_RESOURCE_TERRORINFO:
+			{
+				writer.Write(writer.UserData,(const lemon_byte_t*)&iter->BinaryItem.ErrorInfo,sizeof(LemonResourceErrorInfoBinary),errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				break;
+			}
+
+		case LEMON_RESOURCE_TTRACECATALOG:
+			{
+				writer.Write(writer.UserData,(const lemon_byte_t*)&iter->BinaryItem.TraceCatalog,sizeof(LemonResourceTraceCatalogBinary),errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				break;
+			}
+
+		case LEMON_RESOURCE_TTRACEEVENT:
+			{
+				writer.Write(writer.UserData,(const lemon_byte_t*)&iter->BinaryItem.TraceEvent,sizeof(LemonResourceTraceEventBinary),errorCode);
+
+				if(LEMON_FAILED(*errorCode)) goto Finally;;
+
+				break;
+			}
+		}
+
+		iter = iter->Next;
+	}
+
+Finally:
+
+	string = stringTable.Header;
+
+	while(string)
+	{
+		LemonResourceUTF8String *current = string;
+
+		string = string->Next;
+
+		__LemonResourceReleaseUTF8String(current);
+	}
+}
+
+
+//LEMON_SYS_API
+//	LemonResource LemonResourceRead(
+//	__lemon_in LemonIoReader reader,
+//	__lemon_inout LemonErrorInfo *errorCode)
+//{
+//
+//}
+//} 
+
+
+LEMON_SYS_API 
+	const lemon_char_t * 
+	LemonI18nText(
+	__lemon_in const LemonUuid*,
+	__lemon_in const lemon_char_t * msg)
+{
+	return msg;
 }
