@@ -26,8 +26,6 @@ typedef struct LemonTraceMessage{
 
 	size_t				DataLength;
 
-	lemon_byte_t		Data[1];
-
 }LemonTraceMessage;
 
 LEMON_PPC_API
@@ -39,8 +37,7 @@ LEMON_PPC_API
 LEMON_PPC_API
 	void
 	LemonClosePPC(
-	__lemon_in LemonPPCPackage package,
-	__lemon_inout LemonErrorInfo *errorCode);
+	__lemon_in LemonPPCPackage package);
 
 
 LEMON_PPC_API
@@ -54,7 +51,14 @@ LEMON_PPC_API
 LEMON_PPC_API
 	void
 	LemonGeneratePPC(
+	__lemon_in LemonPPCPackage package,
 	__lemon_in const lemon_char_t * targetPath,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_PPC_API
+	const lemon_char_t * 
+	LemonPPCPackageName(
+	__lemon_in LemonPPCPackage package,
 	__lemon_inout LemonErrorInfo *errorCode);
 
 #endif //LEMON_PPC_ABI_H

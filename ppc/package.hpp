@@ -21,6 +21,8 @@ namespace lemon{namespace ppc{namespace core{
 	{
 		std::string			Text;
 
+		std::string			Description;
+
 		size_t				Value;
 	};
 
@@ -53,9 +55,9 @@ namespace lemon{namespace ppc{namespace core{
 
 		const lemon::uuid_t	&Guid() const { return _guid; }
 
-		const std::string TraceLogMacroName() const { return _traceLogMacroName; }
+		const std::string& TraceLogMacroName() const { return _traceLogMacroName; }
 
-		const std::string GetName() const { return _name ; }
+		const lemon::String& GetName() const { return _name ; }
 
 	private:
 
@@ -69,6 +71,8 @@ namespace lemon{namespace ppc{namespace core{
 
 		void SetTraceLogMacroName(const std::string & val) { _traceLogMacroName = val; }
 
+		void PushCatalogItem(const char * name,const char * description,size_t id);
+
 	private:
 
 		ASTs							_asts;
@@ -81,7 +85,7 @@ namespace lemon{namespace ppc{namespace core{
 
 		std::string						_traceLogMacroName;
 
-		std::string						_name;
+		lemon::String					_name;
 	};
 
 }}}

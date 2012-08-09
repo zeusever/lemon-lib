@@ -58,7 +58,7 @@ namespace lemon{namespace ppc{namespace core{
 
 	void CXXCodeGen::PackageIdGetFunctionG(std::ostream & stream)
 	{
-		const lemon_byte_t * bytes = (const lemon_byte_t*)&_moduleGuid;
+		const lemon_byte_t * bytes = (const lemon_byte_t*)&_packageId;
 
 		char buffer[128] = {0};
 
@@ -87,8 +87,6 @@ namespace lemon{namespace ppc{namespace core{
 	{
 		const Package::Catalog & catalog  = _package.GetCatalog();
 
-		size_t counter = 0;
-
 		for(size_t i = 0 ; i < catalog.size(); ++i)
 		{
 			std::string flag = catalog[i].Text;
@@ -97,11 +95,9 @@ namespace lemon{namespace ppc{namespace core{
 			{
 				stream << "#ifndef " << flag << std::endl;
 
-				stream << "#define " << flag << "\t" << counter << std::endl;
+				stream << "#define " << flag << "\t" << catalog[i].Value << std::endl;
 
 				stream << "#endif //" << flag << "\n" << std::endl;
-
-				++ counter;
 			}
 		}
 	}
@@ -143,7 +139,7 @@ namespace lemon{namespace ppc{namespace core{
 
 		stream << ">" << std::endl;
 
-		stream << "\tvoid operator()(TraceLog & log, size_t level, size_t catalog,const char*,";
+		stream << "\tvoid operator()(Tracelog & log, size_t level, size_t catalog,const char*";
 
 		for(size_t i = 0; i < args; ++ i)
 		{
@@ -169,7 +165,7 @@ namespace lemon{namespace ppc{namespace core{
 
 		for(size_t i = 0; i < args; ++ i)
 		{
-			stream << "\t\tlength = lemon::ppc::type_trait<A" << i << ">::write(message,length,a" << i << ")" << std::endl << std::endl;
+			stream << "\t\tlength = lemon::ppc::type_trait<A" << i << ">::write(message,length,a" << i << ");" << std::endl << std::endl;
 		}
 
 		stream << "\t\tlog.trace(message);" << std::endl << std::endl;

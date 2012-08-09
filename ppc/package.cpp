@@ -28,7 +28,7 @@ namespace lemon{namespace ppc{namespace core{
 		{
 			CXXCodeGen gen(*this,_asts.size());
 
-			std::ofstream stream(lemon::to_locale(source).c_str(),std::ios::trunc);
+			std::ofstream stream(lemon::to_locale(object).c_str(),std::ios::trunc);
 
 			if(!stream.is_open())
 			{
@@ -62,6 +62,7 @@ namespace lemon{namespace ppc{namespace core{
 			.def("name",&Package::Name)	
 			.def("errorinfo",&Package::PushErrorInfo)
 			.def("tracelog",&Package::SetTraceLogMacroName)
+			.def("catalog",&Package::PushCatalogItem)
 			;
 
 		std::stringstream stream;
@@ -74,11 +75,17 @@ namespace lemon{namespace ppc{namespace core{
 
 		stream << "\tpkg:name(assembly.name)" << std::endl;
 
-		stream << "\tpkg:tracelog(assembly.tracelog)" << std::endl;
+		stream << "\tpkg:tracelog(assembly.tracelog.macro)" << std::endl;
 
 		stream << "\t for i,v in ipairs(assembly.errorcode) do " << std::endl;
 
 		stream << "\t\tif v.description ~= nil then pkg:errorinfo(v.name,v.description) else pkg:errorinfo(v.name,\"\") end" << std::endl;
+
+		stream << "end" <<std::endl;
+
+		stream << "\t for i,v in ipairs(assembly.tracelog.catalog) do " << std::endl;
+
+		stream << "\t\tif v.description ~= nil then pkg:catalog(v.name,v.description,i) else pkg:catalog(v.name,\"\",i) end" << std::endl;
 
 		stream << "end" <<std::endl;
 
@@ -137,6 +144,13 @@ namespace lemon{namespace ppc{namespace core{
 
 	void Package::Name(const char *name)
 	{
-		_name = name;
+		_name = lemon::from_utf8(name);
+	}
+
+	void Package::PushCatalogItem(const char * name,const char * description,size_t id)
+	{
+		CatalogItem item = {name,description,id};
+
+		_catalog.push_back(item);
 	}
 }}}
