@@ -1,6 +1,6 @@
 #include <cassert>
 #include <lemon/sys/coroutine.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/sys/assembly.h>
 
 #if defined(LEMON_USE_BUILDIN_UCONTEXT) || defined (LEMON_HAS_UCONTEXT_H)
 #   ifdef LEMON_USE_BUILDIN_UCONTEXT

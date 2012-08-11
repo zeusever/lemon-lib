@@ -1,4 +1,4 @@
-#include <lemon/sys/errorcode.h>
+#include <lemon/sys/assembly.h>
 #include <lemon/sys/environment.h>
 
 #ifdef WIN32

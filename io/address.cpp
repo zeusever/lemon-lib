@@ -1,7 +1,7 @@
 #include <errno.h>
 #include <lemon/io/address.h>
-#include <lemon/io/errorcode.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/io/assembly.h>
+#include <lemon/sys/assembly.h>
 
 #ifndef LEMON_HAS_NTOP
 #include <lemon/io/buildin/inet_ntop.h>

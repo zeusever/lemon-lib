@@ -1,6 +1,6 @@
 #include <lemon/memory/pool.h>
-#include <lemon/memory/errorcode.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/memory/assembly.h>
+#include <lemon/sys/assembly.h>
 
 typedef struct LemonMemoryPoolPage{
 

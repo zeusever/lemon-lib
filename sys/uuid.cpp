@@ -1,5 +1,5 @@
 #include <lemon/sys/uuid.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/sys/assembly.h>
 #include <lemon/sys/configure.h>
 
 #ifdef LEMON_UUID_WIN32RPC

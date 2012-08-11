@@ -1,5 +1,5 @@
 #include <lemon/sys/random.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/sys/assembly.h>
 
 #ifdef LEMON_RANDOM_WINCRYPT
 #include <Wincrypt.h>

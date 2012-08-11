@@ -1,7 +1,7 @@
 #include <lemon/sys/uuid.h>
 #include <lemon/sys/datetime.h>
 #include <lemon/sys/resource.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/sys/assembly.h>
 #include <lemon/sys/text.h>
 
 typedef struct LemonResourceTextBinary{

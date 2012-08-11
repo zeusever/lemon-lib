@@ -1,5 +1,5 @@
 #include <assert.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/sys/assembly.h>
 #include <lemon/io/reactor/queue.h>
 #include <lemon/io/reactor/reactor.h>
 

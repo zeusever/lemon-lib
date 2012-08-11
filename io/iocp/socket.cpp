@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <lemon/io/socket.h>
-#include <lemon/io/errorcode.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/io/assembly.h>
+#include <lemon/sys/assembly.h>
 
 #ifdef LEMON_ASYNC_IO_IOCP
 #include <Mswsock.h>

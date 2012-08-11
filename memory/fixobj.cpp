@@ -1,7 +1,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <lemon/memory/fixobj.h>
-#include <lemon/memory/errorcode.h>
+#include <lemon/memory/assembly.h>
 
 #define LEMON_MEMORY_MALLOC
 

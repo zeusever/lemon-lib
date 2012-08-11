@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #include <lemon/sys/text.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/sys/assembly.h>
 
 LEMON_SYS_API 
 	int lemon_sprintf(

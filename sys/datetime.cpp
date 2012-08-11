@@ -1,7 +1,7 @@
 #define _REENTRANT
 
 #include <lemon/sys/datetime.h>
-#include <lemon/sys/errorcode.h>
+#include <lemon/sys/assembly.h>
 
 #ifdef LEMON_USE_WIN32_FTIME
 #include <errno.h>
