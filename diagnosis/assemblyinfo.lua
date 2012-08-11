@@ -1,0 +1,4 @@
+assembly = 
+   {
+   name = "lemon-diagnosis"
+   }
