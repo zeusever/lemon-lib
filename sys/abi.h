@@ -84,7 +84,9 @@ LEMON_SYS_API LemonUuid LEMON_UNITTEST_ERROR_CATALOG;
 	errorinfo.File = __FILE__;\
 	errorinfo.Lines = __LINE__;
 
-#define LEMON_ERRORINOF_EQ(lhs,rhs) ((memcmp(lhs.Error.Catalog,rhs.Error.Catalog,sizeof(LemonUuid)) == 0) && (lhs.Error.Code == rhs.Error.Code))
+LEMON_SYS_API lemon_bool LemonErrorCodeCompare(const LemonError * lhs,const LemonError * rhs);
+
+#define LEMON_ERRORINOF_EQ(lhs,rhs) LemonErrorCodeCompare(&lhs,&rhs)
 
 #define LEMON_WIN32_ERROR(errorinfo,ec) LEMON_MAKE_ERRORINFO((errorinfo),LEMON_WIN32_ERROR_CATALOG,ec)
 
@@ -133,6 +135,11 @@ LEMON_SYS_API LemonUuid LEMON_UNITTEST_ERROR_CATALOG;
 
 //////////////////////////////////////////////////////////////////////////
 
+#define LEMON_IO_BEGIN												0x01
+
+#define LEMON_IO_END												0x02
+
+#define LEMON_IO_CURRENT											0x03
 typedef struct LemonIoWriter{
 
 	void *UserData;
