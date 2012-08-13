@@ -147,7 +147,7 @@ LEMON_SYS_API
 	return &resource->Uuid;
 }
 
-LEMON_SYS_PRIVATE static lemon_uint16_t __atoi(const lemon_char_t * from,const lemon_char_t * to)
+static lemon_uint16_t __atoi(const lemon_char_t * from,const lemon_char_t * to)
 {
 	const static lemon_char_t numbers[] = LEMON_TEXT("0123456789");
 
@@ -683,6 +683,10 @@ LEMON_SYS_API
 
 	lemon_uint32_t	localeId = htonl(resource->LocaleId);
 
+	LemonResourceUTF8String *string = NULL;
+
+	lemon_uint32_t stringTableSize = 0;
+
 	LemonVersion version = 
 	{
 		htons(resource->Version.Major),
@@ -788,8 +792,6 @@ LEMON_SYS_API
 
 	if(LEMON_FAILED(*errorCode)) goto Finally;;
 
-	lemon_uint32_t stringTableSize = 0;
-
 	if(stringTable.Tail)
 	{
 		stringTableSize = stringTable.Tail->Offset + (lemon_uint32_t)stringTable.Tail->Length;
@@ -802,7 +804,7 @@ LEMON_SYS_API
 
 	if(LEMON_FAILED(*errorCode)) goto Finally;;
 	//write string table strings
-	LemonResourceUTF8String *string = stringTable.Header;
+	string = stringTable.Header;
 
 	while(string)
 	{
