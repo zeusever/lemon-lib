@@ -134,6 +134,8 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 			{
 				message.Load((const lemon::byte_t*)_ringBuffer.pop_front(),RingBuffer::block_size::value,errorCode);
 
+				if(LEMON_FAILED(errorCode)) continue;
+
 				lemon::mutex::scope_lock::scope_unlock unlock(lock);
 
 				lemon::mutex::scope_lock controlls_lock(_controllersMutex);

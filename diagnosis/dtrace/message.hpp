@@ -42,6 +42,8 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 
 		virtual void Load(const lemon::byte_t * data,size_t length,error_info & errorCode);
 
+		const lemon::time_t &TimeStamp();
+
 	private:
 
 		size_t						_blockSize;
@@ -53,6 +55,8 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 		lemon::byte_t				*_buffer;
 
 		lemon::uuid_t				_provider;
+
+		lemon::time_t				_timestamp;
 
 		LemonDTraceFlags			_flags;
 	};

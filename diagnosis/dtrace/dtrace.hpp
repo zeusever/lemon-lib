@@ -100,6 +100,8 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 		virtual size_t Length() const = 0;
 
 		virtual size_t Offset(size_t status,int offset) = 0;
+
+		virtual const lemon::time_t &TimeStamp() = 0;
 	protected:
 
 		~IMessage() {}

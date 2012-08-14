@@ -211,6 +211,14 @@ LEMON_DIAGNOSIS_API
 	}
 }
 
+LEMON_DIAGNOSIS_API
+	const LemonTime* 
+	LemonTraceTimeStamp(
+	__lemon_in LemonDTraceEvent e)
+{
+	return	&(reinterpret_cast<IMessage*>(e)->TimeStamp());
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -641,4 +649,257 @@ LEMON_DIAGNOSIS_API
 	__lemon_inout LemonErrorInfo *errorCode)
 {
 	return LemonTracePeek(e,errorCode);
+}
+
+
+LEMON_DIAGNOSIS_API
+	void 
+	LemonTraceWriteErrorInfo(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in const LemonErrorInfo * errorInfo,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	size_t current = LemonTraceOffset(e,LEMON_IO_CURRENT,0,errorCode);
+
+	assert(LEMON_SUCCESS(*errorCode));
+
+	lemon_byte_t type = LEMON_DTRACE_ERRORINFO;
+
+	lemon_uint8_t length = 0;
+
+	lemon_uint16_t line = htons((lemon_uint16_t)errorInfo->Lines);
+
+	lemon_uint32_t code = htonl((lemon_uint32_t)errorInfo->Error.Code);
+
+	LemonTraceWrite(e,&type,sizeof(type),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	//write file
+	if(errorInfo->File)
+	{
+		size_t l = strlen(errorInfo->File) + 1;
+
+		length = l > 255 ? 255 : (lemon_uint8_t)l;
+
+		LemonTraceWrite(e,&length,sizeof(length),errorCode);
+
+		if(LEMON_FAILED(*errorCode)) goto Error;
+
+		LemonTraceWrite(e,(const lemon_byte_t*)errorInfo->File,length,errorCode);
+
+		if(LEMON_FAILED(*errorCode)) goto Error;
+	}
+	else
+	{
+		LemonTraceWrite(e,&length,sizeof(length),errorCode);
+
+		if(LEMON_FAILED(*errorCode)) goto Error;
+	}
+	//write lines
+	LemonTraceWrite(e,(const lemon_byte_t*)&line,sizeof(line),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+	//write uuid
+	LemonTraceWrite(e,(const lemon_byte_t*)errorInfo->Error.Catalog,sizeof(LemonUuid),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+	//write error code
+
+	LemonTraceWrite(e,(const lemon_byte_t*)&code,sizeof(code),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	return ;
+
+Error:
+	LemonTraceOffset(e,LEMON_IO_BEGIN,(int)current,errorCode);
+}
+
+LEMON_DIAGNOSIS_API
+	size_t
+	LemonTraceReadErrorInfo(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in lemon_byte_t * buffer,
+	__lemon_in size_t length,
+	__lemon_inout LemonErrorInfo * info,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	size_t miniLength = sizeof(LemonUuid);
+
+	size_t result = miniLength + 256;
+
+	lemon_byte_t fileLength = 0;
+
+	lemon_byte_t type = 0;
+
+	lemon_uint16_t line = 0;
+
+	lemon_uint32_t code = 0;
+
+	size_t current = LemonTraceOffset(e,LEMON_IO_CURRENT,0,errorCode);
+
+	if(length <  miniLength)
+	{
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_RESOURCE_ERROR);
+
+		goto Error;
+	}
+
+	assert(LEMON_SUCCESS(*errorCode));
+
+	type = LemonTracePeek(e,errorCode);
+
+	if(LEMON_FAILED(*errorCode) || type != LEMON_DTRACE_ERRORINFO)
+	{
+		LEMON_USER_ERROR(*errorCode,LEMON_DIAGNOSIS_TRACE_TYPE_ERROR);
+
+		goto Error;
+	}
+
+	LemonTraceOffset(e,LEMON_IO_CURRENT,1,errorCode);
+
+	assert(LEMON_SUCCESS(*errorCode));
+	//read file len
+	LemonTraceRead(e,&fileLength,sizeof(fileLength),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	result = miniLength + fileLength;
+
+	if(result >  length)
+	{
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_RESOURCE_ERROR);
+
+		goto Error;
+	}
+	//read file
+	LemonTraceRead(e,buffer,fileLength,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	buffer[fileLength] = 0;
+
+	info->File = (const char*)buffer;
+	//read lines
+	LemonTraceRead(e,(lemon_byte_t*)&line,sizeof(line),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	info->Lines = ntohs(line);
+	//read uuid
+	LemonTraceRead(e,(lemon_byte_t*)&buffer[fileLength],sizeof(LemonUuid),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	info->Error.Catalog = (const LemonUuid *)&buffer[fileLength];
+	//read code
+	LemonTraceRead(e,(lemon_byte_t*)&code,sizeof(code),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	info->Error.Code = ntohl(code);
+
+	return result;
+
+Error:
+	LemonTraceOffset(e,LEMON_IO_BEGIN,(int)current,errorCode);
+
+	return result;
+}
+
+LEMON_DIAGNOSIS_API
+	void 
+	LemonTraceWriteSockAddr(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in const struct sockaddr * address,
+	__lemon_in socklen_t addressSize,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	size_t current = LemonTraceOffset(e,LEMON_IO_CURRENT,0,errorCode);
+
+	lemon_byte_t type = LEMON_DTRACE_SOCKADDR;
+
+	LemonTraceWrite(e,&type,sizeof(type),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	lemon_uint8_t length = (lemon_uint8_t)addressSize;
+
+	LemonTraceWrite(e,&length,sizeof(length),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	LemonTraceWrite(e,(const lemon_byte_t*)address,length,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	return ;
+
+Error:
+
+	LemonTraceOffset(e,LEMON_IO_BEGIN,(int)current,errorCode);
+}
+
+LEMON_DIAGNOSIS_API
+	socklen_t 
+	LemonTraceReadSockAddr(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in struct sockaddr * address,
+	__lemon_in socklen_t addressSize,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	lemon_uint8_t length = 0;
+
+	size_t current = LemonTraceOffset(e,LEMON_IO_CURRENT,0,errorCode);
+
+	lemon_byte_t type = 0;
+
+	LemonTraceRead(e,&type,sizeof(type),errorCode);
+
+	if(LEMON_FAILED(*errorCode) || LEMON_DTRACE_SOCKADDR != type)
+	{
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_RESOURCE_ERROR);
+
+		goto Error;
+	}
+
+	LemonTraceRead(e,&length,sizeof(length),errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	if(length > addressSize)
+	{
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_BUFFER_TOO_SMALL);
+
+		goto Error;
+	}
+
+	LemonTraceRead(e,(lemon_byte_t*)address,length,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	return length;
+
+Error:
+	LemonTraceOffset(e,LEMON_IO_BEGIN,(int)current,errorCode);
+
+	return -1;
+}
+
+
+LEMON_DIAGNOSIS_API
+	size_t LemonTraceDump(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in lemon_byte_t * buffer,
+	__lemon_in size_t length,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	error_info ei;
+
+	size_t result =	reinterpret_cast<IMessage*>(e)->Dump(buffer,length,ei);
+
+	errorCode = ei;
+
+	return result;
 }

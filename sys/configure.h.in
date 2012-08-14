@@ -1,3 +1,5 @@
+#cmakedefine LEMON_BIG_END
+
 #cmakedefine LEMON_TEXT_CONVERTER_WIN32
 
 #cmakedefine LEMON_TEXT_CONVERTER_ICU

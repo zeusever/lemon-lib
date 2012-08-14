@@ -32,6 +32,10 @@ typedef int64_t LemonTimeDuration;
 
 #define LEMON_TIME_INFINITE (size)-1
 
+#define LEMON_TIME_TO_INT64(t) ((t).Seconds * 10000000 + (t).Microseconds * 10)
+
+#define LEMON_TIME_FROM_INT64(to,from) (to).Seconds = from / 10000000; (to).Microseconds = (from % 10000000) / 10;
+
 typedef struct LemonDateTime{
 	unsigned int Year;
 	unsigned int Month;

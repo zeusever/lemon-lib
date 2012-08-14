@@ -1,6 +1,11 @@
 include(CheckTypeSize)
 include(CheckIncludeFile)
 include(CheckCXXSourceRuns)
+include(TestBigEndian)
+
+#check if the platform is bigend
+
+TEST_BIG_ENDIAN(LEMON_BIG_END)
 
 #check the wchar_t length
 check_type_size(wchar_t LEMON_WCHAR_SIZE)

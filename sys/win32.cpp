@@ -2,6 +2,11 @@
 #include <vector>
 #include <lemon/sys/thread.h>
 #include <lemon/sys/configure.h>
+#include <dbghelp.h>
+
+#include <lemonxx/sys/filesystem.hpp>
+
+#pragma comment(lib, "dbghelp.lib")
 
 LemonMutex __globalMutex = LEMON_HANDLE_NULL_VALUE;
 
@@ -62,6 +67,56 @@ void DeRegisterTls(LemonTls tls,LemonErrorInfo * errorCode)
 	LemonMutexUnLock(__globalMutex,errorCode);
 }
 
+
+LONG WINAPI LemonWin32UnHandledExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo)
+{
+	std::cout << "test" <<  std::endl;
+
+	lemon_char_t buffer[MAX_PATH] = {0};
+
+	GetModuleFileNameW(NULL,buffer,MAX_PATH);
+
+	lemon::fs::path path(buffer);
+
+	lemon::fs::path dumpFile = path.parent() / LEMON_TEXT("lemon.dmp");
+
+	HANDLE lhDumpFile = CreateFileW
+		(
+		dumpFile.native().c_str(), 
+		GENERIC_WRITE, 
+		0,
+		NULL,                                    
+		CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL 
+		,NULL
+		); 
+
+	MINIDUMP_EXCEPTION_INFORMATION loExceptionInfo;
+	loExceptionInfo.ExceptionPointers = ExceptionInfo;
+	loExceptionInfo.ThreadId = GetCurrentThreadId();
+	loExceptionInfo.ClientPointers = TRUE;
+
+	int nDumpType = MiniDumpNormal | MiniDumpWithDataSegs | MiniDumpWithFullMemory | 
+		MiniDumpWithThreadInfo | MiniDumpWithHandleData | MiniDumpWithUnloadedModules |
+		MiniDumpFilterModulePaths;
+
+	 MiniDumpWriteDump
+		 (
+		 GetCurrentProcess(), 
+		 GetCurrentProcessId(),
+		 lhDumpFile, 
+		 (MINIDUMP_TYPE)nDumpType, 
+		 &loExceptionInfo, 
+		 NULL, 
+		 NULL
+		 );
+
+	 CloseHandle(lhDumpFile);
+
+	 return EXCEPTION_EXECUTE_HANDLER;
+}
+
+
 BOOLEAN WINAPI DllMain( 
 	IN HINSTANCE /*hDllHandle*/, 
 	IN DWORD     nReason, 
@@ -111,6 +166,8 @@ BOOLEAN WINAPI DllMain(
 
 	case DLL_PROCESS_ATTACH:
 		{
+			SetUnhandledExceptionFilter(LemonWin32UnHandledExceptionFilter); 
+
 			CreateGlobalMutex(&errorinfo);
 
 			if(LEMON_FAILED(errorinfo)) return FALSE;

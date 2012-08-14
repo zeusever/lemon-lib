@@ -146,8 +146,6 @@ LEMON_SYS_API
 	DWORD attributes = GetFileAttributesW(directory);
 
 	if(INVALID_FILE_ATTRIBUTES == attributes){
-		
-		LEMON_WIN32_ERROR(*errorCode,GetLastError());
 
 		return lemon_false;
 	}

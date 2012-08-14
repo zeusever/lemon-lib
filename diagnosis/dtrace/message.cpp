@@ -24,6 +24,8 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 		_provider = *provider;
 
 		_flags = flags;
+
+		_timestamp = lemon::time_t::now();
 	}
 
 	size_t LocalMessage::Write( const lemon::byte_t * data , size_t length )
@@ -36,7 +38,7 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 
 		_offset = _offset + (int)length;
 
-		if(_offset > _length) _length = _offset;
+		if((size_t)_offset > _length) _length = _offset;
 
 		return length;
 	}
@@ -57,7 +59,7 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 
 	lemon::byte_t LocalMessage::Peek()
 	{
-		if(_offset == _length)
+		if((size_t)_offset == _length)
 		{
 			error_info errorCode;
 
@@ -90,7 +92,7 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 		{
 		case LEMON_IO_BEGIN:
 			{
-				if(offset > _length) _offset =  (int)_length;
+				if(offset > (int)_length) _offset =  (int)_length;
 
 				else if(offset < 0) _offset = 0;
 
@@ -103,7 +105,7 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 			{
 				_offset += offset;
 
-				if(_offset > _length) _offset = (int)_length;
+				if(_offset > (int)_length) _offset = (int)_length;
 
 				else if(_offset < 0) _offset = 0;
 
@@ -113,7 +115,7 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 			{
 				_offset = (int)(_length + offset);
 
-				if(_offset > _length) _offset = (int)_length;
+				if(_offset > (int)_length) _offset = (int)_length;
 
 				else if(_offset < 0) _offset = 0;
 
@@ -126,13 +128,13 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 
 	size_t LocalMessage::Dump(lemon::byte_t * data,size_t length,error_info & errorCode)
 	{
-		lemon_uint32_t sourcelength = (lemon_uint32_t)(_length + sizeof(lemon::uuid_t) + sizeof(LemonDTraceFlags) + sizeof(lemon_uint32_t));
+		lemon_uint32_t sourcelength = (lemon_uint32_t)(_length + sizeof(lemon::uint64_t) + sizeof(lemon::uuid_t) + sizeof(LemonDTraceFlags) + sizeof(lemon_uint32_t));
 
 		if(sourcelength > length)
 		{
 			LEMON_USER_ERROR(errorCode,LEMON_SYS_BUFFER_TOO_SMALL);
 
-			return size_t(-1);
+			return sourcelength;
 		}
 
 		size_t offset = 0;
@@ -144,6 +146,14 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 		memcpy(&data[offset],&sourcelength,sizeof(lemon_uint32_t));
 
 		offset += sizeof(lemon_uint32_t);
+
+		lemon::uint64_t timestamp = LEMON_TIME_TO_INT64(_timestamp);
+
+		timestamp = __lemon_hton64(timestamp);
+
+		memcpy(&data[offset],&timestamp,sizeof(timestamp));
+
+		offset += sizeof(timestamp);
 
 		memcpy(&data[offset],&_provider,sizeof(_provider));
 
@@ -162,7 +172,7 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 	{
 		_offset = 0; _length = 0;
 
-		if(length < (sizeof(lemon::uuid_t) + sizeof(LemonDTraceFlags) + sizeof(lemon_uint32_t)))
+		if(length < (sizeof(lemon::int64_t) + sizeof(lemon::uuid_t) + sizeof(LemonDTraceFlags) + sizeof(lemon_uint32_t)))
 		{
 			LEMON_USER_ERROR(errorCode,LEMON_SYS_BUFFER_TOO_SMALL);
 
@@ -184,9 +194,19 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 			return;
 		}
 
-		_length = sourcelength - sizeof(lemon::uuid_t) - sizeof(LemonDTraceFlags) - sizeof(lemon_uint32_t);
+		_length = sourcelength - sizeof(lemon::uuid_t) - sizeof(LemonDTraceFlags) - sizeof(lemon_uint32_t) - sizeof(lemon::int64_t);
 
 		offset += sizeof(lemon_uint32_t);
+
+		lemon::int64_t timestamp = 0;
+
+		memcpy(&timestamp,&data[offset],sizeof(timestamp));
+
+		timestamp = __lemon_ntoh64(timestamp);
+
+		LEMON_TIME_FROM_INT64(_timestamp , timestamp);
+
+		offset += sizeof(timestamp);
 
 		memcpy(&_provider,&data[offset],sizeof(_provider));
 
@@ -198,6 +218,11 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 
 		memcpy(_buffer,&data[offset],_length);
 
+	}
+
+	const lemon::time_t & LocalMessage::TimeStamp()
+	{
+		return _timestamp;
 	}
 }}}
 

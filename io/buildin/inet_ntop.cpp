@@ -12,7 +12,7 @@ LEMON_IO_PRIVATE const char *inet_ntop_v4(const void *src, char *dst, socklen_t 
 
 	memset(buffer,0,sizeof(buffer));
 
-	int length = lemon_sprintf(buffer,sizeof(buffer),"%d.%d.%d.%d",bytes[0],bytes[1],bytes[2],bytes[3]) + 1;
+	int length = lemon_csprintf(buffer,sizeof(buffer),"%d.%d.%d.%d",bytes[0],bytes[1],bytes[2],bytes[3]) + 1;
 
 	if(length > size){
 		errno = ENOSPC;
@@ -81,7 +81,7 @@ LEMON_IO_PRIVATE const char *inet_ntop_v6(const void *src, char*dst, socklen_t s
 
 	if(words[5] == 0xffff && better.from == 0 && better.length == 5){
 
-		length = lemon_sprintf(buffer,sizeof(buffer),"::ffff:");
+		length = lemon_csprintf(buffer,sizeof(buffer),"::ffff:");
 
 		if(!inet_ntop_v4(&bytes[12],&buffer[length],sizeof(buffer) - length)) return NULL;
 
@@ -89,7 +89,7 @@ LEMON_IO_PRIVATE const char *inet_ntop_v6(const void *src, char*dst, socklen_t s
 
 	}else if(better.from == 0 && better.length == 6){
 
-		length = lemon_sprintf(buffer,sizeof(buffer),"::");
+		length = lemon_csprintf(buffer,sizeof(buffer),"::");
 
 		if(!inet_ntop_v4(&bytes[12],&buffer[length],sizeof(buffer) - length)) return NULL;
 
@@ -100,17 +100,17 @@ LEMON_IO_PRIVATE const char *inet_ntop_v6(const void *src, char*dst, socklen_t s
 
 			if(better.from == i){
 
-				if(i == 0) length += lemon_sprintf(&buffer[length],sizeof(buffer) - length,"::");
+				if(i == 0) length += lemon_csprintf(&buffer[length],sizeof(buffer) - length,"::");
 
-				else length += lemon_sprintf(&buffer[length],sizeof(buffer) - length,":");
+				else length += lemon_csprintf(&buffer[length],sizeof(buffer) - length,":");
 
 				continue;
 			}
 			else if(i - better.length < better.from && better.from < i) continue;
 
-			if(i != 0) length += lemon_sprintf(&buffer[length],sizeof(buffer) - length,":");
+			if(i != 0) length += lemon_csprintf(&buffer[length],sizeof(buffer) - length,":");
 
-			length += lemon_sprintf(&buffer[length],sizeof(buffer) - length,"%x",words[i]);
+			length += lemon_csprintf(&buffer[length],sizeof(buffer) - length,"%x",words[i]);
 		}
 
 		++ length;

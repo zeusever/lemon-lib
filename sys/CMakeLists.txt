@@ -4,3 +4,5 @@ if(WIN32)
 else()
 	lemon_library_project(lemon-sys BOOTSTRAP1 ${SRC})
 endif()
+
+add_dependencies(lemon-sys lemonxx)

@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <process.h>
 
+LONG WINAPI LemonWin32UnHandledExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo);
+
 extern void RegisterTls(LemonTls tls,void (*destructor)(void*),LemonErrorInfo * errorCode);
 
 extern void DeRegisterTls(LemonTls tls,LemonErrorInfo * errorCode);
@@ -265,11 +267,18 @@ LEMON_IMPLEMENT_HANDLE(LemonThread){
 
 static unsigned int __stdcall ProcWrapper(void* data){
 
-	LemonThread current = (LemonThread)data;
+	__try
+	{
+		LemonThread current = (LemonThread)data;
 
-	current->Proc(current->UserData);
+		current->Proc(current->UserData);
 
-	return 0;
+		return 0;
+	}
+	__except(LemonWin32UnHandledExceptionFilter(GetExceptionInformation()))
+	{
+		exit(1);
+	}
 }
 
 LEMON_SYS_API LemonThread LemonCreateThread(
@@ -544,6 +553,8 @@ LEMON_IMPLEMENT_HANDLE(LemonThread){
 	LemonThreadProc         Proc;
 
 	void                    *UserData;
+
+	LemonThread				Next;
 
 };
 

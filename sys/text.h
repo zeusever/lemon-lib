@@ -12,10 +12,17 @@
 #include <lemon/sys/abi.h>
 
 LEMON_SYS_API 
-	int lemon_sprintf(
+	int lemon_csprintf(
 	__lemon_inout char * buffer __lemon_buffer(bufferSize),
 	__lemon_in size_t bufferSize,
 	__lemon_in const char * formater,
+	__lemon_in ...);
+
+LEMON_SYS_API 
+	int lemon_sprintf(
+	__lemon_inout lemon_char_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in const lemon_char_t * formater,
 	__lemon_in ...);
 
 LEMON_SYS_API

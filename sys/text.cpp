@@ -3,7 +3,7 @@
 #include <lemon/sys/assembly.h>
 
 LEMON_SYS_API 
-	int lemon_sprintf(
+	int lemon_csprintf(
 	__lemon_inout char * buffer __lemon_buffer(bufferSize),
 	__lemon_in size_t bufferSize,
 	__lemon_in const char * formater,
@@ -17,6 +17,24 @@ LEMON_SYS_API
 #else
 	bufferSize = bufferSize;
 	return vsprintf(buffer,formater,args);
+#endif 
+}
+
+LEMON_SYS_API 
+	int lemon_sprintf(
+	__lemon_inout lemon_char_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in const lemon_char_t * formater,
+	__lemon_in ...)
+{
+	va_list args;
+
+	va_start(args, formater);
+#ifdef WIN32
+	return vswprintf_s(buffer,bufferSize,formater,args);
+#else
+	bufferSize = bufferSize;
+	return vswprintf(buffer,formater,args);
 #endif 
 }
 

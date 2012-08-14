@@ -10,9 +10,10 @@
 #define LEMON_TRACE_ABI_H
 
 #include <lemon/sys/abi.h>
-#include <lemon/diagnosis/assembly.h>
+#include <lemon/sys/datetime.h>
 #include <lemon/diagnosis/configure.h>
 
+#define LEMON_DTRACE_CATALOG_ANY									0xffffffff
 
 #define LEMON_DTRACE_MAX_LENGTH										1024
 
@@ -25,6 +26,10 @@
 #define LEMON_DTRACE_UTF8_STRING									0x03
 
 #define LEMON_DTRACE_USERDATA										0x04
+
+#define LEMON_DTRACE_ERRORINFO										0x05
+
+#define LEMON_DTRACE_SOCKADDR										0x06
 
 LEMON_DECLARE_HANDLE(LemonDTraceEvent);
 
@@ -96,6 +101,13 @@ LEMON_DIAGNOSIS_API
 	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_DIAGNOSIS_API
+	size_t LemonTraceDump(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in lemon_byte_t * buffer,
+	__lemon_in size_t length,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_DIAGNOSIS_API
 	lemon_byte_t LemonTracePeek(
 	__lemon_in LemonDTraceEvent e,
 	__lemon_inout LemonErrorInfo *errorCode);
@@ -103,6 +115,11 @@ LEMON_DIAGNOSIS_API
 LEMON_DIAGNOSIS_API
 	const LemonUuid * 
 	LemonGetTraceProvider(
+	__lemon_in LemonDTraceEvent e);
+
+LEMON_DIAGNOSIS_API
+	const LemonTime* 
+	LemonTraceTimeStamp(
 	__lemon_in LemonDTraceEvent e);
 
 LEMON_DIAGNOSIS_API
@@ -197,8 +214,20 @@ LEMON_DIAGNOSIS_API
 	__lemon_in size_t length,
 	__lemon_inout LemonErrorInfo *errorCode);
 
+LEMON_DIAGNOSIS_API
+	void 
+	LemonTraceWriteErrorInfo(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in const LemonErrorInfo * errorInfo,
+	__lemon_inout LemonErrorInfo *errorCode);
 
-
+LEMON_DIAGNOSIS_API
+	void 
+	LemonTraceWriteSockAddr(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in const struct sockaddr * address,
+	__lemon_in socklen_t addressSize,
+	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_DIAGNOSIS_API
 	lemon_uint32_t LemonTraceReadInteger(
@@ -224,5 +253,23 @@ LEMON_DIAGNOSIS_API
 	__lemon_in size_t length,
 	__lemon_inout LemonErrorInfo *errorCode);
 
+
+LEMON_DIAGNOSIS_API
+	size_t
+	LemonTraceReadErrorInfo(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in lemon_byte_t * buffer,
+	__lemon_in size_t length,
+	__lemon_inout LemonErrorInfo * info,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+
+LEMON_DIAGNOSIS_API
+	socklen_t 
+	LemonTraceReadSockAddr(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in struct sockaddr * address,
+	__lemon_in socklen_t addressSize,
+	__lemon_inout LemonErrorInfo *errorCode);
 
 #endif //LEMON_TRACE_ABI_H

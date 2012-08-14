@@ -48,13 +48,28 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 	}
 	void LocalController::Trace(IMessage * message)
 	{
-		lemon::mutex_t::scope_lock lock(_mutex);
+		bool status = false;
 
-		Consumers::iterator iter , end = _consumers.end();
-
-		for ( iter = _consumers.begin() ; iter != end ; ++ iter )
 		{
-			(*iter)->CommitTrace(message);
+			lemon::mutex_t::scope_lock lock(_providerFlagsMutex);
+
+			LemonDTraceFlags flags;
+
+			 flags.Value = _providerFlags[*(lemon::uuid_t*)message->Provider()].Value & message->Flags().Value;
+
+			if(flags.S.Catalog != 0 && flags.S.Level != 0) status = true;
+		}
+
+		if(status)
+		{
+			lemon::mutex_t::scope_lock lock(_mutex);
+
+			Consumers::iterator iter , end = _consumers.end();
+
+			for ( iter = _consumers.begin() ; iter != end ; ++ iter )
+			{
+				(*iter)->CommitTrace(message);
+			}
 		}
 	}
 

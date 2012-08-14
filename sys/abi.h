@@ -10,6 +10,7 @@
 #define LEMON_SYS_ABI_H
 #include <lemon/sys/stdtypes.h>
 #include <lemon/sys/configure.h>
+#include <lemon/sys/endianess.h>
 
 ///////////////////////////////////////////////////////////////////////////
 //function attribute macro
@@ -115,21 +116,14 @@ LEMON_SYS_API lemon_bool LemonErrorCodeCompare(const LemonError * lhs,const Lemo
 
 #define LEMON_HANDLE_IMPLEMENT_SIZEOF(handle) sizeof(LEMON_HANDLE_STRUCT_NAME(handle))
 
-#ifdef __cplusplus
-
-#define LEMON_ALLOC_HANDLE(t,name)\
-	t name = new LEMON_HANDLE_STRUCT_NAME(t)();memset(name,0,sizeof(LEMON_HANDLE_STRUCT_NAME(t)));
-
-#define LEMON_HANDLE_EXTEND(name,base) struct LEMON_HANDLE_STRUCT_NAME(name) : public LEMON_HANDLE_STRUCT_NAME(base)
-
-#define LEMON_FREE_HANDLE(name) delete name
-
-#else
-
 #define LEMON_ALLOC_HANDLE(t,name)\
 	t name = (t)malloc(sizeof(LEMON_HANDLE_STRUCT_NAME(t)));memset(name,0,sizeof(LEMON_HANDLE_STRUCT_NAME(t)));
 
 #define LEMON_FREE_HANDLE(name) free(name)
+
+#ifdef __cplusplus
+
+#define LEMON_HANDLE_EXTEND(name,base) struct LEMON_HANDLE_STRUCT_NAME(name) : public LEMON_HANDLE_STRUCT_NAME(base)
 
 #endif //__cplusplus
 
@@ -171,6 +165,8 @@ typedef struct LemonIoReader{
 #define LEMON_TRACELOG_WARNING										0x04
 
 #define LEMON_TRACELOG_ERROR										0x08
+
+#define LEMON_TRACELOG_ANY											0xffffffff
 
 //////////////////////////////////////////////////////////////////////////
 //Lemon Resources Reflection
