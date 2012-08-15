@@ -93,5 +93,9 @@ assembly =
 		{
 			name = "INVALID_VERSION_STRING";
 		};
+
+		{
+			name = "CREATE_PO_SCRIPT_FILE_ERROR";
+		};
       };
    }
