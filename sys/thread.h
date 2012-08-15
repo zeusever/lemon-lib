@@ -106,6 +106,11 @@ LEMON_SYS_API
 	LemonCloseThreadGroup(
 	__lemon_free LemonThreadGroup group);
 
+LEMON_SYS_API
+	size_t
+	LemonThreadGroupSize(
+	__lemon_in LemonThreadGroup group);
+
 
 LEMON_SYS_API
 	void LemonThreadGroupReset(
@@ -127,12 +132,11 @@ LEMON_SYS_API
 
 
 LEMON_SYS_API 
-	size_t 
+	void 
 	LemonThreadGroupCreateThread(
 	__lemon_in		LemonThreadGroup group,
 	__lemon_in		LemonThreadProc proc,
 	__lemon_in		void			*userData,
-	__lemon_in		size_t			threadNumber,
 	__lemon_inout	LemonErrorInfo	*errorCode);
 
 

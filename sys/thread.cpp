@@ -748,6 +748,8 @@ LEMON_SYS_API
 		LemonReleaseThread(current);
 	}
 
+	group->Group = LEMON_HANDLE_NULL_VALUE;
+
 	group->Threads = 0;
 }
 
@@ -796,35 +798,33 @@ LEMON_SYS_API
 
 
 LEMON_SYS_API 
-	size_t 
+	void 
 	LemonThreadGroupCreateThread(
 	__lemon_in		LemonThreadGroup group,
 	__lemon_in		LemonThreadProc proc,
 	__lemon_in		void			*userData,
-	__lemon_in		size_t			threadNumber,
 	__lemon_inout	LemonErrorInfo	*errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	for(size_t i = 0; i < threadNumber; ++ i){
+	LemonThread current = LemonCreateThread(proc,userData,errorCode);
 
-		LemonThread current = LemonCreateThread(proc,userData,errorCode);
+	if(LEMON_FAILED(*errorCode)) return;
 
-		if(LEMON_FAILED(*errorCode)) return i;
+	LemonThreadGroupAdd(group,current,errorCode);
 
-		LemonThreadGroupAdd(group,current,errorCode);
+	if(LEMON_FAILED(*errorCode)) LemonReleaseThread(current);
 
-		if(LEMON_FAILED(*errorCode)){
 
-			LemonReleaseThread(current);
+	++ group->Threads;
+}
 
-			return i;
-		}
-
-		++ group->Threads;
-	}
-
-	return threadNumber;
+LEMON_SYS_API
+	size_t
+	LemonThreadGroupSize(
+	__lemon_in LemonThreadGroup group)
+{
+	return group->Threads;
 }
 
 #ifdef LEMON_USE_GCC_BUIDIN_ATOMIC_FUNCTION
