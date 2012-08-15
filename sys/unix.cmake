@@ -75,3 +75,6 @@ endif()
 # check uuid implement 
 
 set(LEMON_UUID_BUILDIN TRUE)
+
+
+lemon_package_lib(dl)

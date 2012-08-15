@@ -355,6 +355,7 @@ LEMON_SYS_API lemon_int32_t LemonAtomicDecrement(lemon_atomic_t* source){
 #include <errno.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 
 LEMON_SYS_API LemonTls LemonCreateTls(__lemon_option void (*destructor)(void*),__lemon_inout LemonErrorInfo* errorCode){
 
@@ -550,21 +551,49 @@ LEMON_IMPLEMENT_HANDLE(LemonThread){
 
 	pthread_t               Handle;
 
+	LemonMutex              JoinMutex;
+
+	LemonConditionVariable  JoinCondtion;
+
 	LemonThreadProc         Proc;
 
 	void                    *UserData;
 
 	LemonThread				Next;
 
+	LemonThreadGroup		Group;
+
+	volatile lemon_bool		Exit;
+
+	volatile size_t			JoinThreads;
+
 };
+
+#include <assert.h>
+#include <iostream>
 
 //TODO:implement thread init
 
 void* ProcWrapper(void* data)
 {
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
 	LemonThread current = (LemonThread)data;
 
 	current->Proc(current->UserData);
+
+	LemonMutexLock(current->JoinMutex,&errorCode);
+
+	current->Exit = lemon_true;
+
+	LemonMutexUnLock(current->JoinMutex,&errorCode);	
+
+	while(current->JoinThreads) {
+
+		LemonConditionVariableNotifyAll(current->JoinCondtion,&errorCode);	
+
+		assert(!LEMON_FAILED(errorCode));
+	}
 
 	return 0;
 }
@@ -576,15 +605,35 @@ LEMON_SYS_API LemonThread LemonCreateThread(
 {
 	int code = 0;
 
+	pthread_attr_t attr;
+
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	LemonThread t = new LEMON_HANDLE_STRUCT_NAME(LemonThread)();
+	LEMON_ALLOC_HANDLE(LemonThread,t);
 
 	t->Proc = proc;
 
 	t->UserData = userData;
 
-	pthread_create(&t->Handle,NULL,&ProcWrapper,t);
+	t->Exit = lemon_false;
+
+	t->JoinThreads = 0;
+
+	t->JoinMutex = LemonCreateMutex(errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	t->JoinCondtion = LemonCreateConditionVariable(errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	pthread_attr_init(&attr);
+
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+	code = pthread_create(&t->Handle,&attr,&ProcWrapper,t);
+
+	pthread_attr_destroy(&attr);
 
 	if(0 != code){
 
@@ -597,7 +646,7 @@ LEMON_SYS_API LemonThread LemonCreateThread(
 
 Error:
 
-	delete t;
+	LemonReleaseThread(t);
 
 	return LEMON_HANDLE_NULL_VALUE;
 
@@ -605,20 +654,45 @@ Error:
 
 LEMON_SYS_API void LemonReleaseThread(__lemon_in LemonThread t){
 
-	delete t;
+	if(t->JoinMutex) LemonReleaseMutex(t->JoinMutex);
+
+	if(t->JoinCondtion) LemonReleaseConditionVariable(t->JoinCondtion);
+
+	LEMON_FREE_HANDLE(t);
 }
 
 LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
 
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	int code = pthread_join(t->Handle,NULL);
+	LemonMutexLock(t->JoinMutex,errorCode);
 
-	if(0 != code){
-		LEMON_POSIX_ERROR(*errorCode,code);
-	}
+	if(LEMON_FAILED(*errorCode)) return;
+
+	if(lemon_true == t->Exit) goto FINNALY;
+
+	t->JoinThreads += 1;
+
+	LemonConditionVariableWait(t->JoinCondtion,t->JoinMutex,errorCode);
+
+	t->JoinThreads -= 1;
+
+FINNALY:
+
+	LemonMutexUnLock(t->JoinMutex,errorCode);
 
 }
+
+LEMON_SYS_API lemon_thread_id_t LemonGetThreadId(LemonThread t)
+{
+	return t->Handle;
+}
+
+LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
+{
+	return pthread_self();
+}
+
 #else 
 # error "not implement"
 #endif //LEMON_USE_WIN32_THREAD

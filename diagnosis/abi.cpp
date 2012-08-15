@@ -508,6 +508,8 @@ LEMON_DIAGNOSIS_API
 {
 	lemon_byte_t byte = 0;
 
+	lemon_uint32_t result = 0;
+
 	size_t current = LemonTraceOffset(e,LEMON_IO_CURRENT,0,errorCode);
 
 	assert(LEMON_SUCCESS(*errorCode));
@@ -527,8 +529,6 @@ LEMON_DIAGNOSIS_API
 
 		goto Error;
 	}
-
-	lemon_uint32_t result = 0;
 
 	if(sizeof(result) != LemonTraceRead(e,(lemon_byte_t*)&result,sizeof(result),errorCode))
 	{
@@ -579,6 +579,8 @@ LEMON_DIAGNOSIS_API
 {
 	lemon_byte_t byte = 0;
 
+	lemon_uint32_t result = 0;
+
 	size_t current = LemonTraceOffset(e,LEMON_IO_CURRENT,0,errorCode);
 
 	assert(LEMON_SUCCESS(*errorCode));
@@ -598,8 +600,6 @@ LEMON_DIAGNOSIS_API
 
 		goto Error;
 	}
-
-	lemon_uint32_t result = 0;
 
 	if(sizeof(result) != LemonTraceRead(e,(lemon_byte_t*)&result,sizeof(result),errorCode))
 	{
@@ -816,6 +816,8 @@ LEMON_DIAGNOSIS_API
 	__lemon_in socklen_t addressSize,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
+	lemon_uint8_t length = (lemon_uint8_t)addressSize;
+
 	size_t current = LemonTraceOffset(e,LEMON_IO_CURRENT,0,errorCode);
 
 	lemon_byte_t type = LEMON_DTRACE_SOCKADDR;
@@ -823,8 +825,6 @@ LEMON_DIAGNOSIS_API
 	LemonTraceWrite(e,&type,sizeof(type),errorCode);
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
-
-	lemon_uint8_t length = (lemon_uint8_t)addressSize;
 
 	LemonTraceWrite(e,&length,sizeof(length),errorCode);
 

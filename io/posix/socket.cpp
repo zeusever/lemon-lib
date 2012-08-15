@@ -44,6 +44,8 @@ LEMON_IO_API
 		goto Error;
 	}
 
+	return s;
+
 Error:
 
 	LemonCloseSocket(s);
@@ -57,6 +59,8 @@ LEMON_IO_API void LemonCloseSocket(__lemon_free LemonSocket socket)
 
 	LEMON_FREE_HANDLE(socket);
 }
+
+#include <iostream>
 
 LEMON_IO_API void 
 	LemonShutdownSocket(
@@ -248,6 +252,30 @@ LEMON_IO_API
 	return sendSize;
 }
 
+/*
+LEMON_IO_API
+	size_t
+	LemonReceiveFrom(
+	__lemon_in LemonSocket socket,
+	__lemon_in lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in struct sockaddr * address,
+	__lemon_in socklen_t *addressSize,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	size_t sendSize = ::recvfrom(socket->Handle,(char*)buffer,(int)bufferSize,flags,address,addressSize);
+
+	if(SOCKET_ERROR == sendSize){
+
+		LEMON_SOCKET_ERROR(*errorCode);
+	}
+
+	return sendSize;
+}
+
 LEMON_IO_API
 	void
 	LemonAsyncReceiveFrom(
@@ -380,5 +408,5 @@ LEMON_IO_API
 
 	LemonPostIoDataToReactor(socket->IoDevice->Reactor,data,errorCode);
 }
-
+*/
 #endif //LEMON_ASYNC_IO_IOCP

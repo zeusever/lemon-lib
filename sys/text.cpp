@@ -34,7 +34,7 @@ LEMON_SYS_API
 	return vswprintf_s(buffer,bufferSize,formater,args);
 #else
 	bufferSize = bufferSize;
-	return vswprintf(buffer,formater,args);
+	return vsprintf(buffer,formater,args);
 #endif 
 }
 
@@ -215,6 +215,112 @@ LEMON_SYS_API
 #	error "not implement"
 #elif defined(LEMON_TEXT_CONVERTER_ICONV)
 
+#include <iconv.h>
+
+LEMON_SYS_API
+	size_t LemonToLocale(
+	__lemon_in const lemon_char_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_byte_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	iconv_t cv = iconv_open("UTF-8","");
+
+	if((iconv_t)-1 == cv){
+		LEMON_POSIX_ERROR(*errorCode,errno);return size_t(-1);
+	}
+
+	size_t length = iconv(cv,(char**)&source,&sourceLength,(char**)&target,&targetLength);
+
+	if(length == (size_t)-1){
+		LEMON_POSIX_ERROR(*errorCode,errno);
+	}
+
+	//perhaps the source encode is equal the target encode
+	if(0 == length) length = sourceLength;
+
+	iconv_close(cv);
+
+	return length;
+}
+
+LEMON_SYS_API
+	size_t LemonFromLocale(
+	__lemon_in const lemon_byte_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_char_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	iconv_t cv = iconv_open("","UTF-8");
+
+	if((iconv_t)-1 == cv){
+		LEMON_POSIX_ERROR(*errorCode,errno);return size_t(-1);
+	}
+
+	size_t length = iconv(cv,(char**)&source,&sourceLength,(char**)&target,&targetLength);
+
+	if(length == (size_t)-1){
+		LEMON_POSIX_ERROR(*errorCode,errno);
+	}
+
+	//perhaps the source encode is equal the target encode
+	if(0 == length) length = sourceLength;
+
+	iconv_close(cv);
+
+	return length;
+}
+
+
+LEMON_SYS_API
+	size_t LemonFromUTF8(
+	__lemon_in const lemon_byte_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_char_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(targetLength < sourceLength){
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_BUFFER_TOO_SMALL);
+
+		return size_t(-1);
+	}
+
+	memcpy(target,source,sourceLength);
+
+	return sourceLength;
+}
+
+LEMON_SYS_API
+	size_t LemonToUTF8(
+	__lemon_in const lemon_char_t * source,
+	__lemon_in size_t sourceLength,
+	__lemon_inout lemon_byte_t * target,
+	__lemon_in size_t targetLength,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	if(targetLength < sourceLength){
+		LEMON_USER_ERROR(*errorCode,LEMON_SYS_BUFFER_TOO_SMALL);
+
+		return size_t(-1);
+	}
+
+	memcpy(target,source,sourceLength);
+
+	return sourceLength;
+}
 #else
 #	error "not support"
 #endif

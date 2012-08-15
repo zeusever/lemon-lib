@@ -19,8 +19,10 @@ typedef unsigned int LemonTls;
 
 #ifdef WIN32
 typedef DWORD lemon_thread_id_t;
+#elif defined(LEMON_HAS_PTHREAD)
+typedef pthread_t lemon_thread_id_t;
 #else
-typedef int	lemon_thread_id_t;
+#error "not support platform"
 #endif 
 
 LEMON_DECLARE_HANDLE(LemonMutex);

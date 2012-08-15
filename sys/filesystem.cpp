@@ -217,7 +217,6 @@ LEMON_SYS_API
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <copyfile.h>
 
 LEMON_IMPLEMENT_HANDLE(LemonDirectoryEnumerator)
 {
@@ -230,7 +229,7 @@ LEMON_IMPLEMENT_HANDLE(LemonDirectoryEnumerator)
 
 LEMON_SYS_API LemonDirectoryEnumerator	
 	LemonCreateDirectoryEnumerator(
-	__lemon_in const lemon_char_t * directoryPath,
+	__lemon_in const lemon_char_t * directory,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
@@ -408,7 +407,7 @@ LEMON_SYS_API
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	if(0 != copyfile("/tmp/f2", "/tmp/tmpfile", NULL, COPYFILE_ACL | COPYFILE_STAT | COPYFILE_DATA)){
+	if(0 != link(source,target)){
 		LEMON_POSIX_ERROR(*errorCode,errno);
 	}
 }

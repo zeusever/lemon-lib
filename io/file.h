@@ -13,6 +13,7 @@
 #ifdef WIN32
 typedef HANDLE LemonFileHandle;
 #else
+typedef int LemonFileHandle;
 #endif //WIN32
 
 LEMON_IO_API 
