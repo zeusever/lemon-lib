@@ -553,8 +553,6 @@ LEMON_IMPLEMENT_HANDLE(LemonThread){
 
 	LemonMutex              JoinMutex;
 
-	LemonConditionVariable  JoinCondtion;
-
 	LemonThreadProc         Proc;
 
 	void                    *UserData;
@@ -564,8 +562,6 @@ LEMON_IMPLEMENT_HANDLE(LemonThread){
 	LemonThreadGroup		Group;
 
 	volatile lemon_bool		Exit;
-
-	volatile size_t			JoinThreads;
 
 };
 
@@ -581,19 +577,6 @@ void* ProcWrapper(void* data)
 	LemonThread current = (LemonThread)data;
 
 	current->Proc(current->UserData);
-
-	LemonMutexLock(current->JoinMutex,&errorCode);
-
-	current->Exit = lemon_true;
-
-	LemonMutexUnLock(current->JoinMutex,&errorCode);	
-
-	while(current->JoinThreads) {
-
-		LemonConditionVariableNotifyAll(current->JoinCondtion,&errorCode);	
-
-		assert(!LEMON_FAILED(errorCode));
-	}
 
 	return 0;
 }
@@ -617,13 +600,7 @@ LEMON_SYS_API LemonThread LemonCreateThread(
 
 	t->Exit = lemon_false;
 
-	t->JoinThreads = 0;
-
 	t->JoinMutex = LemonCreateMutex(errorCode);
-
-	if(LEMON_FAILED(*errorCode)) goto Error;
-
-	t->JoinCondtion = LemonCreateConditionVariable(errorCode);
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
@@ -656,12 +633,12 @@ LEMON_SYS_API void LemonReleaseThread(__lemon_in LemonThread t){
 
 	if(t->JoinMutex) LemonReleaseMutex(t->JoinMutex);
 
-	if(t->JoinCondtion) LemonReleaseConditionVariable(t->JoinCondtion);
-
 	LEMON_FREE_HANDLE(t);
 }
 
 LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
+
+	int code = 0;
 
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -671,11 +648,16 @@ LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
 
 	if(lemon_true == t->Exit) goto FINNALY;
 
-	t->JoinThreads += 1;
+	code  = pthread_join(t->Handle,0);
 
-	LemonConditionVariableWait(t->JoinCondtion,t->JoinMutex,errorCode);
+	if(0 != code){
 
-	t->JoinThreads -= 1;
+	 	LEMON_POSIX_ERROR(*errorCode,code);
+
+	} else {
+
+		t->Exit = lemon_true;
+	}
 
 FINNALY:
 
@@ -814,9 +796,6 @@ LEMON_SYS_API
 	LemonThreadGroupAdd(group,current,errorCode);
 
 	if(LEMON_FAILED(*errorCode)) LemonReleaseThread(current);
-
-
-	++ group->Threads;
 }
 
 LEMON_SYS_API

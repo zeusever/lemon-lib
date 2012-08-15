@@ -73,6 +73,10 @@ LEMON_IO_API void
 	if(SOCKET_ERROR == ::shutdown(socket->Handle,how))	{		
 
 		LEMON_SOCKET_ERROR(*errorCode);
+
+		//on some platform ,shutdown udp socket will raise ENOTCONN error,ignore this error
+
+		if(errorCode->Error.Code == ENOTCONN) LEMON_RESET_ERRORINFO(*errorCode);
 	}
 }
 

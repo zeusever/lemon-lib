@@ -310,7 +310,7 @@ LEMON_SYS_API
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	if(rmdir(directory) != 0){
+	if(chdir(directory) != 0){
 
 		LEMON_POSIX_ERROR(*errorCode,errno);
 	}
