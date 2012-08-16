@@ -17,7 +17,7 @@ LEMON_DECLARE_HANDLE(LemonSTMRingBufferBlock);
 
 LEMON_IMPLEMENT_HANDLE(LemonSTMRingBufferBlock){
 	
-	size_t					Color;
+	volatile size_t			Color;
 
 	lemon_byte_t			Data[1];
 };
@@ -37,11 +37,11 @@ LEMON_IMPLEMENT_HANDLE(LemonSTMRingBuffer){
 	
 	LemonSTMRingBufferPage	Pages;
 
-	size_t					Header;
+	volatile size_t			Header;
 
-	size_t					Tail;
+	volatile size_t			Tail;
 
-	size_t					Blocks;
+	volatile size_t			Blocks;
 };
 
 LEMON_MEMORY_API
