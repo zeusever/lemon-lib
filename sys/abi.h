@@ -185,50 +185,5 @@ typedef struct LemonIoReader{
 
 #define LEMON_RESOURCE_TANY											0xff
 
-typedef struct LemonResourceText{
-	const lemon_char_t			*Global;
-
-	const lemon_char_t			*Locale;	
-}LemonResourceText;
-
-
-/*
- * the error info resource ABI.
- */
-typedef struct LemonResourceErrorInfo{
-	
-	lemon_uint32_t				Code;
-
-	const lemon_char_t			*Name;
-
-	const lemon_char_t			*Description;	
-
-}LemonResourceErrorInfo;
-
-
-typedef struct LemonResourceTraceCatalog{
-
-	lemon_uint32_t				Value;
-
-	const lemon_char_t			*Name;
-
-	const lemon_char_t			*Description;
-
-}LemonResourceTraceCatalog;
-
-typedef struct LemonResourceTraceEvent{
-
-	lemon_uint32_t				Sequence;
-
-	const lemon_char_t			*Text;					
-
-}LemonResourceTraceEvent;
-
-#define LEMON_MAKE_TRACE_EVENT_SEQUENCE(fileid,lines)     ((((lemon_uint32_t)fileid) << 16 ) & 0xffff0000  | (((lemon_uint32_t)lines) & 0xffff))
-
-
-//////////////////////////////////////////////////////////////////////////
-
-LEMON_SYS_API const lemon_char_t * LemonI18nText(__lemon_in const LemonUuid* id,__lemon_in const lemon_char_t * msg);
 
 #endif //LEMON_SYS_ABI_H
