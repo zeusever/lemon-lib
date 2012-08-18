@@ -19,18 +19,6 @@
 
 #define LEMON_DTRACE_MESSAGE_CACHE_SIZE								1024 
 
-#define LEMON_DTRACE_INTEGER										0x01
-
-#define LEMON_DTRACE_BOOLEAN										0x02
-
-#define LEMON_DTRACE_UTF8_STRING									0x03
-
-#define LEMON_DTRACE_USERDATA										0x04
-
-#define LEMON_DTRACE_ERRORINFO										0x05
-
-#define LEMON_DTRACE_SOCKADDR										0x06
-
 LEMON_DECLARE_HANDLE(LemonDTraceEvent);
 
 LEMON_DECLARE_HANDLE(LemonDTraceService);
@@ -180,96 +168,5 @@ LEMON_DIAGNOSIS_API
 	LemonCloseDTraceConsumer(
 	__lemon_free LemonDTraceConsumer consumer);
 
-
-//////////////////////////////////////////////////////////////////////////
-
-LEMON_DIAGNOSIS_API
-	lemon_byte_t
-	LemonTraceType(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	void LemonTraceWriteInteger(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in lemon_uint32_t value,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	void LemonTraceWriteBoolean(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in lemon_bool val,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	void LemonTraceWriteUTF8String(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in const char * val,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	void LemonTraceWriteUserData(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in const lemon_byte_t * buffer,
-	__lemon_in size_t length,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	void 
-	LemonTraceWriteErrorInfo(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in const LemonErrorInfo * errorInfo,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	void 
-	LemonTraceWriteSockAddr(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in const struct sockaddr * address,
-	__lemon_in socklen_t addressSize,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	lemon_uint32_t LemonTraceReadInteger(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	lemon_bool LemonTraceReadBoolean(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	size_t LemonTraceReadUTF8String(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in char * val,
-	__lemon_in size_t length,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-LEMON_DIAGNOSIS_API
-	size_t LemonTraceReadUserData(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in lemon_byte_t * buffer,
-	__lemon_in size_t length,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-
-LEMON_DIAGNOSIS_API
-	size_t
-	LemonTraceReadErrorInfo(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in lemon_byte_t * buffer,
-	__lemon_in size_t length,
-	__lemon_inout LemonErrorInfo * info,
-	__lemon_inout LemonErrorInfo *errorCode);
-
-
-LEMON_DIAGNOSIS_API
-	socklen_t 
-	LemonTraceReadSockAddr(
-	__lemon_in LemonDTraceEvent e,
-	__lemon_in struct sockaddr * address,
-	__lemon_in socklen_t addressSize,
-	__lemon_inout LemonErrorInfo *errorCode);
 
 #endif //LEMON_TRACE_ABI_H

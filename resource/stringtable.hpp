@@ -40,7 +40,7 @@ namespace lemon{namespace resource{
 
 		void Write(IWriter & /*writer*/) const;
 
-		void Read(IReader & reader);
+		void Read(size_t counter,IReader & reader);
 
 	private:
 

@@ -56,8 +56,31 @@ namespace lemon{namespace resource{
 
 		writer.Write((const byte_t*)&length,sizeof(length));
 
-		writer.Write((const byte_t*)&_metadata[0],_metadata.size() * sizeof(lemon::uint32_t));
+		if(length != 0)
+		{
+			writer.Write((const byte_t*)&_metadata[0],_metadata.size() * sizeof(lemon::uint32_t));
 
-		writer.Write((const byte_t*)&_data[0],_data.size());
+			writer.Write((const byte_t*)&_data[0],_data.size());
+		}
+	}
+
+	void StringTable::Read(size_t counter,IReader & reader)
+	{
+		lemon::uint32_t length = 0;
+
+		reader.Read((byte_t*)&length,sizeof(length));
+
+		length = ntohl(length);
+
+		if(length != 0)
+		{
+			_metadata.resize(counter);
+
+			reader.Read((byte_t*)&_metadata[0],_metadata.size() * sizeof(lemon::uint32_t));
+
+			_data.resize(length - counter * sizeof(uint32_t));
+
+			reader.Read((byte_t*)&_data[0],_data.size());
+		}
 	}
 }}

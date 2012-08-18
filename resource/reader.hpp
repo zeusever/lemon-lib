@@ -16,9 +16,9 @@
 
 namespace lemon{namespace resource{
 
-	struct IReader 
+	struct IReader : private lemon::nocopyable
 	{
-		virtual size_t Read(const lemon::byte_t * data,size_t datalength) = 0;
+		virtual void Read(lemon::byte_t * data,size_t datalength) = 0;
 	};
 
 }}

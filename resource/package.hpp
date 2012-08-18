@@ -61,7 +61,7 @@ namespace lemon{namespace resource{
 
 		void Write(const lemon::String & locale,IWriter & writer) const;
 
-		lemon::String Read(IReader & reader);
+		void Read(IReader & reader);
 
 	private:
 

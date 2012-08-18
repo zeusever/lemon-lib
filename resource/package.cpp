@@ -4,6 +4,8 @@
 
 namespace lemon{namespace resource{
 
+#ifdef WIN32
+
 	inline const_buffer __cbuf(lemon::char_t const * source)
 	{
 		if(source == NULL)
@@ -12,6 +14,18 @@ namespace lemon{namespace resource{
 		}
 
 		return lemon::const_buffer((const lemon::byte_t*)source,(lemon_strlen(source) + 1) * 2);
+	}
+
+#endif //
+
+	inline const_buffer __cbuf(char const * source)
+	{
+		if(source == NULL)
+		{
+			return lemon::const_buffer((const lemon::byte_t*)source,0);
+		}
+
+		return lemon::const_buffer((const lemon::byte_t*)source,strlen(source) + 1);
 	}
 
 
@@ -335,6 +349,8 @@ namespace lemon{namespace resource{
 
 		}
 
+		return;
+
 Error:
 
 		LEMON_USER_ERROR(errorCode,LEMON_RESOURCE_INVALID_VERSION_STRING);
@@ -510,6 +526,170 @@ Error:
 
 		// string table
 
-		_stringTable.Write(writer);
+		StringTable table;
+
+		for(size_t i = 0 ; i < _stringTable.Items(); ++ i)
+		{
+			tuple<const lemon::byte_t*,size_t> result = _stringTable.Get(i);
+
+			std::string utf8 = lemon::to_utf8((const char_t*)get<0>(result));
+
+			table.Push(__cbuf(utf8.c_str()));
+		}
+
+		table.Write(writer);
+	}
+
+	void Package::Read(IReader & reader)
+	{
+		reader.Read((byte_t*)&_uuid,sizeof(_uuid));
+
+		reader.Read((byte_t*)&_version,sizeof(_version));
+
+		_version.Major = ntohs(_version.Major);
+
+		_version.Minor = ntohs(_version.Minor);
+
+		_version.Build = ntohs(_version.Build);
+
+		_version.Reversion = ntohs(_version.Reversion);
+
+		lemon::uint8_t tables;
+
+		reader.Read(&tables,sizeof(tables));
+
+		for(size_t i = 0; i < tables; ++  i)
+		{
+			char locale[6] = {0};
+
+			reader.Read((byte_t*)locale,5);
+
+			ResourceTable & table =_resourceTables[lemon::from_utf8(locale)];
+
+			table.Read(reader);
+		}
+	}
+
+	void ResourceTable::Read(IReader & reader)
+	{
+		lemon::uint16_t i18nTextTableSize = 0;
+
+		lemon::uint16_t traceMessageTableSize = 0;
+
+		lemon::uint16_t traceCatalogTableSize = 0;
+
+		lemon::uint16_t errorMessageTableSize = 0;
+
+		lemon::uint16_t stringTableSize = 0;
+
+		reader.Read((byte_t*)&i18nTextTableSize,sizeof(i18nTextTableSize));
+
+		reader.Read((byte_t*)&traceMessageTableSize,sizeof(traceMessageTableSize));
+
+		reader.Read((byte_t*)&traceCatalogTableSize,sizeof(traceCatalogTableSize));
+
+		reader.Read((byte_t*)&errorMessageTableSize,sizeof(errorMessageTableSize));
+
+		reader.Read((byte_t*)&stringTableSize,sizeof(stringTableSize));
+
+		i18nTextTableSize = htons(i18nTextTableSize);
+
+		traceMessageTableSize = htons(traceMessageTableSize);
+
+		traceCatalogTableSize = htons(traceCatalogTableSize);
+
+		errorMessageTableSize = htons(errorMessageTableSize);
+
+		stringTableSize = htons(stringTableSize);
+
+		std::vector<I18nText> texts;
+
+		for(size_t i = 0; i < i18nTextTableSize; ++ i)
+		{
+			I18nText text;
+
+			reader.Read((byte_t*)&text.key,sizeof(text.key));
+
+			reader.Read((byte_t*)&text.Message,sizeof(text.Message));
+
+			text.key = ntohl(text.key);
+
+			text.Message = ntohl(text.Message);
+
+			texts.push_back(text);
+		}
+
+
+		for(size_t i = 0; i < traceMessageTableSize; ++ i)
+		{
+			TraceMessage text;
+
+			reader.Read((byte_t*)&text.Id,sizeof(text.Id));
+
+			reader.Read((byte_t*)&text.Message,sizeof(text.Message));
+
+			text.Id = ntohl(text.Id);
+
+			text.Message = ntohl(text.Message);
+
+			_traceMessageTable[text.Id] = text;
+		}
+
+
+		for(size_t i = 0; i < traceCatalogTableSize; ++ i)
+		{
+			TraceCatalog text;
+
+			reader.Read((byte_t*)&text.Value,sizeof(text.Value));
+
+			reader.Read((byte_t*)&text.Name,sizeof(text.Name));
+
+			reader.Read((byte_t*)&text.Description,sizeof(text.Description));
+
+			text.Value = ntohl(text.Value);
+
+			text.Name = ntohl(text.Name);
+
+			text.Description = ntohl(text.Description);
+
+			_traceCatalogTable[text.Value] = text;
+		}
+
+		for(size_t i = 0; i < errorMessageTableSize; ++ i)
+		{
+			ErrorMessage text;
+
+			reader.Read((byte_t*)&text.Code,sizeof(text.Code));
+
+			reader.Read((byte_t*)&text.Name,sizeof(text.Name));
+
+			reader.Read((byte_t*)&text.Description,sizeof(text.Description));
+
+			text.Code = ntohl(text.Code);
+
+			text.Name = ntohl(text.Name);
+
+			text.Description = ntohl(text.Description);
+
+			_errorMessageTable[text.Code] = text;
+		}
+
+		StringTable table;
+
+		table.Read(stringTableSize, reader);
+
+		for(size_t i = 0 ; i < table.Items(); ++ i)
+		{
+			tuple<const lemon::byte_t*,size_t> result = table.Get(i);
+
+			lemon::String val = lemon::from_utf8((const char*)get<0>(result));
+
+			_stringTable.Push(__cbuf(val.c_str()));
+		}
+
+		for(size_t i = 0; i < i18nTextTableSize; ++ i)
+		{
+			_textTable[(const char_t*)get<0>(_stringTable.Get(texts[i].key))] = texts[i];
+		}
 	}
 }}

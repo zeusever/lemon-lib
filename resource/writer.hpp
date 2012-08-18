@@ -8,7 +8,7 @@
  */
 #ifndef LEMON_RESOURCE_WRITER_HPP
 #define LEMON_RESOURCE_WRITER_HPP
-
+#include <ostream>
 #include <lemonxx/sys/sys.hpp>
 #include <lemonxx/utility/utility.hpp>
 
@@ -16,9 +16,24 @@
 
 namespace lemon{namespace resource{
 
-	struct IWriter 
+	struct IWriter : private lemon::nocopyable
 	{
 		virtual void Write(const lemon::byte_t * data,size_t datalength) = 0;
+	};
+
+	class StreamWriter : public IWriter
+	{
+	public:
+		StreamWriter(std::ostream & stream):_stream(stream) {}
+
+		void Write(const lemon::byte_t * data,size_t datalength)
+		{
+			_stream.write((const char*)data,datalength);
+		}
+
+	private:
+
+		std::ostream &_stream;
 	};
 
 }}
