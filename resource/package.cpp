@@ -530,7 +530,7 @@ Error:
 
 		for(size_t i = 0 ; i < _stringTable.Items(); ++ i)
 		{
-			tuple<const lemon::byte_t*,size_t> result = _stringTable.Get(i);
+			tuple<const lemon::byte_t*,size_t> result = _stringTable.Get((lemon::uint32_t)i);
 
 			std::string utf8 = lemon::to_utf8((const char_t*)get<0>(result));
 
@@ -544,7 +544,10 @@ Error:
 	{
 		reader.Read((byte_t*)&_uuid,sizeof(_uuid));
 
-		reader.Read((byte_t*)&_version,sizeof(_version));
+		reader.Read((byte_t*)&_version.Major,sizeof(lemon::uint16_t));
+		reader.Read((byte_t*)&_version.Minor,sizeof(lemon::uint16_t));
+		reader.Read((byte_t*)&_version.Build,sizeof(lemon::uint16_t));
+		reader.Read((byte_t*)&_version.Reversion,sizeof(lemon::uint16_t));
 
 		_version.Major = ntohs(_version.Major);
 
@@ -680,7 +683,7 @@ Error:
 
 		for(size_t i = 0 ; i < table.Items(); ++ i)
 		{
-			tuple<const lemon::byte_t*,size_t> result = table.Get(i);
+			tuple<const lemon::byte_t*,size_t> result = table.Get((lemon::uint32_t)i);
 
 			lemon::String val = lemon::from_utf8((const char*)get<0>(result));
 

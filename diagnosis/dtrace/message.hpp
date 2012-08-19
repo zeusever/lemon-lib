@@ -42,7 +42,11 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 
 		virtual void Load(const lemon::byte_t * data,size_t length,error_info & errorCode);
 
+		size_t Load(LemonIoReader reader);
+
 		const lemon::time_t &TimeStamp();
+
+		void Dump(LemonIoWriter writer);
 
 	private:
 

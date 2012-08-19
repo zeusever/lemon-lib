@@ -160,15 +160,15 @@ typedef struct LemonIoReader{
 //
 // 
 
-#define LEMON_TRACELOG_DEBUG										0x01
+#define LEMON_TL_DEBUG										0x01
 
-#define LEMON_TRACELOG_MESSAGE										0x02
+#define LEMON_TL_MESSAGE									0x02
 
-#define LEMON_TRACELOG_WARNING										0x04
+#define LEMON_TL_WARNING									0x04
 
-#define LEMON_TRACELOG_ERROR										0x08
+#define LEMON_TL_ERROR										0x08
 
-#define LEMON_TRACELOG_ANY											0xffffffff
+#define LEMON_TL_ANY										0xffffffff
 
 //////////////////////////////////////////////////////////////////////////
 //Lemon Resources Reflection

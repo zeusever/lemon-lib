@@ -168,6 +168,39 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 		return result;
 	}
 
+	void LocalMessage::Dump(LemonIoWriter writer)
+	{
+		error_info errorCode;
+
+		lemon_uint32_t sourcelength = (lemon_uint32_t)(_length + sizeof(lemon::uint64_t) + sizeof(lemon::uuid_t) + sizeof(LemonDTraceFlags) + sizeof(lemon_uint32_t));
+
+		sourcelength = htonl(sourcelength);
+
+		writer.Write(writer.UserData,(const lemon::byte_t*)&sourcelength,sizeof(sourcelength),errorCode);
+
+		errorCode.check_throw();
+
+		lemon::uint64_t timestamp = LEMON_TIME_TO_INT64(_timestamp);
+
+		__lemon_hton64(timestamp);
+
+		writer.Write(writer.UserData,(const lemon::byte_t*)&timestamp,sizeof(timestamp),errorCode);
+
+		errorCode.check_throw();
+
+		writer.Write(writer.UserData,(const lemon::byte_t*)&_provider,sizeof(_provider),errorCode);
+
+		errorCode.check_throw();
+
+		writer.Write(writer.UserData,(const lemon::byte_t*)&_flags,sizeof(_flags),errorCode);
+
+		errorCode.check_throw();
+
+		writer.Write(writer.UserData,_buffer,_length,errorCode);
+
+		errorCode.check_throw();
+	}
+
 	void LocalMessage::Load(const lemon::byte_t * data,size_t length,error_info & errorCode)
 	{
 		_offset = 0; _length = 0;
@@ -219,6 +252,7 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 		memcpy(_buffer,&data[offset],_length);
 
 	}
+
 
 	const lemon::time_t & LocalMessage::TimeStamp()
 	{

@@ -327,3 +327,23 @@ LEMON_DIAGNOSIS_API
 
 
 //////////////////////////////////////////////////////////////////////////
+
+
+
+LEMON_DIAGNOSIS_API
+	void LemonTraceDump(
+	__lemon_in LemonDTraceEvent e,
+	__lemon_in LemonIoWriter writer,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	try
+	{
+		LEMON_RESET_ERRORINFO(*errorCode);
+
+		reinterpret_cast<IMessage*>(e)->Dump(writer);
+	}
+	catch(const error_info &e)
+	{
+		*errorCode = e;
+	}
+}

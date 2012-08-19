@@ -89,10 +89,9 @@ LEMON_DIAGNOSIS_API
 	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_DIAGNOSIS_API
-	size_t LemonTraceDump(
+	void LemonTraceDump(
 	__lemon_in LemonDTraceEvent e,
-	__lemon_in lemon_byte_t * buffer,
-	__lemon_in size_t length,
+	__lemon_in LemonIoWriter writer,
 	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_DIAGNOSIS_API

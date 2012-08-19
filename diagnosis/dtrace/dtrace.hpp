@@ -87,6 +87,8 @@ namespace lemon{namespace diagnosis{namespace dtrace{
 
 		virtual void Load(const lemon::byte_t * data,size_t length,error_info & errorCode) = 0;
 
+		virtual void Dump(LemonIoWriter writer) = 0;
+
 		virtual size_t Write(const lemon::byte_t *  data , size_t length) = 0 ;
 
 		virtual size_t Read(lemon::byte_t *  data , size_t length) = 0 ;
