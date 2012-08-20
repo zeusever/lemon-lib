@@ -115,21 +115,21 @@ LEMON_RESOURCE_API
 
 LEMON_RESOURCE_API 
 	void
-	LemonAddResourceUuid(
+	LemonSetResourceUuid(
 	__lemon_in LemonResource resource,
 	__lemon_in const LemonUuid * uuid,
 	__lemon_inout LemonErrorInfo * errorCode);
 
 LEMON_RESOURCE_API 
 	void
-	LemonAddResourceVersion(
+	LemonSetResourceVersion(
 	__lemon_in LemonResource resource,
 	__lemon_in const lemon_char_t * source,
 	__lemon_inout LemonErrorInfo * errorCode);
 
 LEMON_RESOURCE_API
 	void
-	LemonAddResourceText(
+	LemonNewResourceText(
 	__lemon_in LemonResource resource,
 	__lemon_in const lemon_char_t * itemname,
 	__lemon_in const lemon_char_t * text,
@@ -138,7 +138,7 @@ LEMON_RESOURCE_API
 
 LEMON_RESOURCE_API
 	void
-	LemonAddResourceTraceText(
+	LemonNewResourceTraceText(
 	__lemon_in LemonResource resource,
 	__lemon_in lemon_uint32_t id,
 	__lemon_in const lemon_char_t * text,
@@ -147,7 +147,7 @@ LEMON_RESOURCE_API
 
 LEMON_RESOURCE_API
 	void
-	LemonAddResourceTraceCatalog(
+	LemonNewResourceTraceCatalog(
 	__lemon_in LemonResource resource,
 	__lemon_in lemon_uint32_t value,
 	__lemon_in const lemon_char_t * name,
@@ -157,8 +157,8 @@ LEMON_RESOURCE_API
 
 
 LEMON_RESOURCE_API
-	LemonResourceInfo
-	LemonAddResourceErrorInfo(
+	void
+	LemonNewResourceErrorInfo(
 	__lemon_in LemonResource resource,
 	__lemon_in size_t code,
 	__lemon_in const lemon_char_t * name,

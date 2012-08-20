@@ -36,6 +36,26 @@ namespace lemon{namespace resource{
 		std::ostream &_stream;
 	};
 
+
+	class LemonIoWriterWrapper : public IWriter
+	{
+	public:
+		LemonIoWriterWrapper(LemonIoWriter writer):_writer(writer) {}
+
+		void Write( const lemon::byte_t * data,size_t datalength )
+		{
+			error_info errorCode;
+
+			_writer.Write(_writer.UserData,data,datalength,errorCode);
+
+			errorCode.check_throw();
+		}
+
+	private:
+
+		LemonIoWriter		_writer;
+	};
+
 }}
 
 #endif // LEMON_RESOURCE_WRITER_HPP

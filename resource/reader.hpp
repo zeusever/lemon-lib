@@ -27,7 +27,12 @@ namespace lemon{namespace resource{
 	public:
 		LemonIoReaderWrapper(LemonIoReader reader):_reader(reader) {}
 
-		void Read( lemon::byte_t * data,size_t datalength );
+		void Read( lemon::byte_t * data,size_t datalength )
+		{
+			error_info errorCode;
+
+			_reader.Read(_reader.UserData,data,datalength,errorCode);
+		}
 
 	private:
 

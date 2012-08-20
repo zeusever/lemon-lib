@@ -206,9 +206,9 @@ VOID CALLBACK FiberProc(__in  PVOID lpParameter){
 
 	coro->Status = LemonCoroutineStatuts_Stopped;
 
-	LEMON_DECLARE_ERRORINFO(errorcode);
+	LEMON_DECLARE_ERRORINFO(errorCode);
 
-	LemonCoroutineYield(coro,&errorcode);
+	LemonCoroutineYield(coro,&errorCode);
 
 	//if(LEMON_FAILED(errorcode)) throw lemon::Exception(errorcode);
 }

@@ -17,5 +17,9 @@ assembly =
 		{
 			name = "INVALID_VERSION_STRING";
 		};
+
+		{
+			name = "OPEN_RESOURCE_FILE_ERROR";
+		};
 	};
 };
