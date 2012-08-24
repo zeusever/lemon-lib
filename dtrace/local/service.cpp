@@ -1,42 +1,95 @@
-#include <lemon/sys/assembly.h>
+#include <cassert>
+#include <lemon/dtrace/assembly.h>
 #include <lemon/dtrace/local/service.hpp>
+#include <lemon/dtrace/local/provider.hpp>
+#include <lemon/dtrace/local/controller.hpp>
 
 namespace lemon{namespace dtrace{
 
-	IProvider * Service::CreateProvider(const LemonUuid * /*provider*/)
+	IProvider * Service::CreateProvider(const LemonUuid * provider)
 	{
-		error_info errorCode;
+		lemon::mutex_t::scope_lock lock(_providerMutex);
 
-		LEMON_USER_ERROR(errorCode,LEMON_SYS_NOT_IMPLEMENT);
+		if(_providers.end() != _providers.find(*(lemon::uuid_t*)provider))
+		{
+			scope_error_info errorCode;
 
-		throw errorCode;
+			LEMON_USER_ERROR(errorCode,LEMON_DTRACE_PROVIDER_ID_ERROR);
+		}
+
+		IProvider *result = new Provider(this,provider);
+
+		_providers[*(lemon::uuid_t*)provider] = result;
+
+		return result;
 	}
 
-	void Service::CloseProvider(IProvider * /*provider*/)
+	void Service::CloseProvider(IProvider * provider)
 	{
-		error_info errorCode;
+		lemon::mutex_t::scope_lock lock(_providerMutex);
 
-		LEMON_USER_ERROR(errorCode,LEMON_SYS_NOT_IMPLEMENT);
+		Providers::iterator iter = _providers.find(provider->Uuid());
 
-		throw errorCode;
+		assert(_providers.end() != iter);
+
+		_providers.erase(iter);
+
+		delete provider;
 	}
 
 	IController * Service::CreateController()
 	{
-		error_info errorCode;
+		lemon::mutex_t::scope_lock lock(_controllerMutex);
 
-		LEMON_USER_ERROR(errorCode,LEMON_SYS_NOT_IMPLEMENT);
+		IController * controller = new Controller(this);
 
-		throw errorCode;
+		_controllers.insert(controller);
+
+		return controller;
 	}
 
-	void Service::CloseController(IController * /*controller*/)
+	void Service::CloseController(IController * controller)
 	{
-		error_info errorCode;
+		lemon::mutex_t::scope_lock lock(_controllerMutex);
 
-		LEMON_USER_ERROR(errorCode,LEMON_SYS_NOT_IMPLEMENT);
+		{
+			Controllers::iterator iter = _controllers.find(controller);
 
-		throw errorCode;
+			assert(iter != _controllers.end());
+
+			_controllers.erase(iter);
+		}
+
+		Controller::Flags flags = dynamic_cast<Controller*>(controller)->GetFlags();
+
+		Controller::Flags::const_iterator iter, end = flags.end();
+
+		for(iter = flags.begin(); iter != end; ++ iter) OnStatusChangedNoLocked(iter->first);
+
+		delete controller;
+	}
+
+	void Service::OnStatusChangedNoLocked(const lemon::uuid_t & id)
+	{
+		lemon_dtrace_flag flags;
+
+		{
+			Controllers::const_iterator iter,end = _controllers.end();
+
+			for(iter = _controllers.begin(); iter != end; ++ iter)
+			{
+				flags |= (*iter)->GetFlag(id);
+			}
+		}
+
+		lemon::mutex_t::scope_lock lock(_providerMutex);
+
+		Providers::iterator iter = _providers.find(id);
+
+		if(iter != _providers.end())
+		{
+			iter->second->OnFlagsChanged(flags);
+		}
 	}
 
 }}

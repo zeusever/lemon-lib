@@ -8,15 +8,17 @@ namespace lemon{namespace dtrace{
 
 	IService * Create(const char * url)
 	{
+		if(url == NULL) return new Service();
+
 		std::string val = string_toupper(url);
 
 		if(val == "LOCAL")
 		{
 			return new Service();
 		}
-		else if(val.find("LISTEN"))
+		else if(val.find("LISTEN") != std::string::npos)
 		{
-			val = val.substr(val.find_first_not_of("://"));
+			val = val.substr(val.find("://") + 3);
 
 			size_t pos = val.find(":");
 

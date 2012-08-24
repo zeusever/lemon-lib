@@ -49,14 +49,18 @@ namespace lemon{namespace dtrace{
 		virtual Message * CreateMessage(lemon_dtrace_flag flag) = 0;
 
 		virtual void CommitMessage(Message * msg) = 0;
+
+		virtual const lemon::uuid_t & Uuid() const = 0;
+
+		virtual void OnFlagsChanged(lemon_dtrace_flag flag) = 0;
 	};
 
 	class IController : private lemon::nocopyable
 	{
 	public:
-		
-		virtual ~IController() {}
 
+		IController(IService * service):_service(service){}
+		
 		virtual Consumer * CreateConsumer(LemonDTraceConsumerCallback callback,void * userdata) = 0;
 
 		virtual void CloseConsumer(Consumer * consumer) = 0;
@@ -64,6 +68,18 @@ namespace lemon{namespace dtrace{
 		virtual void OpenTrace(const LemonUuid * provider,lemon_dtrace_flag flags) = 0;
 
 		virtual void CloseTrace(const LemonUuid * provider,lemon_dtrace_flag flags) = 0;
+
+		virtual lemon_dtrace_flag GetFlag(const lemon::uuid_t & id) const = 0;
+
+	public:
+
+		void Release() { _service->CloseController(this); }
+
+		virtual ~IController() {}
+
+	private:
+
+		IService			*_service;
 	};
 
 	class Consumer : private lemon::nocopyable
