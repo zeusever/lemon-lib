@@ -177,6 +177,8 @@ namespace lemon{namespace resource{
 
 		const ErrorMessage * em = iter->second.GetErrorMessage(code);
 
+		if(NULL == em) return result;
+
 		result.Name = iter->second.String(em->Name);
 
 		result.Description = iter->second.String(em->Description);
@@ -206,8 +208,12 @@ namespace lemon{namespace resource{
 		LocaleResourceTables::const_iterator iter = _resourceTables.find(locale);
 
 		if(iter == _resourceTables.end()) return NULL;
+
+		const TraceMessage * traceMessage = iter->second.GetTraceMessage(code);
+
+		if(NULL == traceMessage) return NULL;
 		
-		return iter->second.String(iter->second.GetTraceMessage(code)->Message);
+		return iter->second.String(traceMessage->Message);
 	}
 
 	const lemon::char_t * Package::GetText(lemon::char_t const *  key,lemon::char_t const * locale) const
