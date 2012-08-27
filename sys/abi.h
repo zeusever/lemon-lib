@@ -136,12 +136,12 @@ LEMON_SYS_API lemon_bool LemonErrorCodeCompare(const LemonError * lhs,const Lemo
 #define LEMON_IO_END												0x02
 
 #define LEMON_IO_CURRENT											0x03
+
 typedef struct LemonIoWriter{
 
 	void *UserData;
 
 	size_t (*Write)(void * userdata,const lemon_byte_t * source,size_t length,LemonErrorInfo *errorCode);
-
 
 }LemonIoWriter;
 
@@ -152,38 +152,12 @@ typedef struct LemonIoReader{
 
 	size_t (*Read)(void * userdata, lemon_byte_t * target,size_t length,LemonErrorInfo *errorCode);
 
-
 }LemonIoReader;
 
-
 //////////////////////////////////////////////////////////////////////////
-//
-// 
 
-#define LEMON_TL_DEBUG										0x01
+typedef lemon_uint32_t lemon_pid_t;
 
-#define LEMON_TL_MESSAGE									0x02
-
-#define LEMON_TL_WARNING									0x04
-
-#define LEMON_TL_ERROR										0x08
-
-#define LEMON_TL_ANY										0xffffffff
-
-//////////////////////////////////////////////////////////////////////////
-//Lemon Resources Reflection
-
-
-
-#define LEMON_RESOURCE_TTEXT										0x01
-
-#define LEMON_RESOURCE_TERRORINFO									0x02
-
-#define LEMON_RESOURCE_TTRACECATALOG								0x04
-
-#define LEMON_RESOURCE_TTRACEEVENT									0x08
-
-#define LEMON_RESOURCE_TANY											0xff
-
+LEMON_SYS_API lemon_pid_t LemonGetProcessID();
 
 #endif //LEMON_SYS_ABI_H

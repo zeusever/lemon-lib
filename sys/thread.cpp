@@ -323,12 +323,12 @@ LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
 	}
 }
 
-LEMON_SYS_API lemon_thread_id_t LemonGetThreadId(LemonThread t)
+LEMON_SYS_API lemon_tid_t LemonGetThreadId(LemonThread t)
 {
 	return t->Id;
 }
 
-LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
+LEMON_SYS_API lemon_tid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -665,12 +665,12 @@ FINNALY:
 
 }
 
-LEMON_SYS_API lemon_thread_id_t LemonGetThreadId(LemonThread t)
+LEMON_SYS_API lemon_tid_t LemonGetThreadId(LemonThread t)
 {
 	return t->Handle;
 }
 
-LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
+LEMON_SYS_API lemon_tid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
 {
 	return pthread_self();
 }

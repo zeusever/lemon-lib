@@ -18,9 +18,9 @@ typedef unsigned int LemonTls;
 #endif 
 
 #ifdef WIN32
-typedef DWORD lemon_thread_id_t;
+typedef DWORD lemon_tid_t;
 #elif defined(LEMON_HAS_PTHREAD)
-typedef pthread_t lemon_thread_id_t;
+typedef pthread_t lemon_tid_t;
 #else
 #error "not support platform"
 #endif 
@@ -89,9 +89,9 @@ LEMON_SYS_API void LemonReleaseThread(__lemon_in LemonThread t);
 
 LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode);
 
-LEMON_SYS_API lemon_thread_id_t LemonGetThreadId(LemonThread t);
+LEMON_SYS_API lemon_tid_t LemonGetThreadId(LemonThread t);
 
-LEMON_SYS_API lemon_thread_id_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode);
+LEMON_SYS_API lemon_tid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode);
 
 LEMON_SYS_API void LemonSleep(size_t milliseconds);
 

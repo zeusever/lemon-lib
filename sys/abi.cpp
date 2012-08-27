@@ -25,3 +25,21 @@ LEMON_SYS_API
 
 	return lemon_false;
 }
+
+#ifdef WIN32
+
+LEMON_SYS_API lemon_pid_t LemonGetProcessID()
+{
+	return GetCurrentProcessId();
+}
+
+#else
+
+#include <unistd.h>
+
+LEMON_SYS_API lemon_pid_t LemonGetProcessID()
+{
+	return getpid();
+}
+
+#endif //WIN32
