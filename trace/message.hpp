@@ -14,15 +14,6 @@
 
 namespace lemon{namespace trace{
 
-	union Node
-	{
-		struct in_addr	IPv4; 
-
-		struct in6_addr IPv6; 
-
-		struct sockaddr IP;
-	};
-
 	class Message : private lemon::nocopyable
 	{
 	public:
@@ -51,7 +42,7 @@ namespace lemon{namespace trace{
 
 	private:
 
-		Node					_node;
+		LemonTraceNodeName		_node;
 
 		lemon_pid_t				_processid;
 

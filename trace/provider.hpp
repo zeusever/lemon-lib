@@ -11,31 +11,58 @@
 #include <lemon/trace/abi.h>
 #include <lemonxx/sys/sys.hpp>
 #include <lemonxx/utility/utility.hpp>
-#include <lemon/trace/message.hpp>
 
 namespace lemon{namespace trace{
 
 	class Service;
 
+	class Message;
+
+	struct ProviderId
+	{
+		LemonTraceNodeName			NodeName;
+
+		lemon_pid_t					ProcessId;
+
+		lemon::uuid_t				Uuid;
+
+		bool operator < (const ProviderId & rhs) const
+		{
+			return memcmp( this , &rhs , sizeof(ProviderId) ) < 0;
+		}
+
+		bool operator > (const ProviderId & rhs) const
+		{
+			return memcmp( this , &rhs , sizeof(ProviderId) ) > 0;
+		}
+
+		bool operator == (const ProviderId & rhs) const
+		{
+			return memcmp( this , &rhs , sizeof(ProviderId) ) == 0;
+		}
+	};
+
 	class Provider : private lemon::nocopyable
 	{
 	public:
 		
-		Provider( const LemonUuid * uuid );
+		Provider( Service * service , const ProviderId  & id );
 
 		virtual ~Provider( );
 
 		void OnFlagChanged( lemon_trace_flag flag );
 
-		const uuid_t & Uuid() const { return _uuid; }
+		const ProviderId & Id() { return _id; }
 
-		void Message * NewMessage( lemon_trace_flag flag );
+		Message * NewMessage( lemon_trace_flag flag );
 
-		virtual void OnTrace( Message * message ) = 0;
+		virtual void Trace(const Message * msg) = 0;
 
 	private:
 
-		uuid_t						_uuid;
+		Service						*_service;
+
+		ProviderId					_id;
 
 		lemon_trace_flag			_flag;
 

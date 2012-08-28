@@ -144,6 +144,16 @@ LEMON_TRACE_API
 //////////////////////////////////////////////////////////////////////////
 //message
 
+typedef union LemonTraceNodeName
+{
+	struct in_addr	IPv4; 
+
+	struct in6_addr IPv6; 
+
+	struct sockaddr IP;
+
+}LemonTraceNodeName;
+
 typedef struct LemonTraceDescription{
 
 	struct sockaddr			*Node;

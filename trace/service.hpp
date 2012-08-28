@@ -9,7 +9,6 @@
 #ifndef LEMON_TRACE_SERVICE_HPP
 #define LEMON_TRACE_SERVICE_HPP
 #include <set>
-#include <map>
 #include <lemon/trace/abi.h>
 #include <lemonxx/sys/sys.hpp>
 #include <lemonxx/utility/utility.hpp>
@@ -31,7 +30,7 @@ namespace lemon{namespace trace{
 
 		typedef std::set<Controller*>					Controllers;
 
-		typedef std::multimap<lemon::uuid_t,Provider*>	Providers;
+		typedef std::set<Provider*>	Providers;
 
 		virtual ~Service();
 
@@ -47,11 +46,15 @@ namespace lemon{namespace trace{
 
 	public:
 
-		void OpenTrace(const LemonUuid * provider,lemon_trace_flag flag);
+		void OpenTrace( const LemonUuid * provider );
 
-		void CloseTrace(const LemonUuid * provider,lemon_trace_flag flag);
+		void CloseTrace( const LemonUuid * provider );
 
-		void OnTrace(const Message & message);
+		void OnTrace( const Message & message );
+
+	private:
+
+		void OnFlagChanged( const LemonUuid * provider );
 
 	private:
 
