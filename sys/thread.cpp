@@ -92,6 +92,8 @@ LEMON_SYS_API LemonMutex LemonCreateMutex(__lemon_inout LemonErrorInfo* errorCod
 
 LEMON_SYS_API void LemonReleaseMutex(__lemon_in LemonMutex mutex){
 	DeleteCriticalSection((CRITICAL_SECTION*)mutex);
+
+	delete (CRITICAL_SECTION*)mutex;
 }
 
 LEMON_SYS_API void LemonMutexLock(__lemon_in LemonMutex mutex,__lemon_inout LemonErrorInfo * errorCode){

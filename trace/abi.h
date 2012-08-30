@@ -33,6 +33,8 @@
 
 #define LEMON_TRACE_MESSAGE_MAX_LENGTH								1024
 
+#define LEMON_TRACE_MESSAGE_MAX_CACHE								1024 * 1024
+
 typedef lemon_uint64_t lemon_trace_flag;
 
 #define LEMON_MAKE_TRACE_FLAG(level,catalog)\
@@ -98,13 +100,15 @@ LEMON_TRACE_API
 	void LemonOpenTrace(
 	__lemon_in LemonTraceController controller,
 	__lemon_in const LemonUuid * provider,
-	__lemon_in lemon_trace_flag flag);
+	__lemon_in lemon_trace_flag flag,
+	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_TRACE_API
 	void LemonCloseTrace(
 	__lemon_in LemonTraceController controller,
 	__lemon_in const LemonUuid * provider,
-	__lemon_in lemon_trace_flag flag);
+	__lemon_in lemon_trace_flag flag,
+	__lemon_inout LemonErrorInfo *errorCode);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -156,7 +160,7 @@ typedef union LemonTraceNodeName
 
 typedef struct LemonTraceDescription{
 
-	struct sockaddr			*Node;
+	const struct sockaddr	*Node;
 
 	lemon_pid_t				ProcessId;
 
@@ -164,7 +168,7 @@ typedef struct LemonTraceDescription{
 
 	lemon_trace_flag		Flag;
 
-	LemonUuid				*Uuid;
+	const LemonUuid			*Uuid;
 
 	lemon_uint32_t			Length;
 

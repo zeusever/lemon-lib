@@ -34,9 +34,9 @@ namespace lemon{namespace trace{
 
 		size_t Seek( int offset , io::seek::Value position );
 
-		void Description( LemonTraceDescription * description );
+		void Description( LemonTraceDescription * description ) const;
 
-		size_t Dump( io::writer &writer );
+		size_t Dump( io::writer &writer ) const;
 
 		size_t Load( io::reader &reader );
 

@@ -34,6 +34,10 @@ namespace lemon{namespace trace{
 		_uuid = *uuid;
 
 		_threadId = current_thread_id();
+
+		_length = 0;
+
+		_offset = 0;
 	}
 
 	void Message::Reset( lemon_trace_flag flag )
@@ -41,6 +45,10 @@ namespace lemon{namespace trace{
 		_flag = flag;
 
 		_threadId = current_thread_id();
+
+		_length = 0;
+
+		_offset = 0;
 	}
 
 	size_t Message::Read( void * data, size_t length )
@@ -66,6 +74,8 @@ namespace lemon{namespace trace{
 		memcpy( &_buffer[_offset] , data , length );
 
 		_offset += length;
+
+		if(_offset > _length) _length = (lemon_uint32_t)_offset;
 
 		return length;
 	}
@@ -115,7 +125,7 @@ namespace lemon{namespace trace{
 		return _offset;
 	}
 
-	void Message::Description( LemonTraceDescription * description )
+	void Message::Description( LemonTraceDescription * description ) const
 	{
 		description->Flag = _flag;
 
@@ -130,7 +140,7 @@ namespace lemon{namespace trace{
 		description->Uuid = &_uuid;
 	}
 
-	size_t Message::Dump( io::writer &writer )
+	size_t Message::Dump( io::writer &writer ) const
 	{
 		size_t result = writer.write((const byte_t*)&_node,sizeof(_node));
 
@@ -177,13 +187,15 @@ namespace lemon{namespace trace{
 
 		result += reader.read((byte_t*)&tid,sizeof(tid));
 
-		_processid = ntohl(tid);
+		_threadId = ntohl(tid);
 
 		result += reader.read((byte_t*)&flag,sizeof(flag));
 
 		__lemon_ntoh64(flag);
 
 		_flag = flag;
+
+		result += reader.read((byte_t*)&_uuid,sizeof(uuid_t));
 
 		result += reader.read((byte_t*)&length,sizeof(length));
 
