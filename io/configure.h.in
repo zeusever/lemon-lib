@@ -1,10 +1,1 @@
-#cmakedefine LEMON_ASYNC_IO_IOCP
-#cmakedefine LEMON_ASYNC_IO_SELECT
-#cmakedefine LEMON_HAS_INET_NTOP
-#cmakedefine LEMON_HAS_INET_PTON
-#cmakedefine LEMON_SUPPORT_IPV6
-#cmakedefine LEMON_HAS_EPOLL_H
-#cmakedefine LEMON_HAS_COMPLETE_Q
-#cmakedefine LEMON_HAS_TIMER_CREATE
-#cmakedefine LEMON_HAS_TIMER_GETTIME
-#cmakedefine LEMON_HAS_TIMER_SETTIME
+#cmakedefine LEMON_IO_IOCP

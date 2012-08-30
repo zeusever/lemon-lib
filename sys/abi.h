@@ -131,28 +131,6 @@ LEMON_SYS_API lemon_bool LemonErrorCodeCompare(const LemonError * lhs,const Lemo
 
 //////////////////////////////////////////////////////////////////////////
 
-#define LEMON_IO_BEGIN												0x01
-
-#define LEMON_IO_END												0x02
-
-#define LEMON_IO_CURRENT											0x03
-
-typedef struct LemonIoWriter{
-
-	void *UserData;
-
-	size_t (*Write)(void * userdata,const lemon_byte_t * source,size_t length,LemonErrorInfo *errorCode);
-
-}LemonIoWriter;
-
-
-typedef struct LemonIoReader{
-
-	void *UserData;
-
-	size_t (*Read)(void * userdata, lemon_byte_t * target,size_t length,LemonErrorInfo *errorCode);
-
-}LemonIoReader;
 
 //////////////////////////////////////////////////////////////////////////
 

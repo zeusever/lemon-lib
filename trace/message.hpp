@@ -9,6 +9,7 @@
 #ifndef LEMON_TRACE_MESSAGE_HPP
 #define LEMON_TRACE_MESSAGE_HPP
 #include <lemon/trace/abi.h>
+#include <lemonxx/io/io.hpp>
 #include <lemonxx/sys/sys.hpp>
 #include <lemonxx/utility/utility.hpp>
 

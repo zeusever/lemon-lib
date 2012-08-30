@@ -97,5 +97,11 @@ assembly =
 		{
 			name = "CREATE_PO_SCRIPT_FILE_ERROR";
 		};
+		{
+			name = "INVALID_ADDRESS_STRING";
+		};
+		{
+			name = "NOT_SUPPORT_ADDRESS_FAMILY";
+		};
       };
    }

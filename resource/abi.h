@@ -9,6 +9,7 @@
 #ifndef LEMON_RESOURCE_ABI_H
 #define LEMON_RESOURCE_ABI_H
 
+#include <lemon/io/abi.h>
 #include <lemon/sys/abi.h>
 #include <lemon/resource/configure.h>
 

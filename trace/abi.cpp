@@ -4,6 +4,8 @@
 #include <lemon/trace/local/provider.hpp>
 #include <lemon/trace/local/controller.hpp>
 
+#include <lemonxx/io/io.hpp>
+
 using namespace lemon;
 using namespace lemon::trace;
 
