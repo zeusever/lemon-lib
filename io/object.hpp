@@ -15,14 +15,19 @@
 
 namespace lemon{namespace io{
 
+	struct Object : private lemon::nocopyable 
+	{
+		virtual ~Object() {}
+	};
+
 	template<class Impl, class IOService>
-	class Object : private lemon::nocopyable
+	class ObjectT : public Object
 	{
 	public:
 		
-		Object(IOService * service):_service(service) {}
+		ObjectT(IOService * service):_service(service) {}
 
-		virtual ~Object() {}
+		virtual ~ObjectT() {}
 
 		IOService * Service() { return _service; }
 

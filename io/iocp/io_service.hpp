@@ -9,6 +9,8 @@
 #ifndef LEMON_IO_IOCP_IO_SERVICE_HPP
 #define LEMON_IO_IOCP_IO_SERVICE_HPP
 #include <lemon/io/io_service.hpp>
+#include <lemon/io/iocp/iodata.hpp>
+
 
 #ifdef LEMON_IO_IOCP
 
@@ -18,11 +20,68 @@
 
 #define LEMON_IOCP_IO (ULONG_PTR)2
 
+#ifdef LEMON_SUPPORT_IPV6
+
+#define LEMON_ACCEPTEX_ADDRESS_LENGTH (sizeof(sockaddr_in6) + 16)
+
+#else 
+
+#define LEMON_ACCEPTEX_ADDRESS_LENGTH (sizeof(sockaddr_in) + 16)
+
+#endif //LEMON_SUPPORT_IPV6
+
 namespace lemon{namespace io{
+
+	class Socket;
+
+	void LemonAcceptCallback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * errorCode);
+
+	struct AcceptIOData : public IODataT<IOService>
+	{
+		Socket					*Listen;
+
+		Socket					*Peer;
+
+		void					*AcceptUserData;
+
+		LemonIOCallback			AcceptCallback;
+
+		lemon_byte_t			AcceptBuffer[LEMON_ACCEPTEX_ADDRESS_LENGTH * 2];
+
+		struct sockaddr			*Address;
+
+		socklen_t				*AddressSize;
+
+		AcceptIOData(Socket * listen, Socket * peer, LemonIOCallback callback,void * userData,sockaddr *address,socklen_t *addressSize,IODataT<IOService>::IODataRelease release)
+		{
+			Listen = listen;Peer = peer;
+
+			AcceptCallback = callback;
+
+			AcceptUserData = userData;
+
+			Address = address;
+
+			AddressSize = addressSize;
+
+			UserData = this;
+
+			IODataT<IOService>::Callback = &LemonAcceptCallback;
+
+			Release = release;
+		}
+	};
+
 
 	class IOService : public IOServiceT<IOService>
 	{
 	public:
+
+		typedef IODataT<IOService>		IOData;
+
+		typedef memory::fixed::allocator<sizeof(IOData)> IODataAllocator;
+
+		typedef memory::fixed::allocator<sizeof(AcceptIOData)> AcceptIODataAllocator;
 
 		IOService(size_t workthreads);
 
@@ -30,11 +89,39 @@ namespace lemon{namespace io{
 
 		void Run();
 
-		void Stop();
+		void Cancel();
+
+	public:
+
+		IOData * NewIOData(void * userData, LemonIOCallback	callback, WSABUF buffer);
+
+		void ReleaseIOData(IOData * iodata);
+
+		IOData * NewAcceptIOData(Socket * listen, Socket * peer, LemonIOCallback callback,void * userData,sockaddr *address,socklen_t *addressSize);
+
+		void ReleaseAcceptIOData(IOData * iodata);
+
+		void PostJob(LemonIOCallback callback, void * userdata);
+
+	public:
+
+		//win32 special API
+
+		void Bind(HANDLE file);
 
 	private:
 
 		HANDLE						_completionPort;
+
+		IODataAllocator				_ioDataAllocator;
+
+		mutex_t						_ioDataAllocatorMutex;
+
+		AcceptIODataAllocator		_acceptIoDataAllocator;
+
+		mutex_t						_acceptIoDataAllocatorMutex;
+
+		atomic_t					_workThreads;
 	};
 
 }}

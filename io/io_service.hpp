@@ -10,9 +10,11 @@
 #define LEMON_IO_IO_SERVICE_HPP
 #include <lemon/io/abi.h>
 #include <lemonxx/sys/sys.hpp>
+#include <lemonxx/memory/fixobj.hpp>
 #include <lemonxx/function/bind.hpp>
 #include <lemonxx/utility/utility.hpp>
 #include <lemonxx/memory/smallobj.hpp>
+
 
 namespace lemon{namespace io{
 
@@ -21,23 +23,36 @@ namespace lemon{namespace io{
 	{
 	public:
 		
-		IOServiceT(size_t workThreads):_workThreads(workThreads)
+		IOServiceT(size_t workThreads)
 		{
-			Start();
+			Start(workThreads);
 		}
 
 		~IOServiceT()
 		{
-			static_cast<T*>(this)->Stop();
+			Stop();
 
+			Join();
+		}
+
+		void Start(size_t workThreads)
+		{
+			_threadGroup.start(lemon::bind(&T::Run,static_cast<T*>(this)),workThreads);
+		}
+
+		void Stop()
+		{
+			static_cast<T*>(this)->Cancel();
+		}
+
+		void Join()
+		{
 			_threadGroup.join();
 		}
 
-		size_t WorkThreads() const { return _workThreads; }
-
-		void Start()
+		void Reset()
 		{
-			_threadGroup.start(lemon::bind(&T:Run,static_cast<T*>(this)),_workThreads);
+			_threadGroup.reset();
 		}
 
 	public:
@@ -63,9 +78,6 @@ namespace lemon{namespace io{
 		memory::smallobject::allocator<LEMON_IO_SMALLOBJ_SIZE>	_allocator;
 
 		thread_group											_threadGroup;
-
-		size_t													_workThreads;
-
 	};
 
 }}
