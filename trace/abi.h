@@ -53,6 +53,9 @@ LEMON_DECLARE_HANDLE(LemonTraceConsumer);
 
 typedef void (*LemonTraceProc)(LemonTraceMessage message,void * userdata);
 
+/*
+ * tcp://0.0.0.0:1812
+ */
 LEMON_TRACE_API
 	LemonTraceService 
 	LemonCreateTraceService(

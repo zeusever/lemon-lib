@@ -8,6 +8,10 @@ assembly =
 	{
 		{
 			name = "BINARY_MESSAGE_FORMAT_ERROR";
-		}
+		};
+
+		{
+			name = "INVALID_URL";
+		};
 	};
 };
