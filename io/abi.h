@@ -111,6 +111,8 @@ LEMON_IO_API
 #define SD_RECEIVE SHUT_RD
 #endif //SD_BOTH
 
+typedef void (*LemonAcceptCallback)(void * userdata , LemonIO io , size_t numberOfBytesTransferred , const LemonErrorInfo *errorCode);
+
 LEMON_IO_API 
 	LemonIO
 	LemonSock(
@@ -219,11 +221,61 @@ LEMON_IO_API
 	void 
 	LemonAsyncAccept(
 	__lemon_in LemonIO socket,
-	__lemon_in LemonIO peer,
 	__lemon_inout struct sockaddr * addr,
 	__lemon_inout socklen_t * addrlen,
-	__lemon_in LemonIOCallback callback,
+	__lemon_in LemonAcceptCallback callback,
 	__lemon_in void * userData,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+
+LEMON_IO_API
+	size_t
+	LemonSendTo(
+	__lemon_in LemonIO socket,
+	__lemon_in const lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in const struct sockaddr * address,
+	__lemon_in socklen_t addressSize,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+
+LEMON_IO_API
+	void
+	LemonAsyncSendTo(
+	__lemon_in LemonIO socket,
+	__lemon_in const lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in const struct sockaddr * address,
+	__lemon_in socklen_t addressSize,
+	__lemon_in LemonIOCallback callback,
+	__lemon_in void *userData,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_IO_API
+	size_t
+	LemonReceiveFrom(
+	__lemon_in LemonIO socket,
+	__lemon_in lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in struct sockaddr * address,
+	__lemon_in socklen_t *addressSize,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+
+LEMON_IO_API
+	void
+	LemonAsyncReceiveFrom(
+	__lemon_in LemonIO socket,
+	__lemon_in lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in struct sockaddr * address,
+	__lemon_in socklen_t *addressSize,
+	__lemon_in LemonIOCallback callback,
+	__lemon_in void *userData,
 	__lemon_inout LemonErrorInfo *errorCode);
 
 #endif //LEMON_IO_H

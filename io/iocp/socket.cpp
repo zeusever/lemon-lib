@@ -1,5 +1,5 @@
 #include <lemon/io/iocp/socket.hpp>
-
+#include <lemon/io/iocp/io_service.hpp>
 #ifdef LEMON_IO_IOCP
 
 namespace lemon{namespace io{
@@ -35,9 +35,9 @@ namespace lemon{namespace io{
 		return fn;
 	}
 
-	void LemonAcceptCallback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * errorCode)
+	void __AcceptCallback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * errorCode)
 	{
-		AcceptIOData* data = (AcceptIOData*)userData;
+		IOService::AcceptIOData* data = (IOService::AcceptIOData*)userData;
 
 		if(LEMON_SUCCESS(*errorCode)){
 
@@ -75,12 +75,15 @@ namespace lemon{namespace io{
 			}
 		}
 
-		data->AcceptCallback(data->AcceptUserData,numberOfBytesTransferred,errorCode);
+		data->AcceptCallback(data->AcceptUserData,reinterpret_cast<LemonIO>(data->Peer),numberOfBytesTransferred,errorCode);
 	}
 
 	Socket::Socket(int af, int type, int protocol,IOService * service) 
 		:BaseType(service)
 		,_handle(WSASocket(af,type,protocol,NULL,0,WSA_FLAG_OVERLAPPED))
+		,_af(af)
+		,_type(type)
+		,_protocol(protocol)
 	{
 		if(INVALID_SOCKET == _handle)
 		{
@@ -287,12 +290,14 @@ namespace lemon{namespace io{
 			LEMON_WIN32_ERROR(*errorCode,WSAGetLastError());
 		}
 
-		return new(Service()) Socket(handle,Service());
+		return new(Service()) Socket(_af,_type,_protocol,handle,Service());
 	}
 
-	void Socket::Accept(Socket * peer,sockaddr * addr,socklen_t * addrlen,LemonIOCallback callback, void * userdata)
+	void Socket::Accept(sockaddr * addr,socklen_t * addrlen,LemonAcceptCallback callback, void * userdata)
 	{
-		IOService::IOData * iodata = Service()->NewAcceptIOData(this,peer,callback,userdata,addr,addrlen);
+		Socket * peer = new (Service()) Socket(_af,_type,_protocol,Service());
+
+		IOService::AcceptIOData * iodata = Service()->NewAcceptIOData(this,peer,callback,userdata,addr,addrlen);
 
 		DWORD bytesReceived;	
 
@@ -314,6 +319,80 @@ namespace lemon{namespace io{
 				scope_error_info errorCode;
 
 				LEMON_WIN32_ERROR(*errorCode,error);
+
+				Release(Service(),iodata);
+			}
+		}
+	}
+
+	size_t Socket::SendTo(const byte_t * buffer, size_t length, int flag,const sockaddr * addr, socklen_t addrlen)
+	{
+		size_t sendSize = ::sendto(_handle,(const char*)buffer,(int)length,flag,addr,addrlen);
+
+		if(SOCKET_ERROR == sendSize)
+		{
+			scope_error_info errorCode;
+
+			LEMON_WIN32_ERROR(*errorCode,WSAGetLastError());
+		}
+
+		return sendSize;
+	}
+
+	void Socket::SendTo(const byte_t * buffer, size_t length, int flag ,const sockaddr * addr, socklen_t addrlen, LemonIOCallback callback, void * userdata)
+	{
+		WSABUF wsaBuf = {(ULONG)length,(CHAR*)buffer};
+
+		IOService::IOData * iodata = Service()->NewIOData(userdata,callback,wsaBuf);
+
+		if(0 != WSASendTo(_handle,&iodata->Buffer,1,NULL,flag,addr,addrlen,&iodata->Overlapped,NULL))
+		{
+			DWORD lastError = WSAGetLastError();
+
+			if(WSA_IO_PENDING != lastError)
+			{
+
+				scope_error_info errorCode;
+
+				LEMON_WIN32_ERROR(errorCode,lastError);
+
+				Release(Service(),iodata);
+			}
+		}
+	}
+
+	size_t Socket::RecieveFrom(byte_t * buffer, size_t length, int flag,sockaddr * addr,socklen_t * addrlen)
+	{
+		size_t sendSize = ::recvfrom(_handle,(char*)buffer,(int)length,flag,addr,addrlen);
+
+		if(SOCKET_ERROR == sendSize)
+		{
+			scope_error_info errorCode;
+
+			LEMON_WIN32_ERROR(*errorCode,WSAGetLastError());
+		}
+
+		return sendSize;
+	}
+
+	void Socket::RecieveFrom(byte_t * buffer, size_t length, int flag , sockaddr * addr,socklen_t * addrlen, LemonIOCallback callback, void * userdata)
+	{
+		WSABUF wsaBuf = {(ULONG)length,(CHAR*)buffer};
+
+		IOService::IOData * iodata = Service()->NewIOData(userdata,callback,wsaBuf);
+
+		DWORD placeholder = flag;
+
+		if(0 != WSARecvFrom(_handle,&iodata->Buffer,1,NULL,&placeholder,addr,addrlen,&iodata->Overlapped,NULL))
+		{
+			DWORD lastError = WSAGetLastError();
+
+			if(WSA_IO_PENDING != lastError)
+			{
+
+				scope_error_info errorCode;
+
+				LEMON_WIN32_ERROR(errorCode,lastError);
 
 				Release(Service(),iodata);
 			}

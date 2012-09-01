@@ -70,7 +70,7 @@ void DeRegisterTls(LemonTls tls,LemonErrorInfo * errorCode)
 
 LONG WINAPI LemonWin32UnHandledExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo)
 {
-	std::cout << "test" <<  std::endl;
+	std::cout << "catch unhanded exception !!!" <<  std::endl;
 
 	lemon_char_t buffer[MAX_PATH] = {0};
 

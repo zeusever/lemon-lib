@@ -364,6 +364,8 @@ LEMON_IO_API
 	catch(const error_info & e)
 	{
 		*errorCode = e;
+
+		return LEMON_HANDLE_NULL_VALUE;
 	}
 }
 
@@ -371,16 +373,110 @@ LEMON_IO_API
 	void 
 	LemonAsyncAccept(
 	__lemon_in LemonIO socket,
-	__lemon_in LemonIO peer,
 	__lemon_inout struct sockaddr * addr,
 	__lemon_inout socklen_t * addrlen,
-	__lemon_in LemonIOCallback callback,
+	__lemon_in LemonAcceptCallback callback,
 	__lemon_in void * userData,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->Accept(reinterpret_cast<Socket*>(peer),addr,addrlen,callback,userData);
+		reinterpret_cast<Socket*>(socket)->Accept(addr,addrlen,callback,userData);
+	}
+	catch(const error_info & e)
+	{
+		*errorCode = e;
+	}
+}
+
+
+LEMON_IO_API
+	size_t
+	LemonSendTo(
+	__lemon_in LemonIO socket,
+	__lemon_in const lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in const struct sockaddr * address,
+	__lemon_in socklen_t addressSize,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	try
+	{
+		return reinterpret_cast<Socket*>(socket)->SendTo(buffer,bufferSize,flags,address,addressSize);
+	}
+	catch(const error_info & e)
+	{
+		*errorCode = e;
+
+		return size_t(-1);
+	}
+}
+
+
+LEMON_IO_API
+	void
+	LemonAsyncSendTo(
+	__lemon_in LemonIO socket,
+	__lemon_in const lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in const struct sockaddr * address,
+	__lemon_in socklen_t addressSize,
+	__lemon_in LemonIOCallback callback,
+	__lemon_in void *userData,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	try
+	{
+		reinterpret_cast<Socket*>(socket)->SendTo(buffer,bufferSize,flags,address,addressSize,callback ,userData);
+	}
+	catch(const error_info & e)
+	{
+		*errorCode = e;
+	}
+}
+
+LEMON_IO_API
+	size_t
+	LemonReceiveFrom(
+	__lemon_in LemonIO socket,
+	__lemon_in lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in struct sockaddr * address,
+	__lemon_in socklen_t *addressSize,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	try
+	{
+		return reinterpret_cast<Socket*>(socket)->RecieveFrom(buffer,bufferSize,flags,address,addressSize);
+	}
+	catch(const error_info & e)
+	{
+		*errorCode = e;
+
+		return size_t(-1);
+	}
+}
+
+
+LEMON_IO_API
+	void
+	LemonAsyncReceiveFrom(
+	__lemon_in LemonIO socket,
+	__lemon_in lemon_byte_t * buffer __lemon_buffer(bufferSize),
+	__lemon_in size_t bufferSize,
+	__lemon_in int flags,
+	__lemon_in struct sockaddr * address,
+	__lemon_in socklen_t *addressSize,
+	__lemon_in LemonIOCallback callback,
+	__lemon_in void *userData,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	try
+	{
+		reinterpret_cast<Socket*>(socket)->RecieveFrom(buffer,bufferSize,flags,address,addressSize,callback ,userData);
 	}
 	catch(const error_info & e)
 	{

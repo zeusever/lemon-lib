@@ -110,7 +110,7 @@ namespace lemon{namespace io{
 		}
 	}
 
-	IOService::IOData * IOService::NewAcceptIOData(Socket * listen, Socket * peer, LemonIOCallback callback,void * userData,sockaddr *address,socklen_t *addressSize)
+	IOService::AcceptIOData * IOService::NewAcceptIOData(Socket * listen, Socket * peer, LemonAcceptCallback callback,void * userData,sockaddr *address,socklen_t *addressSize)
 	{
 		mutex_t::scope_lock lock(_acceptIoDataAllocatorMutex);
 

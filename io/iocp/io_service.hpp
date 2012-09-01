@@ -34,9 +34,10 @@ namespace lemon{namespace io{
 
 	class Socket;
 
-	void LemonAcceptCallback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * errorCode);
+	void __AcceptCallback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * errorCode);
 
-	struct AcceptIOData : public IODataT<IOService>
+	template<typename IOService>
+	struct AcceptIODataT : public IODataT<IOService>
 	{
 		Socket					*Listen;
 
@@ -44,7 +45,7 @@ namespace lemon{namespace io{
 
 		void					*AcceptUserData;
 
-		LemonIOCallback			AcceptCallback;
+		LemonAcceptCallback		AcceptCallback;
 
 		lemon_byte_t			AcceptBuffer[LEMON_ACCEPTEX_ADDRESS_LENGTH * 2];
 
@@ -52,7 +53,7 @@ namespace lemon{namespace io{
 
 		socklen_t				*AddressSize;
 
-		AcceptIOData(Socket * listen, Socket * peer, LemonIOCallback callback,void * userData,sockaddr *address,socklen_t *addressSize,IODataT<IOService>::IODataRelease release)
+		AcceptIODataT(Socket * listen, Socket * peer, LemonAcceptCallback callback,void * userData,sockaddr *address,socklen_t *addressSize,IODataT<IOService>::IODataRelease release)
 		{
 			Listen = listen;Peer = peer;
 
@@ -66,7 +67,7 @@ namespace lemon{namespace io{
 
 			UserData = this;
 
-			IODataT<IOService>::Callback = &LemonAcceptCallback;
+			IODataT<IOService>::Callback = &__AcceptCallback;
 
 			Release = release;
 		}
@@ -77,7 +78,9 @@ namespace lemon{namespace io{
 	{
 	public:
 
-		typedef IODataT<IOService>		IOData;
+		typedef IODataT<IOService>			IOData;
+
+		typedef AcceptIODataT<IOService>	AcceptIOData;
 
 		typedef memory::fixed::allocator<sizeof(IOData)> IODataAllocator;
 
@@ -97,7 +100,7 @@ namespace lemon{namespace io{
 
 		void ReleaseIOData(IOData * iodata);
 
-		IOData * NewAcceptIOData(Socket * listen, Socket * peer, LemonIOCallback callback,void * userData,sockaddr *address,socklen_t *addressSize);
+		AcceptIOData * NewAcceptIOData(Socket * listen, Socket * peer, LemonAcceptCallback callback,void * userData,sockaddr *address,socklen_t *addressSize);
 
 		void ReleaseAcceptIOData(IOData * iodata);
 

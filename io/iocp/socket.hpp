@@ -23,11 +23,17 @@ namespace lemon{namespace io{
 	{
 	public:
 
-		friend void LemonAcceptCallback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * errorCode);
+		friend void __AcceptCallback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * errorCode);
 		
 		typedef  ObjectT<Socket,IOService> BaseType;
 
-		Socket(SOCKET handle,IOService * service):BaseType(service),_handle(handle){}
+		Socket(int af, int type, int protocol,SOCKET handle,IOService * service)
+			:BaseType(service)
+			,_handle(handle)
+			,_af(af)
+			,_type(type)
+			,_protocol(protocol)
+		{}
 
 		Socket(int af, int type, int protocol,IOService * service);
 
@@ -51,9 +57,17 @@ namespace lemon{namespace io{
 
 		void Send(const byte_t * buffer, size_t length, int flag , LemonIOCallback callback, void * userdata);
 
+		size_t SendTo(const byte_t * buffer, size_t length, int flag,const sockaddr * addr, socklen_t addrlen);
+
+		void SendTo(const byte_t * buffer, size_t length, int flag ,const sockaddr * addr, socklen_t addrlen, LemonIOCallback callback, void * userdata);
+
 		size_t Recieve(byte_t * buffer, size_t length, int flag);
 
 		void Recieve(byte_t * buffer, size_t length, int flag , LemonIOCallback callback, void * userdata);
+
+		size_t RecieveFrom(byte_t * buffer, size_t length, int flag,sockaddr * addr,socklen_t * addrlen);
+
+		void RecieveFrom(byte_t * buffer, size_t length, int flag , sockaddr * addr,socklen_t * addrlen, LemonIOCallback callback, void * userdata);
 
 		void Connect(const sockaddr * addr, socklen_t addrlen);
 
@@ -63,7 +77,7 @@ namespace lemon{namespace io{
 
 		Socket * Accept(sockaddr * addr,socklen_t * addrlen);
 
-		void Accept(Socket * peer,sockaddr * addr,socklen_t * addrlen,LemonIOCallback callback, void * userdata);
+		void Accept(sockaddr * addr,socklen_t * addrlen,LemonAcceptCallback callback, void * userdata);
 
 	private:
 
@@ -74,6 +88,12 @@ namespace lemon{namespace io{
 		LPFN_CONNECTEX				_connectEx;
 
 		LPFN_GETACCEPTEXSOCKADDRS	_getAcceptExSockaddrs;
+
+		int							_af;
+
+		int							_type;
+
+		int							_protocol;
 
 	};
 }}
