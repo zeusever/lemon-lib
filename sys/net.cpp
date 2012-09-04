@@ -214,13 +214,13 @@ LEMON_SYS_PRIVATE int inet_pton_v6(const char *src, void *dst)
 {
 	static const char xdigits_l[] = "0123456789abcdef",
 		xdigits_u[] = "0123456789ABCDEF";
-	u_char tmp[sizeof(in_addr6)], *tp, *endp, *colonp;
+	u_char tmp[sizeof(in6_addr)], *tp, *endp, *colonp;
 	const char *xdigits, *curtok;
 	int ch, saw_xdigit;
 	u_int val;
 
-	memset((tp = tmp), '\0', sizeof(in_addr6));
-	endp = tp + sizeof(in_addr6);
+	memset((tp = tmp), '\0', sizeof(in6_addr));
+	endp = tp + sizeof(in6_addr);
 	colonp = NULL;
 	/* Leading :: requires some special handling. */
 	if (*src == ':')
@@ -292,7 +292,7 @@ LEMON_SYS_PRIVATE int inet_pton_v6(const char *src, void *dst)
 	}
 	if (tp != endp)
 		return (0);
-	memcpy(dst, tmp, sizeof(in_addr6));
+	memcpy(dst, tmp, sizeof(in6_addr));
 	return (1);
 
 }

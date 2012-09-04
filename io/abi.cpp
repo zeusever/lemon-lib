@@ -2,10 +2,11 @@
 
 #ifdef LEMON_IO_IOCP
 #	include <lemon/io/iocp/iocp.hpp>
+#elif defined(LEMON_IO_EPOLL)
+#	include <lemon/io/epoll/epoll.hpp>
+#	include <lemon/io/posix/socket.hpp>
 #else
-# error "not implement"
-#endif 
-
+#endif //
 using namespace lemon;
 
 using namespace lemon::io;
