@@ -13,21 +13,6 @@ namespace lemon{namespace io{
 		:BaseType(service),_handle(handle),_af(af),_type(type),_protocol(protocol)
 	{}
 
-	Socket::Socket(int af, int type, int protocol,IOService * service)
-		:BaseType(service),_af(af),_type(type),_protocol(protocol)
-	{
-		_handle = socket( af, type , protocol );
-
-		if(-1 == _handle)
-		{
-			scope_error_info errorCode;
-
-			LEMON_POSIX_ERROR(errorCode,errno);
-		}
-
-		service->Bind(_handle);
-	}
-
 	Socket::~Socket()
 	{
 		::close(_handle);

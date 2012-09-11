@@ -10,7 +10,7 @@
 #define LEMON_IO_POSIX_SOCKET_HPP
 #include <lemon/io/object.hpp>
 
-#ifndef LEMON_IO_IOCP
+#ifndef WIN32
 
 #ifdef LEMON_IO_EPOLL
 #include <lemon/io/epoll/epoll.hpp>
@@ -23,10 +23,10 @@ namespace lemon{namespace io{
 	{
 	public:
 		typedef  ObjectT<Socket,IOService> BaseType;
-		
-		Socket(int af, int type, int protocol,int handle,IOService * service);
 
 		Socket(int af, int type, int protocol,IOService * service);
+		
+		Socket(int af, int type, int protocol,int handle,IOService * service);
 
 		~Socket();
 
@@ -84,7 +84,7 @@ namespace lemon{namespace io{
 
 }}
 
-#endif //#ifndef LEMON_IO_IOCP
+#endif //WIN32
 
 #endif //LEMON_IO_POSIX_SOCKET_HPP
 
