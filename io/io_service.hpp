@@ -4,82 +4,83 @@
 * @brief    Copyright (C) 2012  yayanyang All Rights Reserved 
 * @author   yayanyang
 * @version  1.0.0.0  
-* @date     2012/08/30
+* @date     2012/09/12
 */
 #ifndef LEMON_IO_IO_SERVICE_HPP
 #define LEMON_IO_IO_SERVICE_HPP
-#include <lemon/io/abi.h>
-#include <lemonxx/sys/sys.hpp>
-#include <lemonxx/memory/fixobj.hpp>
+#include <lemon/io/object.hpp>
 #include <lemonxx/function/bind.hpp>
-#include <lemonxx/utility/utility.hpp>
-#include <lemonxx/memory/smallobj.hpp>
+#include <lemonxx/memory/fixobj.hpp>
 
+namespace lemon{namespace io{namespace core{
 
-namespace lemon{namespace io{
-
-	template<typename T>
-	class IOServiceT : private nocopyable
+	template<typename Impl,typename Socket>
+	class basic_io_service : private lemon::nocopyable
 	{
 	public:
 		
-		IOServiceT(size_t workThreads)
+		typedef Impl												io_service_type;
+
+		typedef Socket												socket_type;
+
+		typedef memory::fixed::allocator<sizeof(socket_type)>		socket_allocator;
+
+	public:
+
+		void start(size_t numbers)
 		{
-			Start(workThreads);
+			_threads.start(lemon::function<void()>(&io_service_type::attach,reinterpret_cast<io_service_type*>(this)),numbers);
 		}
 
-		~IOServiceT()
+		void stop()
 		{
-			Stop();
-
-			Join();
+			reinterpret_cast<io_service_type*>(this)->detach();
 		}
 
-		void Start(size_t workThreads)
+		void join()
 		{
-			_threadGroup.start(lemon::bind(&T::Run,static_cast<T*>(this)),workThreads);
+			_threads.join();
 		}
 
-		void Stop()
+		void reset()
 		{
-			static_cast<T*>(this)->Cancel();
-		}
+			_threads.reset();
 
-		void Join()
-		{
-			_threadGroup.join();
-		}
-
-		void Reset()
-		{
-			_threadGroup.reset();
+			reinterpret_cast<io_service_type*>(this)->reset();
 		}
 
 	public:
 
-		void * AllocObj(size_t size)
+		socket_type* create_socket(int af, int type, int protocol)
 		{
-			mutex_t::scope_lock lock(_allocatorMutex);
+			mutex_t::scope_lock lock(_socketAllocatorMutex);
 
-			return _allocator.alloc(size);
+			return new(_socketAllocator.alloc()) socket_type(af,type,protocol,reinterpret_cast<io_service_type*>(this));
 		}
 
-		void FreeObj(void * data, size_t size)
+		socket_type* create_socket(int af, int type, int protocol, LemonNativeSock socket)
 		{
-			mutex_t::scope_lock lock(_allocatorMutex);
+			mutex_t::scope_lock lock(_socketAllocatorMutex);
 
-			_allocator.free(data,size);
+			return new(_socketAllocator.alloc()) socket_type(af,type,protocol,socket,reinterpret_cast<io_service_type*>(this));
+		}
+
+		void close_socket(void * object)
+		{
+			mutex_t::scope_lock lock(_socketAllocatorMutex);
+
+			_socketAllocator.free(object);
 		}
 
 	private:
 
-		mutex_t													_allocatorMutex;
+		socket_allocator			_socketAllocator;
 
-		memory::smallobject::allocator<LEMON_IO_SMALLOBJ_SIZE>	_allocator;
+		mutex_t						_socketAllocatorMutex;
 
-		thread_group											_threadGroup;
+		thread_group				_threads;
 	};
 
-}}
+}}}
 
 #endif //LEMON_IO_IO_SERVICE_HPP

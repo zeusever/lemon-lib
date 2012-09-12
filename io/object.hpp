@@ -4,65 +4,38 @@
 * @brief    Copyright (C) 2012  yayanyang All Rights Reserved 
 * @author   yayanyang
 * @version  1.0.0.0  
-* @date     2012/08/30
+* @date     2012/09/12
 */
 #ifndef LEMON_IO_OBJECT_HPP
 #define LEMON_IO_OBJECT_HPP
-#include <cassert>
 #include <lemon/io/abi.h>
 #include <lemonxx/sys/sys.hpp>
 #include <lemonxx/utility/utility.hpp>
 
-namespace lemon{namespace io{
+namespace lemon{namespace io{namespace core{
 
-	struct Object : private lemon::nocopyable 
-	{
-		virtual ~Object() {}
-	};
+	class io_service;
 
-	template<class Impl, class IOService>
-	class ObjectT : public Object
+	class io_object : private lemon::nocopyable
 	{
-	public:
+	protected:
 		
-		ObjectT(IOService * service):_service(service) {}
+		io_object(io_service * service):_ioService(service) {}
+	
+		io_object(){}
 
-		virtual ~ObjectT() {}
+	public:
 
-		IOService * Service() { return _service; }
+		virtual void release() = 0;
 
-		static void * operator new (std::size_t size, IOService * service)
-		{
-			assert(size == sizeof(Impl));
+		io_service* service() { return _ioService; }
 
-			byte_t * data = (byte_t*)service->AllocObj(size + sizeof(service));
-
-			memcpy(data,&service,sizeof(service));
-
-			return data + sizeof(service);
-		}
-
-		static void operator delete (void * p , IOService * service) throw()
-		{
-			service->FreeObj((byte_t*)p - sizeof(service),sizeof(Impl));
-		}
-
-		static void operator delete (void * p , std::size_t size) throw()
-		{
-			IOService * service;
-
-			byte_t * block = (byte_t*)p - sizeof(service);
-
-			memcpy(&service, block ,sizeof(service));
-
-			service->FreeObj(block,size + sizeof(service));
-		}
+		const io_service* service() const { return _ioService; }
 
 	private:
 
-		IOService			*_service;
+		io_service				*_ioService;
 	};
-
-}}
+}}}
 
 #endif //LEMON_IO_OBJECT_HPP

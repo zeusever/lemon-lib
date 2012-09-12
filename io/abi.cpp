@@ -1,15 +1,15 @@
 #include <lemon/io/abi.h>
-
 #ifdef LEMON_IO_IOCP
-#	include <lemon/io/iocp/iocp.hpp>
-#elif defined(LEMON_IO_EPOLL)
-#	include <lemon/io/epoll/epoll.hpp>
-#	include <lemon/io/posix/socket.hpp>
+#include <lemon/io/io_service_iocp.hpp>
 #else
+#include <lemon/io/io_service_reactor.hpp>
 #endif //
+
 using namespace lemon;
 
 using namespace lemon::io;
+
+using namespace lemon::io::core;
 
 LEMON_IO_API
 	LemonIOService 
@@ -18,7 +18,7 @@ LEMON_IO_API
 {
 	try
 	{
-		return reinterpret_cast<LemonIOService>(new IOService(0));
+		return reinterpret_cast<LemonIOService>(new io_service);
 	}
 	catch(const error_info & e)
 	{
@@ -37,7 +37,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<IOService*>(service)->Start(newThreads);
+		reinterpret_cast<io_service*>(service)->start(newThreads);
 	}
 	catch(const error_info & e)
 	{
@@ -53,7 +53,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<IOService*>(service)->Stop();
+		reinterpret_cast<io_service*>(service)->stop();
 	}
 	catch(const error_info & e)
 	{
@@ -65,7 +65,7 @@ LEMON_IO_API
 	void LemonCloseIOService(
 	__lemon_in LemonIOService service)
 {
-	delete reinterpret_cast<IOService*>(service);
+	delete reinterpret_cast<io_service*>(service);
 }
 
 
@@ -78,7 +78,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<IOService*>(service)->PostJob(callback,userdata);
+		reinterpret_cast<io_service*>(service)->post_one(callback,userdata,errorCode);
 	}
 	catch(const error_info & e)
 	{
@@ -93,7 +93,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<IOService*>(service)->Join();
+		reinterpret_cast<io_service*>(service)->join();
 	}
 	catch(const error_info & e)
 	{
@@ -110,7 +110,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<IOService*>(service)->Reset();
+		reinterpret_cast<io_service*>(service)->reset();
 	}
 	catch(const error_info & e)
 	{
@@ -125,19 +125,13 @@ LEMON_IO_API
 	__lemon_in int af,
 	__lemon_in int type,
 	__lemon_in int protocol,
-	__lemon_in LemonIOService ioservice,
+	__lemon_in LemonIOService service,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
-	
+
 	try
 	{
-		return reinterpret_cast<LemonIO>
-			(
-			new(reinterpret_cast<IOService*>(ioservice)) Socket
-			(
-			af,type,protocol,reinterpret_cast<IOService*>(ioservice)
-			)
-			);
+		return reinterpret_cast<LemonIO>(reinterpret_cast<io_service*>(service)->create_socket(af,type,protocol));
 	}
 	catch(const error_info & e)
 	{
@@ -145,7 +139,7 @@ LEMON_IO_API
 
 		return LEMON_HANDLE_NULL_VALUE;
 	}
-	
+
 }
 
 LEMON_IO_API
@@ -153,7 +147,7 @@ LEMON_IO_API
 	LemonCloseIO(
 	__lemon_free LemonIO io)
 {
-	delete reinterpret_cast<Object*>(io);
+	reinterpret_cast<io_object*>(io)->release();
 }
 
 LEMON_IO_API
@@ -165,7 +159,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(sock)->Bind(name,nameLength);
+		reinterpret_cast<core::socket*>(sock)->bind(name,nameLength);
 	}
 	catch(const error_info & e)
 	{
@@ -182,7 +176,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(sock)->Shutdown(how);
+		reinterpret_cast<core::socket*>(sock)->shutdown(how);
 	}
 	catch(const error_info & e)
 	{
@@ -199,7 +193,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(sock)->SockName(name,bufferSize);
+		reinterpret_cast<core::socket*>(sock)->sockname(name,bufferSize);
 	}
 	catch(const error_info & e)
 	{
@@ -219,7 +213,7 @@ LEMON_IO_API
 {
 	try
 	{
-		return reinterpret_cast<Socket*>(socket)->Send(buffer,bufferSize,flags);
+		return reinterpret_cast<core::socket*>(socket)->send(buffer,bufferSize,flags);
 	}
 	catch(const error_info & e)
 	{
@@ -243,7 +237,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->Send(buffer,bufferSize,flags,callback ,userData);
+		reinterpret_cast<core::socket*>(socket)->async_send(buffer,bufferSize,flags,callback ,userData,errorCode);
 	}
 	catch(const error_info & e)
 	{
@@ -263,7 +257,7 @@ LEMON_IO_API
 {
 	try
 	{
-		return reinterpret_cast<Socket*>(socket)->Recieve(buffer,bufferSize,flags);
+		return reinterpret_cast<core::socket*>(socket)->receive(buffer,bufferSize,flags);
 	}
 	catch(const error_info & e)
 	{
@@ -287,7 +281,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->Recieve(buffer,bufferSize,flags,callback ,userData);
+		reinterpret_cast<core::socket*>(socket)->async_receive(buffer,bufferSize,flags,callback ,userData,errorCode);
 	}
 	catch(const error_info & e)
 	{
@@ -306,7 +300,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->Connect(addr,addrlen);
+		reinterpret_cast<core::socket*>(socket)->connect(addr,addrlen);
 	}
 	catch(const error_info & e)
 	{
@@ -326,7 +320,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->Connect(addr,addrlen,callback ,userData);
+		reinterpret_cast<core::socket*>(socket)->async_connect(addr,addrlen,callback ,userData,errorCode);
 	}
 	catch(const error_info & e)
 	{
@@ -342,7 +336,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->Listen(backlog);
+		reinterpret_cast<core::socket*>(socket)->listen(backlog);
 	}
 	catch(const error_info & e)
 	{
@@ -360,7 +354,7 @@ LEMON_IO_API
 {
 	try
 	{
-		return reinterpret_cast<LemonIO>(reinterpret_cast<Socket*>(socket)->Accept(addr,addrlen));
+		return reinterpret_cast<LemonIO>(reinterpret_cast<core::socket*>(socket)->accept(addr,addrlen));
 	}
 	catch(const error_info & e)
 	{
@@ -382,7 +376,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->Accept(addr,addrlen,callback,userData);
+		reinterpret_cast<core::socket*>(socket)->async_accept(addr,addrlen,callback,userData,errorCode);
 	}
 	catch(const error_info & e)
 	{
@@ -404,7 +398,7 @@ LEMON_IO_API
 {
 	try
 	{
-		return reinterpret_cast<Socket*>(socket)->SendTo(buffer,bufferSize,flags,address,addressSize);
+		return reinterpret_cast<core::socket*>(socket)->sendto(buffer,bufferSize,flags,address,addressSize);
 	}
 	catch(const error_info & e)
 	{
@@ -430,7 +424,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->SendTo(buffer,bufferSize,flags,address,addressSize,callback ,userData);
+		reinterpret_cast<core::socket*>(socket)->async_sendto(buffer,bufferSize,flags,address,addressSize,callback ,userData,errorCode);
 	}
 	catch(const error_info & e)
 	{
@@ -451,7 +445,7 @@ LEMON_IO_API
 {
 	try
 	{
-		return reinterpret_cast<Socket*>(socket)->RecieveFrom(buffer,bufferSize,flags,address,addressSize);
+		return reinterpret_cast<core::socket*>(socket)->recvfrom(buffer,bufferSize,flags,address,addressSize);
 	}
 	catch(const error_info & e)
 	{
@@ -477,7 +471,7 @@ LEMON_IO_API
 {
 	try
 	{
-		reinterpret_cast<Socket*>(socket)->RecieveFrom(buffer,bufferSize,flags,address,addressSize,callback ,userData);
+		reinterpret_cast<core::socket*>(socket)->async_recvfrom(buffer,bufferSize,flags,address,addressSize,callback ,userData,errorCode);
 	}
 	catch(const error_info & e)
 	{

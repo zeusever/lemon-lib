@@ -18,6 +18,9 @@
 
 #define LEMON_IO_CURRENT											0x03
 
+
+#define LEMON_IO_REACTOR_SESSIONS									1024
+
 //////////////////////////////////////////////////////////////////////////
 
 typedef struct LemonIoWriter{
@@ -99,6 +102,12 @@ LEMON_IO_API
 
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef WIN32
+typedef SOCKET			LemonNativeSock;
+#else
+typedef int				LemonNativeSock;
+#endif //WIN32
+
 #ifndef SD_BOTH
 #define SD_BOTH SHUT_RDWR
 #endif //SD_BOTH
@@ -119,7 +128,7 @@ LEMON_IO_API
 	__lemon_in int af,
 	__lemon_in int type,
 	__lemon_in int protocol,
-	__lemon_in LemonIOService ioservice,
+	__lemon_in LemonIOService io_service,
 	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_IO_API
