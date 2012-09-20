@@ -62,6 +62,8 @@
 
 #cmakedefine LEMON_SUPPORT_IPV6
 
+#cmakedefine LEMON_USE_BUILDIN_UCONTEXT
+
 
 //define the macro to indicate the wchar_t length
 #define LEMON_WCHAR_SIZE ${LEMON_WCHAR_SIZE}
