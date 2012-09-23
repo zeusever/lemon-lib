@@ -4,6 +4,8 @@
 
 namespace lemon{namespace io{namespace core{
 
+	io_data::io_data(size_t type):_type(type) {}
+
 	io_data::io_data(size_t type,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize)
 		:_type(type),_userdata(userdata),_callback(callback),_buffer(buffer),_bufferSize(bufferSize)
 	{

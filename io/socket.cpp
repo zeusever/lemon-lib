@@ -1,8 +1,14 @@
 #include <lemon/io/socket.hpp>
 #ifdef LEMON_IO_IOCP
 #include <lemon/io/io_service_iocp.hpp>
+#elif defined(LEMON_IO_KQUEUE)
+#include <lemon/io/io_service_kqueue.hpp>
 #else
 #endif //LEMON_IO_IOCP
+
+#ifndef WIN32
+#include <unistd.h>
+#endif //WIN32
 
 
 namespace lemon{namespace io{namespace core{

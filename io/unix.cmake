@@ -12,3 +12,5 @@ if(LEMON_IO_EPOLL)
 	lemon_project_link_libs(aio)
 	
 endif()
+
+check_include_files(sys/event.h LEMON_IO_KQUEUE)

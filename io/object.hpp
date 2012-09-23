@@ -8,6 +8,7 @@
 */
 #ifndef LEMON_IO_OBJECT_HPP
 #define LEMON_IO_OBJECT_HPP
+#include <cstddef>
 #include <lemon/io/abi.h>
 #include <lemonxx/sys/sys.hpp>
 #include <lemonxx/utility/utility.hpp>
@@ -22,7 +23,7 @@ namespace lemon{namespace io{namespace core{
 		
 		io_object(io_service * service):_ioService(service) {}
 	
-		io_object(){}
+		virtual ~io_object(){}
 
 	public:
 
