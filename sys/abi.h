@@ -10,6 +10,7 @@
 #define LEMON_SYS_ABI_H
 #include <stdio.h>
 #include <wchar.h>
+#include <stdlib.h>
 #include <lemon/sys/stdtypes.h>
 #include <lemon/sys/configure.h>
 #include <lemon/sys/endianess.h>

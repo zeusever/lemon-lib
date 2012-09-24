@@ -30,9 +30,16 @@ CHECK_INCLUDE_FILES(dlfcn.h LEMON_HAS_DLFCN_H)
 
 #######################################################################################################################################
 # check the coroutine library implement technology
+
+if(APPLE)
+  set(LEMON_COROUTINE_DEFAULT ASM)
+else()
+  set(LEMON_COROUTINE_DEFAULT UCONTEXT)
+endif(APPLE)
+
 lemon_option(
   LEMON_COROUTINE
-  DEFAULT UCONTEXT
+  DEFAULT ${LEMON_COROUTINE_DEFAULT}
   VALUES UCONTEXT ASM
   DESCRIPTION "special coroutine library implement")
 
@@ -45,6 +52,7 @@ endif()
 
 if(LEMON_COROUTINE_ASM)
   set(LEMON_USE_BUILDIN_UCONTEXT TRUE)
+  lemon_project_sources(${PROJECT_SOURCE_DIR}/sources/lemon/sys/ucontext.s)
 endif()
 
 

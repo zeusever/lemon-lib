@@ -44,7 +44,7 @@ LEMON_MESSAGE_API
 
 LEMON_MESSAGE_API
 	void 
-	LemonmailboxBind(
+	LemonMailBoxBind(
 	__lemon_in LemonMailBox mailbox,
 	__lemon_in const char * url,
 	__lemon_inout LemonErrorInfo * errorCode);
@@ -52,7 +52,7 @@ LEMON_MESSAGE_API
 
 LEMON_MESSAGE_API
 	void 
-	LemonmailboxConnect(
+	LemonMailBoxConnect(
 	__lemon_in LemonMailBox mailbox,
 	__lemon_in const char * url,
 	__lemon_inout LemonErrorInfo * errorCode);
@@ -71,13 +71,13 @@ LEMON_MESSAGE_API
 	__lemon_inout LemonErrorInfo * errorCode);
 
 
-typedef void(*LemonmailboxCallback)(void * userdata,LemonMessage msg,const LemonErrorInfo * errorCode);
+typedef void(*LemonMailBoxCallback)(void * userdata,LemonMessage msg,const LemonErrorInfo * errorCode);
 
 LEMON_MESSAGE_API
 	void 
 	LemonAsyncReceiveMessage(
 	__lemon_in LemonMailBox mailbox,
-	__lemon_in LemonmailboxCallback callback,
+	__lemon_in LemonMailBoxCallback callback,
 	__lemon_in void * userdata,
 	__lemon_inout LemonErrorInfo * errorCode);
 
@@ -86,7 +86,7 @@ LEMON_MESSAGE_API
 	LemonAsyncSendMessage(
 	__lemon_in LemonMailBox mailbox,
 	__lemon_in LemonMessage msg,
-	__lemon_in LemonmailboxCallback callback,
+	__lemon_in LemonMailBoxCallback callback,
 	__lemon_in void * userdata,
 	__lemon_inout LemonErrorInfo * errorCode);
 

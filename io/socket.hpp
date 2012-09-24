@@ -12,6 +12,7 @@
 
 #ifndef WIN32
 #define SOCKET_ERROR								-1
+#define INVALID_SOCKET								-1
 #define LEMON_SOCKET_ERROR(errorCode)				LEMON_POSIX_ERROR(errorCode,errno)
 #else
 #define LEMON_SOCKET_ERROR(errorCode)				LEMON_WIN32_ERROR(errorCode,WSAGetLastError())

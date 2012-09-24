@@ -5,6 +5,8 @@
 #include <lemon/io/io_service_reactor.hpp>
 #endif //
 
+#ifdef LEMON_NULL
+
 using namespace lemon;
 
 using namespace lemon::io;
@@ -478,3 +480,5 @@ LEMON_IO_API
 		*errorCode = e;
 	}
 }
+
+#endif

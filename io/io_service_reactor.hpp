@@ -30,7 +30,7 @@ namespace lemon{namespace io{namespace core{
 	{
 	public:
 
-		io_data(size_t type):_type(type) {}
+		io_data(size_t type);
 		
 		io_data(size_t type,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize);
 
@@ -113,10 +113,6 @@ namespace lemon{namespace io{namespace core{
 		typedef memory::fixed::allocator<sizeof(accept_io_data)> accept_io_data_allocator;
 
 		typedef memory::ringbuffer::allocator<sizeof(io_data*)>	complete_queue;
-		
-		io_service_reactor();
-
-		~io_service_reactor();
 
 		void reset() {_exit = false; }
 
@@ -125,6 +121,12 @@ namespace lemon{namespace io{namespace core{
 		void detach();
 
 		void post_one(LemonIOCallback callback,void * userdata,void * buffer, size_t bufferSize,LemonErrorInfo *errorCode);
+
+	protected:
+
+		io_service_reactor();
+
+		~io_service_reactor();
 
 	public:
 

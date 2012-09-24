@@ -1,4 +1,5 @@
 #cmakedefine LEMON_IO_IOCP
 #cmakedefine LEMON_IO_EPOLL
+#cmakedefine LEMON_IO_KQUEUE
 
 
