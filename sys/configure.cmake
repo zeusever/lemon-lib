@@ -26,5 +26,4 @@ if(CMAKE_SYSTEM MATCHES "HP-UX-*")
   set(CMAKE_THREAD_LIBS_INIT "-lpthread")
 endif()
 
-
 lemon_project_link_libs(${CMAKE_THREAD_LIBS_INIT})

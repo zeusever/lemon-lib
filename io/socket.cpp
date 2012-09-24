@@ -2,6 +2,7 @@
 #ifdef LEMON_IO_IOCP
 #include <lemon/io/io_service_iocp.hpp>
 #else
+#include <lemon/io/io_service_reactor.hpp>
 #endif //LEMON_IO_IOCP
 
 
