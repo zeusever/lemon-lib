@@ -9,5 +9,66 @@
 #ifndef LEMON_IO_SERVICE_EPOLL_HPP
 #define LEMON_IO_SERVICE_EPOLL_HPP
 
+#include <lemon/io/socket_reactor.hpp>
+
+#ifdef LEMON_IO_EPOLL
+
+#include <lemon/io/io_service_reactor.hpp>
+
+namespace lemon{namespace io{namespace core{
+
+	class io_service : public basic_io_service<io_service,socket>
+	{
+	public:
+
+		io_service();
+
+		~io_service();
+
+		void reset(){ _reactor.reset(); }
+
+		void attach() { _reactor.attach(); }
+
+		void detach() { _reactor.detach(); }
+
+		void post_one(LemonIOCallback callback,void * userdata,LemonErrorInfo *errorCode)
+		{
+			_reactor.post_one(callback, userdata, 0, 0, errorCode);
+		}
+
+		void post_one(io_data * iodata,LemonErrorInfo *errorCode)
+		{
+			_reactor.post_one(iodata,errorCode);	
+		}
+
+		void post_one(io_data * iodata)
+		{
+			error_info errorCode;
+
+			_reactor.post_one(iodata,errorCode);	
+
+			errorCode.check_throw();
+		}
+
+	private:
+
+		void epoll_loop();
+
+	private:
+
+		bool						_exit;
+
+		io_service_reactor			_reactor;
+
+		thread_t					_ioworker;
+
+		int							_eventfd;
+
+		int							_epollfd;
+	};
+
+}}}
+
+#endif //
 #endif //LEMON_IO_SERVICE_EPOLL_HPP
 

@@ -38,9 +38,11 @@ namespace lemon{namespace trace{
 			{
 				//TODO: add the pipe protocol
 
-				scope_error_info errorCode;
+				error_info errorCode;
 
 				LEMON_USER_ERROR(errorCode,LEMON_TRACE_INVALID_URL);
+
+				errorCode.check_throw();
 			}
 
 			start = 6;
@@ -50,9 +52,11 @@ namespace lemon{namespace trace{
 
 		if(URL.npos ==position)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_USER_ERROR(errorCode,LEMON_TRACE_INVALID_URL);
+
+			errorCode.check_throw();
 		}
 
 		std::string nodename = URL.substr(start,position - start);
@@ -63,9 +67,11 @@ namespace lemon{namespace trace{
 
 		if(net::resolver_iterator() == iter)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_USER_ERROR(errorCode,LEMON_TRACE_INVALID_URL);
+
+			errorCode.check_throw();
 		}
 
 		return NULL;

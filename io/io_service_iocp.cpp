@@ -9,9 +9,11 @@ namespace lemon{namespace io{namespace core{
 	{
 		if(NULL == _completionPort)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_WIN32_ERROR(errorCode,GetLastError());
+
+			errorCode.check_throw();
 		}
 	}
 
@@ -40,9 +42,11 @@ namespace lemon{namespace io{namespace core{
 			{
 				if(NULL == iodata)
 				{
-					scope_error_info errorCode;
+					error_info errorCode;
 
 					LEMON_WIN32_ERROR(errorCode,GetLastError());
+
+					errorCode.check_throw();
 				}
 
 				LEMON_WIN32_ERROR(errorCode,GetLastError());
@@ -128,9 +132,11 @@ namespace lemon{namespace io{namespace core{
 	{
 		if(NULL == CreateIoCompletionPort(handle,_completionPort,completekey,0))
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_WIN32_ERROR(errorCode,GetLastError());
+
+			errorCode.check_throw();
 		}
 	}
 
@@ -179,7 +185,7 @@ namespace lemon{namespace io{namespace core{
 
 	void accept_io_data::callback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * ec)
 	{
-		scope_error_info errorCode(ec);
+		error_info errorCode(ec);
 
 		accept_io_data * self = (accept_io_data*)userData;
 

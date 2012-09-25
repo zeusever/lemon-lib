@@ -1,11 +1,9 @@
 #include <lemon/io/abi.h>
 #ifdef LEMON_IO_IOCP
 #include <lemon/io/io_service_iocp.hpp>
-#else
-#include <lemon/io/io_service_reactor.hpp>
+#elif defined(LEMON_IO_EPOLL)
+#include <lemon/io/io_service_epoll.hpp>
 #endif //
-
-#ifdef LEMON_NULL
 
 using namespace lemon;
 
@@ -480,5 +478,3 @@ LEMON_IO_API
 		*errorCode = e;
 	}
 }
-
-#endif

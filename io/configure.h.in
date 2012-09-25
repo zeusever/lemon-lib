@@ -1,5 +1,7 @@
 #cmakedefine LEMON_IO_IOCP
 #cmakedefine LEMON_IO_EPOLL
 #cmakedefine LEMON_IO_KQUEUE
+#cmakedefine LEMON_HAS_FCNTL_H
+#cmakedefine LEMON_HAS_EVENTFD_H
 
 

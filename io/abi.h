@@ -18,8 +18,9 @@
 
 #define LEMON_IO_CURRENT											0x03
 
-
 #define LEMON_IO_REACTOR_SESSIONS									1024
+
+#define LEMON_IO_EPOLL_MAX_EVENTS									10
 
 //////////////////////////////////////////////////////////////////////////
 

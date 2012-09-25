@@ -30,9 +30,9 @@ namespace lemon{namespace io{namespace core{
 	{
 	public:
 
-		io_data(size_t type);
+		io_data(size_t type, int fd);
 		
-		io_data(size_t type,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize);
+		io_data(size_t type, int fd,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize);
 
 		void reset(void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize);
 
@@ -51,6 +51,8 @@ namespace lemon{namespace io{namespace core{
 	private:
 
 		size_t						_type;
+
+		int							_fd;
 
 		void						*_userdata;
 
@@ -73,25 +75,18 @@ namespace lemon{namespace io{namespace core{
 
 		accept_io_data
 			(
-			socket * listen, 
-			socket *peer, 
+			int fd,
 			LemonAcceptCallback callback, 
 			void * userdata, 
 			sockaddr *address,
 			socklen_t *addressSize
 			);
 
-		socket * peer() { return _peer; }
-
 	private:
 
 		static void callback(void *userData,size_t	numberOfBytesTransferred,const LemonErrorInfo * errorCode);
 
 	private:
-
-		socket					*_listen;
-
-		socket					*_peer;
 
 		LemonAcceptCallback		_callback;
 
@@ -114,6 +109,10 @@ namespace lemon{namespace io{namespace core{
 
 		typedef memory::ringbuffer::allocator<sizeof(io_data*)>	complete_queue;
 
+		io_service_reactor();
+
+		~io_service_reactor();
+
 		void reset() {_exit = false; }
 
 		void attach();
@@ -122,22 +121,17 @@ namespace lemon{namespace io{namespace core{
 
 		void post_one(LemonIOCallback callback,void * userdata,void * buffer, size_t bufferSize,LemonErrorInfo *errorCode);
 
-	protected:
-
-		io_service_reactor();
-
-		~io_service_reactor();
+		void post_one(io_data * iodata,LemonErrorInfo *errorCode);
 
 	public:
 
-		io_data * alloc_io_data(size_t type,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize);
+		io_data * alloc_io_data(size_t type,int fd,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize);
 
 		void free_io_data(io_data * iodata);
 
 		accept_io_data * alloc_io_data
 			(
-			socket * listen, 
-			socket *peer, 
+			int fd,
 			LemonAcceptCallback callback, 
 			void * userdata, 
 			sockaddr *address,

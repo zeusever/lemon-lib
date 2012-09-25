@@ -207,9 +207,11 @@ namespace lemon{namespace trace{
 
 		if(_length > LEMON_TRACE_MESSAGE_MAX_LENGTH)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_USER_ERROR(errorCode,LEMON_TRACE_BINARY_MESSAGE_FORMAT_ERROR);
+
+			errorCode.check_throw();
 		}
 
 		result += reader.read((byte_t*)_buffer,_length);

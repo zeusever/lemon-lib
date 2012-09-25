@@ -4,10 +4,10 @@
 
 namespace lemon{namespace io{namespace core{
 
-	io_data::io_data(size_t type):_type(type) {}
+	io_data::io_data(size_t type, int fd):_type(type),_fd(fd) {}
 
-	io_data::io_data(size_t type,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize)
-		:_type(type),_userdata(userdata),_callback(callback),_buffer(buffer),_bufferSize(bufferSize)
+	io_data::io_data(size_t type, int fd,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize)
+		:_type(type),_fd(fd),_userdata(userdata),_callback(callback),_buffer(buffer),_bufferSize(bufferSize)
 	{
 
 	}
@@ -19,6 +19,40 @@ namespace lemon{namespace io{namespace core{
 
 	void io_data::call()
 	{
+		switch(_type)
+		{
+		case LEMON_REACTOR_READ:
+			{
+				ssize_t length = read(_fd, _buffer, _bufferSize);
+
+				if(length == -1)
+				{
+					LEMON_POSIX_ERROR(_errorCode,errno);
+				}
+				else
+				{
+					_numberOfBytesTransferred = length;
+				}
+
+				break;
+			}
+		case LEMON_REACTOR_WRITE:
+			{
+				ssize_t length = write(_fd, _buffer, _bufferSize);
+
+				if(length == -1)
+				{
+					LEMON_POSIX_ERROR(_errorCode,errno);
+				}
+				else
+				{
+					_numberOfBytesTransferred = length;
+				}
+
+				break;
+			}
+		}
+
 		_callback(_userdata,_numberOfBytesTransferred,&_errorCode);
 	}
 
@@ -26,14 +60,13 @@ namespace lemon{namespace io{namespace core{
 
 	accept_io_data::accept_io_data
 		(
-		socket * listen, 
-		socket *peer, 
+		int fd,
 		LemonAcceptCallback callback, 
 		void * userdata, 
 		sockaddr *address,
 		socklen_t *addressSize
 		)
-		:io_data(LEMON_REACTOR_ACCEPT)
+		:io_data(LEMON_REACTOR_ACCEPT,fd)
 	{
 		reset(this,&accept_io_data::callback,NULL,0);
 	}
@@ -42,15 +75,7 @@ namespace lemon{namespace io{namespace core{
 	{
 		accept_io_data * self = (accept_io_data*)userData;
 
-		if(LEMON_SUCCESS(*errorCode))
-		{
-			self->_callback(userData,reinterpret_cast<LemonIO>(self->_peer),numberOfBytesTransferred,errorCode);
-		}
-		else
-		{
-			//TODO: release the socket
-			self->_callback(userData,NULL,numberOfBytesTransferred,errorCode);
-		}
+		//TODO: call accept function
 	}
 
 
@@ -105,7 +130,14 @@ namespace lemon{namespace io{namespace core{
 	{
 		mutex_t::scope_lock lock(_mutex);
 
-		io_data * iodata = alloc_io_data(LEMON_REACTOR_POST_ONE,userdata,callback,buffer,bufferSize);
+		io_data * iodata = alloc_io_data(LEMON_REACTOR_POST_ONE,-1,userdata,callback,buffer,bufferSize);
+
+		post_one(iodata,errorCode);
+	}
+
+	void io_service_reactor::post_one(io_data * iodata,LemonErrorInfo *errorCode)
+	{
+		LEMON_RESET_ERRORINFO(*errorCode);
 
 		bool used = false;
 
@@ -126,11 +158,11 @@ namespace lemon{namespace io{namespace core{
 		}
 	}
 
-	io_data * io_service_reactor::alloc_io_data(size_t type,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize)
+	io_data * io_service_reactor::alloc_io_data(size_t type,int fd,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize)
 	{
 		mutex_t::scope_lock lock(_iodataAllocatorMutex);
 
-		return new(_iodataAllocator.alloc()) io_data(type,userdata,callback,buffer,bufferSize);
+		return new(_iodataAllocator.alloc()) io_data(type,fd,userdata,callback,buffer,bufferSize);
 	}
 
 	void io_service_reactor::free_io_data(io_data * iodata)
@@ -142,8 +174,7 @@ namespace lemon{namespace io{namespace core{
 
 	accept_io_data * io_service_reactor::alloc_io_data
 		(
-		socket * listen, 
-		socket *peer, 
+		int fd,
 		LemonAcceptCallback callback, 
 		void * userdata, 
 		sockaddr *address,
@@ -152,7 +183,7 @@ namespace lemon{namespace io{namespace core{
 	{
 		mutex_t::scope_lock lock(_acceptIODataAllocatorMutex);
 
-		return new(_acceptIODataAllocator.alloc()) accept_io_data(listen,peer,callback,userdata,address,addressSize);
+		return new(_acceptIODataAllocator.alloc()) accept_io_data(fd,callback,userdata,address,addressSize);
 	}
 
 	void io_service_reactor::free_accept_io_data(io_data * iodata)

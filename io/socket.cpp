@@ -3,8 +3,8 @@
 #include <lemon/io/io_service_iocp.hpp>
 #elif defined(LEMON_IO_KQUEUE)
 #include <lemon/io/io_service_kqueue.hpp>
-#else
-#include <lemon/io/io_service_reactor.hpp>
+#elif defined(LEMON_IO_EPOLL)
+#include <lemon/io/io_service_epoll.hpp>
 #endif //LEMON_IO_IOCP
 
 #ifndef WIN32
@@ -40,9 +40,11 @@ namespace lemon{namespace io{namespace core{
 	{
 		if(SOCKET_ERROR == ::bind(_handle,name,length))
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 	}
 
@@ -50,9 +52,11 @@ namespace lemon{namespace io{namespace core{
 	{
 		if(SOCKET_ERROR == ::shutdown(_handle,how))
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 	}
 
@@ -60,9 +64,11 @@ namespace lemon{namespace io{namespace core{
 	{
 		if(SOCKET_ERROR == ::getsockname(_handle,name,bufferSize))
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 	}
 
@@ -72,9 +78,11 @@ namespace lemon{namespace io{namespace core{
 
 		if(SOCKET_ERROR == sendSize)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 
 		return sendSize;
@@ -86,9 +94,11 @@ namespace lemon{namespace io{namespace core{
 
 		if(SOCKET_ERROR == sendSize)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 
 		return sendSize;
@@ -100,9 +110,11 @@ namespace lemon{namespace io{namespace core{
 
 		if(SOCKET_ERROR == sendSize)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 
 		return sendSize;
@@ -114,9 +126,11 @@ namespace lemon{namespace io{namespace core{
 
 		if(SOCKET_ERROR == sendSize)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 
 		return sendSize;
@@ -126,9 +140,11 @@ namespace lemon{namespace io{namespace core{
 	{
 		if(SOCKET_ERROR == ::connect(_handle,addr,addrlen))
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 	}
 
@@ -136,9 +152,11 @@ namespace lemon{namespace io{namespace core{
 	{
 		if(SOCKET_ERROR == ::listen(_handle,backlog))
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 	}
 
@@ -148,9 +166,11 @@ namespace lemon{namespace io{namespace core{
 
 		if(INVALID_SOCKET == handle)
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_SOCKET_ERROR(errorCode);
+
+			errorCode.check_throw();
 		}
 
 		return service()->create_socket(_af,_type,_protocol,handle);

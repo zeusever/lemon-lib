@@ -402,13 +402,15 @@ LEMON_SYS_API
 
 	LEMON_ALLOC_HANDLE(LemonResovler,resolver);
 
-	int ec = ::getaddrinfo(nodeName,serverName,NULL,&resolver->handle);
+	int ec = ::getaddrinfo(nodeName,serverName,0,&resolver->handle);
 
 	if(0 != ec){
 #ifdef WIN32	     
 		LEMON_WIN32_ERROR(*errorCode,WSAGetLastError());
 #else
 		LEMON_POSIX_ERROR(*errorCode,ec);
+
+		perror(gai_strerror(ec));
 #endif //UNIX
 
 		LEMON_FREE_HANDLE(resolver);

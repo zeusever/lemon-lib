@@ -23,6 +23,22 @@ namespace lemon{namespace io{namespace core{
 		socket(int af, int type, int protocol,io_service * service);
 
 		socket(int af, int type, int protocol,LemonNativeSock sock, io_service * service);
+
+	public:
+
+		// the async api
+
+		void async_send(const byte_t * buffer, size_t length, int flag,LemonIOCallback callback, void * userdata,LemonErrorInfo *errorCode);
+
+		void async_sendto(const byte_t * buffer, size_t length, int flag,const sockaddr * addr, socklen_t addrlen,LemonIOCallback callback, void * userdata,LemonErrorInfo *errorCode);
+
+		void async_receive(byte_t * buffer, size_t length, int flag,LemonIOCallback callback, void * userdata,LemonErrorInfo *errorCode);
+
+		void async_recvfrom(byte_t * buffer, size_t length, int flag,sockaddr * addr,socklen_t * addrlen,LemonIOCallback callback, void * userdata,LemonErrorInfo *errorCode);
+
+		void async_connect(const sockaddr * addr, socklen_t addrlen,LemonIOCallback callback, void * userdata,LemonErrorInfo *errorCode);
+
+		void async_accept(sockaddr * addr,socklen_t * addrlen,LemonAcceptCallback callback, void * userdata,LemonErrorInfo *errorCode);
 	};
 
 }}}
