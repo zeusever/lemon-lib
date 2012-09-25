@@ -75,9 +75,11 @@ namespace lemon{namespace io{namespace core{
 		{
 			if(!PostQueuedCompletionStatus(_completionPort,0,LEMON_IOCP_EXIT,NULL))
 			{
-				scope_error_info errorCode;
+				error_info errorCode;
 
 				LEMON_WIN32_ERROR(errorCode,GetLastError());
+
+				errorCode.check_throw();
 			}
 		}
 	}

@@ -28,9 +28,11 @@ namespace lemon{namespace io{namespace core{
 			NULL, 
 			NULL))
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_WIN32_ERROR(errorCode,GetLastError());
+
+			errorCode.check_throw();
 		}
 
 		return fn;
@@ -41,9 +43,11 @@ namespace lemon{namespace io{namespace core{
 	{
 		if(INVALID_SOCKET == handle())
 		{
-			scope_error_info errorCode;
+			error_info errorCode;
 
 			LEMON_WIN32_ERROR(errorCode,GetLastError());
+
+			errorCode.check_throw();
 		}
 
 		try
@@ -59,9 +63,11 @@ namespace lemon{namespace io{namespace core{
 
 				if(SOCKET_ERROR == status)
 				{
-					scope_error_info errorCode;
+					error_info errorCode;
 
 					LEMON_WIN32_ERROR(errorCode,GetLastError());
+
+					errorCode.check_throw();
 				}
 			}
 
