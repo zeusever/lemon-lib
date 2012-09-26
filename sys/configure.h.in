@@ -64,6 +64,8 @@
 
 #cmakedefine LEMON_USE_BUILDIN_UCONTEXT
 
+#cmakedefine LEMON_HAS_GETTID
+
 
 //define the macro to indicate the wchar_t length
 #define LEMON_WCHAR_SIZE ${LEMON_WCHAR_SIZE}

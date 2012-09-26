@@ -3,6 +3,12 @@
 
 #ifndef LEMON_IO_IOCP
 
+#ifdef LEMON_IO_EPOLL
+#include <lemon/io/io_service_epoll.hpp>
+#elif defined(LEMON_IO_KQUEUE)
+#include <lemon/io/io_service_kqueue.hpp>
+#endif //LEMON_IO_KQEUE
+
 #ifdef LEMON_HAS_FCNTL_H
 #	include <fcntl.h>
 #else
@@ -49,20 +55,15 @@ namespace lemon{namespace io{namespace core{
 
 	socket::socket(int af, int type, int protocol,LemonNativeSock sock, io_service * service)
 		:socket_base(af,type,protocol,sock,service)
-	{
-		// if(__setnonblocking(handle()) < 0)
-		// {
-		// 	error_info errorCode;
-
-		// 	LEMON_POSIX_ERROR(errorCode,errno);	
-
-		// 	errorCode.check_throw();
-		// }
-	}
+	{}
 
 	void socket::async_send(const byte_t * buffer, size_t length, int flag,LemonIOCallback callback, void * userdata,LemonErrorInfo *errorCode)
 	{
+		io_data * iodata = service()->alloc_io_data(LEMON_REACTOR_WRITE, handle(), userdata, callback, const_cast<byte_t*>(buffer), length);
 
+		if(LEMON_FAILED(*errorCode)) return;
+
+		service()->post_one(iodata,errorCode);
 	}
 
 	void socket::async_sendto(const byte_t * buffer, size_t length, int flag,const sockaddr * addr, socklen_t addrlen,LemonIOCallback callback, void * userdata,LemonErrorInfo *errorCode)

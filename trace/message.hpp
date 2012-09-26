@@ -47,7 +47,7 @@ namespace lemon{namespace trace{
 
 		lemon_pid_t				_processid;
 
-		lemon_tid_t				_threadId;
+		lemon_pid_t				_threadId;
 
 		lemon_trace_flag		_flag;
 

@@ -148,9 +148,7 @@ namespace lemon{namespace trace{
 
 		result += writer.write((const byte_t*)&pid,sizeof(pid));
 
-		uint32_t tid = *(uint32_t*)&_threadId;
-
-		tid = htonl(tid);
+		lemon_pid_t tid = htonl(_threadId);
 
 		result += writer.write((const byte_t*)&tid,sizeof(tid));
 
@@ -189,9 +187,7 @@ namespace lemon{namespace trace{
 
 		result += reader.read((byte_t*)&tid,sizeof(tid));
 
-		tid = ntohl(tid);
-
-		_threadId = *(lemon_tid_t*)&tid;
+		_threadId = ntohl(tid);
 
 		result += reader.read((byte_t*)&flag,sizeof(flag));
 

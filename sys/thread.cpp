@@ -325,12 +325,12 @@ LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
 	}
 }
 
-LEMON_SYS_API lemon_tid_t LemonGetThreadId(LemonThread t)
+LEMON_SYS_API lemon_pid_t LemonGetThreadId(LemonThread t)
 {
 	return t->Id;
 }
 
-LEMON_SYS_API lemon_tid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
+LEMON_SYS_API lemon_pid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
@@ -358,6 +358,11 @@ LEMON_SYS_API lemon_int32_t LemonAtomicDecrement(lemon_atomic_t* source){
 #include <string.h>
 #include <pthread.h>
 #include <unistd.h>
+#ifdef LEMON_HAS_GETTID
+#include <sys/types.h>
+#else
+#include <sys/syscall.h>
+#endif //LEMON_HAS_GETTID
 
 LEMON_SYS_API LemonTls LemonCreateTls(__lemon_option void (*destructor)(void*),__lemon_inout LemonErrorInfo* errorCode){
 
@@ -667,14 +672,18 @@ FINNALY:
 
 }
 
-LEMON_SYS_API lemon_tid_t LemonGetThreadId(LemonThread t)
+LEMON_SYS_API lemon_pid_t LemonGetThreadId(LemonThread t)
 {
 	return t->Handle;
 }
 
-LEMON_SYS_API lemon_tid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
+LEMON_SYS_API lemon_pid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
 {
-	return pthread_self();
+#ifdef LEMON_HAS_GETTID
+	return gettid();
+#else
+	return (pid_t) syscall (SYS_gettid);
+#endif 
 }
 
 #else 

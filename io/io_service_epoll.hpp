@@ -50,6 +50,33 @@ namespace lemon{namespace io{namespace core{
 			errorCode.check_throw();
 		}
 
+		io_data * alloc_io_data(size_t type,int fd,void * userdata, LemonIOCallback callback, void * buffer, size_t bufferSize)
+		{
+			return _reactor.alloc_io_data(type,fd,userdata,callback,buffer,bufferSize);
+		}
+
+		void free_io_data(io_data * iodata)
+		{
+			_reactor.free_io_data(iodata);
+		}
+
+		accept_io_data * alloc_io_data
+			(
+			int fd,
+			LemonAcceptCallback callback, 
+			void * userdata, 
+			sockaddr *address,
+			socklen_t *addressSize
+			)
+		{
+			return _reactor.alloc_io_data(fd,callback,userdata,address,addressSize);
+		}
+
+		void free_accept_io_data(io_data * iodata)
+		{
+			_reactor.free_accept_io_data(iodata);
+		}
+
 	private:
 
 		void epoll_loop();

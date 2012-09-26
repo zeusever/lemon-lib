@@ -51,6 +51,36 @@ namespace lemon{namespace io{namespace core{
 
 				break;
 			}
+		case LEMON_REACTOR_SENDTO:
+			{
+				ssize_t length = read(_fd, _buffer, _bufferSize);
+
+				if(length == -1)
+				{
+					LEMON_POSIX_ERROR(_errorCode,errno);
+				}
+				else
+				{
+					_numberOfBytesTransferred = length;
+				}
+
+				break;
+			}
+		case LEMON_REACTOR_RECVFROM:
+			{
+				ssize_t length = write(_fd, _buffer, _bufferSize);
+
+				if(length == -1)
+				{
+					LEMON_POSIX_ERROR(_errorCode,errno);
+				}
+				else
+				{
+					_numberOfBytesTransferred = length;
+				}
+
+				break;
+			}
 		}
 
 		_callback(_userdata,_numberOfBytesTransferred,&_errorCode);
@@ -67,6 +97,8 @@ namespace lemon{namespace io{namespace core{
 		socklen_t *addressSize
 		)
 		:io_data(LEMON_REACTOR_ACCEPT,fd)
+		,_address(address)
+		,_addresslen(addressSize)
 	{
 		reset(this,&accept_io_data::callback,NULL,0);
 	}
@@ -76,6 +108,44 @@ namespace lemon{namespace io{namespace core{
 		accept_io_data * self = (accept_io_data*)userData;
 
 		//TODO: call accept function
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+
+	sendto_io_data::sendto_io_data
+			(
+			int fd,
+			void * userdata, 
+			LemonIOCallback callback, 
+			void * buffer, 
+			size_t bufferSize,
+			const sockaddr *address,
+			socklen_t addressSize
+			)
+		:io_data(LEMON_REACTOR_SENDTO,fd,userdata,callback,buffer,bufferSize)
+		,_address(address)
+		,_addresslen(addressSize)
+	{
+
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+
+	recvfrom_io_data::recvfrom_io_data
+			(
+			int fd,
+			void * userdata, 
+			LemonIOCallback callback, 
+			void * buffer, 
+			size_t bufferSize,
+			sockaddr *address,
+			socklen_t *addressSize
+			)
+		:io_data(LEMON_REACTOR_RECVFROM,fd,userdata,callback,buffer,bufferSize)
+		,_address(address)
+		,_addresslen(addressSize)
+	{
+
 	}
 
 
@@ -105,13 +175,30 @@ namespace lemon{namespace io{namespace core{
 
 				iodata->call();
 
-				if(iodata->type() == LEMON_REACTOR_ACCEPT)
+				switch(iodata->type())
 				{
-					free_accept_io_data(iodata);
-				}
-				else
-				{
+				case LEMON_REACTOR_ACCEPT:
+					{
+						free_accept_io_data(iodata);
+
+						break;
+					}
+				case LEMON_REACTOR_SENDTO:
+					{
+						free_sendto_io_data(iodata);
+
+						break;
+					}
+				case LEMON_REACTOR_RECVFROM:
+					{
+						free_recvfrom_io_data(iodata);
+
+						break;
+					}
+				default:
 					free_io_data(iodata);
+
+					break;
 				}
 			}
 		}
@@ -191,6 +278,48 @@ namespace lemon{namespace io{namespace core{
 		mutex_t::scope_lock lock(_acceptIODataAllocatorMutex);
 
 		_acceptIODataAllocator.free(iodata);
+	}
+
+	sendto_io_data * io_service_reactor::alloc_sendto_io_data(
+			int fd,
+			void * userdata, 
+			LemonIOCallback callback, 
+			void * buffer, 
+			size_t bufferSize,
+			const sockaddr *address,
+			socklen_t addressSize)
+	{
+		mutex_t::scope_lock lock(_sendtoIODataAllocatorMutex);
+
+		return new(_sendtoIODataAllocator.alloc()) sendto_io_data(fd,userdata,callback,buffer, bufferSize,address,addressSize);
+	}
+
+	void io_service_reactor::free_sendto_io_data(io_data * iodata)
+	{
+		mutex_t::scope_lock lock(_sendtoIODataAllocatorMutex);
+
+		_sendtoIODataAllocator.free(iodata);
+	}
+
+	recvfrom_io_data * io_service_reactor::alloc_recvfrom_io_data(
+			int fd,
+			void * userdata, 
+			LemonIOCallback callback, 
+			void * buffer, 
+			size_t bufferSize,
+			sockaddr *address,
+			socklen_t *addressSize)
+	{
+		mutex_t::scope_lock lock(_recvfromIODataAllocatorMutex);
+
+		return new(_recvfromIODataAllocator.alloc()) sendto_io_data(fd,userdata,callback,buffer, bufferSize,address,addressSize);
+	}
+
+	void io_service_reactor::free_recvfrom_io_data(io_data * iodata)
+	{
+		mutex_t::scope_lock lock(_recvfromIODataAllocatorMutex);
+
+		_recvfromIODataAllocator.free(iodata);
 	}
 }}}
 

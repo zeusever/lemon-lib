@@ -1,6 +1,11 @@
 include(CheckCXXSourceRuns)
 include(CheckFunctionExists)
 include(CheckIncludeFiles)
+
+#######################################################################################################################################
+
+check_cxx_source_runs("#include <sys/types.h>\n int main(){gettid();return 0;}" LEMON_HAS_GETTID)
+
 #######################################################################################################################################
 # check the random function implement
 CHECK_CXX_SOURCE_RUNS("#include <fstream>\n int main(){std::ifstream f(\"/dev/urandom\");return f.is_open()?0:1;}" LEMON_RANDOM_URANDOM)

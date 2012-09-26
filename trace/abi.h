@@ -167,7 +167,7 @@ typedef struct LemonTraceDescription{
 
 	lemon_pid_t				ProcessId;
 
-	lemon_tid_t				ThreadId;
+	lemon_pid_t				ThreadId;
 
 	lemon_trace_flag		Flag;
 
