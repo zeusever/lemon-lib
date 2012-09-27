@@ -33,7 +33,9 @@ namespace lemon{namespace io{namespace impl{
 
 		typedef typename mpl::deref<B>	current_type;
 
-		typedef memory::fixed::allocator<sizeof(current_type)>	allocator_type;
+		typedef struct {current_type val;void * context;}	block_type;
+
+		typedef memory::fixed::allocator<sizeof(block_type)>	allocator_type;
 
 		void* alloc()
 		{

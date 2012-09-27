@@ -28,6 +28,8 @@ namespace lemon{namespace io{namespace impl{
 
 		typedef basic_allocator<io_object_list>								allocator_type;
 
+		allocator_type & allocator() { return _allocator; }
+
 	private:
 
 		allocator_type													_allocator;
