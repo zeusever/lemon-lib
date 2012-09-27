@@ -41,7 +41,7 @@ namespace lemon{namespace io{namespace impl{
 		{
 			assert(blocksize == sizeof(self_type));
 
-			block_type* block = (block_type*)service->allocator().alloc<self_type>();
+			block_type* block = (block_type*)service->allocator().template alloc<self_type>();
 
 			block->service = service;
 
@@ -52,7 +52,7 @@ namespace lemon{namespace io{namespace impl{
 		{
 			assert(blocksize == sizeof(self_type));
 
-			reinterpret_cast<block_type*>(block)->service->allocator().free<self_type>(block);
+			reinterpret_cast<block_type*>(block)->service->allocator().template free<self_type>(block);
 		}
 
 		static void operator delete(void * block,io_service_type * service)
