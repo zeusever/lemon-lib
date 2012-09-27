@@ -57,7 +57,7 @@ namespace lemon{namespace io{namespace impl{
 
 		static void operator delete(void * block,io_service_type * service)
 		{
-			service->allocator().free<self_type>(block);
+			service->allocator().template free<self_type>(block);
 		}
 	};
 }}}
