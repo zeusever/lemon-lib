@@ -12,7 +12,7 @@
 #include <lemonxx/sys/sys.hpp>
 #include <lemon/io/allocator.hpp>
 #include <lemonxx/utility/utility.hpp>
-#include <lemon/io/basic_io_object.hpp>
+#include <lemon/io/basic_socket.hpp>
 
 namespace lemon{namespace io{namespace impl{
 

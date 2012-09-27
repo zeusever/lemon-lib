@@ -15,7 +15,7 @@
 
 namespace lemon{namespace io{namespace impl{
 
-	template<typename IOService,typename ObjectService>
+	template<typename IOService, class ObjectService>
 	class basic_io_object : public ObjectService, private lemon::nocopyable
 	{
 	public:
@@ -24,9 +24,9 @@ namespace lemon{namespace io{namespace impl{
 		
 		typedef IOService				io_service_type;
 
-		typedef basic_io_object<io_service_type,object_service>		self_type;
+		typedef basic_io_object<io_service_type,object_service>				self_type;
 
-		typedef struct {object_service unused; io_service_type* service;}		block_type;
+		typedef struct {object_service unused; io_service_type* service;}	block_type;
 
 	public:
 
