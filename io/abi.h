@@ -104,9 +104,9 @@ LEMON_IO_API
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef WIN32
-typedef SOCKET			LemonNativeSock;
+typedef SOCKET			__lemon_os_socket;
 #else
-typedef int				LemonNativeSock;
+typedef int				__lemon_os_socket;
 #endif //WIN32
 
 #ifndef SD_BOTH
