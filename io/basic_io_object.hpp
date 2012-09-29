@@ -15,8 +15,19 @@
 
 namespace lemon{namespace io{namespace impl{
 
+	struct object
+	{
+		virtual void release() = 0;
+
+	protected:
+
+		object(){}
+
+		~object(){}
+	};
+
 	template<typename IOService, class ObjectService>
-	class basic_io_object : public ObjectService, private lemon::nocopyable
+	class basic_io_object : public ObjectService , public object
 	{
 	public:
 
@@ -24,21 +35,28 @@ namespace lemon{namespace io{namespace impl{
 		
 		typedef IOService				io_service_type;
 
-		typedef basic_io_object<io_service_type,object_service>				self_type;
-
-		typedef struct {object_service unused; io_service_type* service;}	block_type;
+		typedef basic_io_object<io_service_type,object_service>	self_type;
 
 	public:
 
 		io_service_type * io_service() 
 		{
+			typedef struct {self_type unused; io_service_type* service;}	block_type;
+
 			return reinterpret_cast<block_type*>(this)->service;
+		}
+
+		void release()
+		{
+			delete this;
 		}
 
 	public:
 
 		static void * operator new (size_t blocksize,io_service_type * service)
 		{
+			typedef struct {self_type unused; io_service_type* service;}	block_type;
+
 			assert(blocksize == sizeof(self_type));
 
 			block_type* block = (block_type*)service->allocator().template alloc<self_type>();
@@ -50,6 +68,8 @@ namespace lemon{namespace io{namespace impl{
 
 		static void operator delete(void * block,size_t blocksize)
 		{
+			typedef struct {self_type unused; io_service_type* service;}	block_type;
+
 			assert(blocksize == sizeof(self_type));
 
 			reinterpret_cast<block_type*>(block)->service->allocator().template free<self_type>(block);

@@ -1,3 +1,4 @@
+#cmakedefine LEMON_IO_SELECT
 #cmakedefine LEMON_IO_IOCP
 #cmakedefine LEMON_IO_EPOLL
 #cmakedefine LEMON_IO_KQUEUE
