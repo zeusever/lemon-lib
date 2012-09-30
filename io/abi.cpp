@@ -7,6 +7,7 @@ LEMON_IO_API
 	LemonCloseIO(
 	__lemon_free LemonIO io)
 {
+	std::cout << "close io" << std::endl;
 	reinterpret_cast<object*>(io)->release();
 }
 

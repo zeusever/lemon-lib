@@ -3,6 +3,8 @@
 
 #ifndef LEMON_IO_IOCP
 
+#include <poll.h>
+
 namespace lemon{namespace io{namespace impl{
 
 	inline void __lemon_noblocking_socket(__lemon_native_socket handle, LemonErrorInfo * errorCode)
@@ -14,7 +16,7 @@ namespace lemon{namespace io{namespace impl{
 #else
 		int flag = fcntl(handle,F_GETFL,0);
 
-		if(-1 == flag) { LEMON_POSIX_ERROR(errorCode,errno); return; }
+		if(-1 == flag) { LEMON_POSIX_ERROR(*errorCode,errno); return; }
 
 		if( -1 == fcntl(handle,F_SETFL,flag | O_NONBLOCK) ) LEMON_POSIX_ERROR(*errorCode,errno);
 #endif //WIN32
@@ -26,6 +28,8 @@ namespace lemon{namespace io{namespace impl{
 
 		LEMON_RESET_ERRORINFO(*errorCode);
 
+#ifdef WIN32
+
 		fd_set fds;
 
 		FD_ZERO(&fds);
@@ -33,6 +37,14 @@ namespace lemon{namespace io{namespace impl{
 		FD_SET(handle, &fds);
 
 		if(__lemon_socket_error == ::select(1,0,&fds,0,NULL)) LEMON_IO_SOCKET_ERROR(*errorCode);
+#else
+		pollfd fds;
+		fds.fd = handle;
+		fds.events = POLLOUT;
+		fds.revents = 0;
+
+		if(__lemon_socket_error == ::poll(&fds, 1, -1)) { LEMON_IO_SOCKET_ERROR(*errorCode); }
+#endif //
 	}
 
 	inline void __lemon_poll_read(__lemon_native_socket handle, LemonErrorInfo * errorCode)
@@ -40,6 +52,7 @@ namespace lemon{namespace io{namespace impl{
 		assert(__lemon_invalid_socket != handle);
 
 		LEMON_RESET_ERRORINFO(*errorCode);
+#ifdef WIN32
 
 		fd_set fds;
 
@@ -48,6 +61,14 @@ namespace lemon{namespace io{namespace impl{
 		FD_SET(handle, &fds);
 
 		if(__lemon_socket_error == ::select(1,&fds,0,0,NULL)) LEMON_IO_SOCKET_ERROR(*errorCode);
+#else
+		pollfd fds;
+		fds.fd = handle;
+		fds.events = POLLIN;
+		fds.revents = 0;
+
+		if(__lemon_socket_error == ::poll(&fds, 1, -1)) { LEMON_IO_SOCKET_ERROR(*errorCode); }
+#endif
 	}
 
 	inline void __lemon_poll_connect(__lemon_native_socket handle, LemonErrorInfo * errorCode)
@@ -55,6 +76,7 @@ namespace lemon{namespace io{namespace impl{
 		assert(__lemon_invalid_socket != handle);
 
 		LEMON_RESET_ERRORINFO(*errorCode);
+#ifdef WIN32
 
 		fd_set fds;
 
@@ -74,7 +96,7 @@ namespace lemon{namespace io{namespace impl{
 		{
 			int connect_error = 0;
 
-			int connect_error_len = (int)sizeof(connect_error);
+			socklen_t connect_error_len = (socklen_t)sizeof(connect_error);
 
 			if(__lemon_socket_error == ::getsockopt(handle,SOL_SOCKET, SO_ERROR, (char*)&connect_error, &connect_error_len))
 			{
@@ -86,7 +108,30 @@ namespace lemon{namespace io{namespace impl{
 
 				errorCode->Error.Code = connect_error;
 			}
-		}	
+		}
+#else
+		pollfd fds;
+		fds.fd = handle;
+		fds.events = POLLOUT;
+		fds.revents = 0;
+
+		if(__lemon_socket_error == ::poll(&fds, 1, -1)) { LEMON_IO_SOCKET_ERROR(*errorCode); return;}
+
+		int connect_error = 0;
+
+		socklen_t connect_error_len = (socklen_t)sizeof(connect_error);
+
+		if(__lemon_socket_error == ::getsockopt(handle,SOL_SOCKET, SO_ERROR, (char*)&connect_error, &connect_error_len))
+		{
+			LEMON_IO_SOCKET_ERROR(*errorCode);
+		}
+		else if(connect_error)
+		{
+			LEMON_IO_SOCKET_ERROR(*errorCode);
+
+			errorCode->Error.Code = connect_error;
+		}
+#endif //WIN32	
 	}
 }}}
 
@@ -108,6 +153,7 @@ namespace lemon{namespace io{namespace impl{
 
 	void socket_reactor::close(__lemon_native_socket handle)
 	{
+		std::cout << "call socket close" << std::endl;
 		closesocket(handle);
 	}
 
@@ -170,7 +216,7 @@ namespace lemon{namespace io{namespace impl{
 
 			if(length != __lemon_socket_error) return length;
 
-			LEMON_IO_SOCKET_ERROR(*errorCode);
+			LEMON_IO_SOCKET_ERROR(*	errorCode);
 
 			if(errorCode->Error.Code != would_block && errorCode->Error.Code != try_again) return (size_t)-1;
 

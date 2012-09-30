@@ -558,6 +558,8 @@ LEMON_IMPLEMENT_HANDLE(LemonThread){
 
 	pthread_t               Handle;
 
+	lemon_pid_t				Id;
+
 	LemonMutex              JoinMutex;
 
 	LemonThreadProc         Proc;
@@ -582,6 +584,12 @@ void* ProcWrapper(void* data)
 	LEMON_DECLARE_ERRORINFO(errorCode);
 
 	LemonThread current = (LemonThread)data;
+
+#ifdef LEMON_HAS_GETTID
+	current->Id = gettid();
+#else
+	current->Id = (pid_t) syscall (SYS_gettid);
+#endif 
 
 	current->Proc(current->UserData);
 
@@ -674,7 +682,7 @@ FINNALY:
 
 LEMON_SYS_API lemon_pid_t LemonGetThreadId(LemonThread t)
 {
-	return t->Handle;
+	return t->Id;
 }
 
 LEMON_SYS_API lemon_pid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
@@ -684,6 +692,11 @@ LEMON_SYS_API lemon_pid_t LemonGetCurrentThreadId(LemonErrorInfo * errorCode)
 #else
 	return (pid_t) syscall (SYS_gettid);
 #endif 
+}
+
+LEMON_SYS_API void LemonSleep(size_t milliseconds)
+{
+	::sleep(milliseconds/1000);
 }
 
 #else 
