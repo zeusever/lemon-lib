@@ -4,5 +4,7 @@
 #cmakedefine LEMON_IO_KQUEUE
 #cmakedefine LEMON_HAS_FCNTL_H
 #cmakedefine LEMON_HAS_EVENTFD_H
+#cmakedefine LEMON_IO_POLL
+#cmakedefine LEMON_HAS_SELECT_H
 
 
