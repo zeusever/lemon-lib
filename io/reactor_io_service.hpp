@@ -12,13 +12,14 @@
 #include <cerrno>
 #include <cassert>
 #include <lemon/io/io_object.hpp>
-#include <lemon/io/select_reactor_service.hpp>
+#include <lemon/io/reactor_select.hpp>
+#include <lemon/io/io_service_allocator.hpp>
 
 #ifndef LEMON_IO_IOCP
 
 namespace lemon{namespace io{namespace impl{
 
-	class ReactorIoService : private lemon::nocopyable
+	class IoService : public IoServiceAllocator<IoService>
 	{
 	public:
 		

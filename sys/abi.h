@@ -56,7 +56,7 @@ typedef struct LemonUuid{
 
 typedef struct LemonError{
 	const LemonUuid *	Catalog;
-	size_t				Code;
+	lemon_uint32_t		Code;
 }LemonError;
 
 typedef struct LemonErrorInfo{

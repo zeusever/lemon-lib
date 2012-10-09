@@ -1,4 +1,3 @@
-#include <lemon/io/io_service.hpp>
 #include <lemon/io/reactor_socket.hpp>
 
 #ifdef LEMON_HAS_SELECT_H
@@ -15,6 +14,8 @@
 #endif //
 
 #ifndef LEMON_IO_IOCP
+
+#include <lemon/io/reactor_io_service.hpp>
 
 namespace lemon{namespace io{namespace impl{
 
