@@ -6,8 +6,8 @@
 * @version  1.0.0.0  
 * @date     2012/08/30
 */
-#ifndef LEMON_IO_H
-#define LEMON_IO_H
+#ifndef LEMON_IO_ABI_H
+#define LEMON_IO_ABI_H
 
 #include <lemon/sys/abi.h>
 #include <lemon/io/configure.h>
@@ -288,4 +288,4 @@ LEMON_IO_API
 	__lemon_in void *userData,
 	__lemon_inout LemonErrorInfo *errorCode);
 
-#endif //LEMON_IO_H
+#endif //LEMON_IO_ABI_H

@@ -124,11 +124,7 @@ LEMON_SYS_API lemon_bool LemonErrorCodeCompare(const LemonError * lhs,const Lemo
 
 #define LEMON_FREE_HANDLE(name) free(name)
 
-#ifdef __cplusplus
-
-#define LEMON_HANDLE_EXTEND(name,base) struct LEMON_HANDLE_STRUCT_NAME(name) : public LEMON_HANDLE_STRUCT_NAME(base)
-
-#endif //__cplusplus
+#define LEMON_HANDLE_BASE(name)	LEMON_HANDLE_STRUCT_NAME(name)	Base;
 
 //////////////////////////////////////////////////////////////////////////
 
