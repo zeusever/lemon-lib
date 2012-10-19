@@ -1,6 +1,17 @@
+include(CheckTypeSize)
 include(CheckIncludeFiles)
 include(CheckCXXSourceRuns)
 include(CheckFunctionExists)
+
+check_type_size(size_t LEMON_SIZE_T_LENGTH)
+
+if(${LEMON_SIZE_T_LENGTH} EQUAL 4)
+	set(LEMON_SIZE_T_INT32 TRUE)
+elseif(${LEMON_SIZE_T_LENGTH} EQUAL 8)
+	set(LEMON_SIZE_T_INT64 TRUE)
+else()
+	lemon_error("not support platform ,the size_t length is : ${LEMON_SIZE_T_LENGTH}")
+endif()
 
 
 if(WIN32)

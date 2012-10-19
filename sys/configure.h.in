@@ -66,6 +66,10 @@
 
 #cmakedefine LEMON_HAS_GETTID
 
+#cmakedefine LEMON_SIZE_T_INT64
+
+#cmakedefine LEMON_SIZE_T_INT32
+
 
 //define the macro to indicate the wchar_t length
 #define LEMON_WCHAR_SIZE ${LEMON_WCHAR_SIZE}

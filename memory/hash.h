@@ -9,11 +9,15 @@
 #ifndef LEMON_MEMORY_HASH_H
 #define LEMON_MEMORY_HASH_H
 #include <lemon/sys/abi.h>
-#include <lemon/memory/configure.h>
+#include <lemon/memory/configure.h>	
 
 LEMON_DECLARE_HANDLE(LemonHashMap);
 
 LEMON_DECLARE_HANDLE(LemonHashSet);
+
+typedef size_t (*LemonHashFunction)(void *);
+
+typedef int (*LemonHashCompareFunction)(void *, void *);
 
 //////////////////////////////////////////////////////////////////////////
 //HashMap Basic Functions: Create/Close/Insert/Search/Remove
@@ -22,8 +26,8 @@ LEMON_MEMORY_API
 	LemonHashMap 
 	LemonCreateHashMap(
 	__lemon_in size_t itemsize,
-	__lemon_in size_t (*HashFunction)(void *),
-	__lemon_in int (*CompareFunction)(void *, void *),
+	__lemon_in LemonHashFunction HashFunction,
+	__lemon_in LemonHashCompareFunction CompareFunction,
 	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_MEMORY_API
