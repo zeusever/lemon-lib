@@ -4,6 +4,8 @@ assembly=
 
 	errorcode = 
 	{
-		
+		{
+			name = "ASYNC_CANCEL";
+		};
 	};
 }

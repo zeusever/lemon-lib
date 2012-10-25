@@ -10,17 +10,5 @@
 #define LEMON_IO_REACTOR_SOCKET_H
 #include <lemon/io/io.h>
 
-#ifndef LEMON_IO_IOCP
-
-LEMON_IMPLEMENT_HANDLE(LemonSocket){
-	//base handle
-	LEMON_HANDLE_BASE											(LemonIO);
-	//action queues 
-	LemonIOAction												ActionQs[LEMON_IO_ACTION_TYPES];
-};
-
-#endif //LEMON_IO_IOCP
-
-
 #endif //LEMON_IO_REACTOR_SOCKET_H
 

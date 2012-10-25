@@ -8,8 +8,22 @@
 */
 #ifndef LEMON_IO_H
 #define LEMON_IO_H
-
+#include <limits.h>
 #include <lemon/io/abi.h>
+
+#ifdef WIN32
+#	ifdef _WIN64 
+#		define LEMON_IO_FILE_BIT64
+#	endif 
+#else
+#	if	INT_MAX > 2147483647
+#		define LEMON_IO_FILE_BIT64
+#	endif 
+#endif 
+
+#define LEMON_IO_HASHMAP_LOAD_FACTOR								0.5f
+
+#define LEMON_IO_COMPLETEQ_MAX_SIZE									1024
 
 #ifdef WIN32
 
@@ -148,13 +162,67 @@ LEMON_DECLARE_HANDLE(LemonSocket);
 
 LEMON_DECLARE_HANDLE(LemonIOAction);
 
+LEMON_DECLARE_HANDLE(LemonIOHashMap);
+
+LEMON_DECLARE_HANDLE(LemonIOPoller);
+
+LEMON_IMPLEMENT_HANDLE(LemonIOAction){
+
+	LemonIOAction									Prev;
+
+	LemonIOAction									Next;
+
+	size_t											Type;
+
+	union{
+
+		struct{
+			const sockaddr			*Address;
+
+			socklen_t				AddressSize;
+		}											SendTo;
+
+		struct{
+			sockaddr				*Address;
+
+			socklen_t				*AddressSize;
+		}											RecvFrom;
+		
+		LemonIO										Peer;
+	}S;
+
+	void											*UserData;
+
+	union{
+
+		LemonIOCallback				RW;
+
+		LemonAcceptCallback			Accept;
+	}												Callback;
+
+	union {
+		
+		const lemon_byte_t			*Read;
+
+		lemon_byte_t				*Write;
+	}												Buffer;
+
+	size_t											BufferLength;
+
+	size_t											NumberOfBytesTransferred;
+};
+
 LEMON_IMPLEMENT_HANDLE(LemonIO){
 
 	LemonIOService												Service;
 
 	__lemon_io_file												Handle;
 
-	void														(*Close)( LemonIOService * service , LemonIO self );
+	void														(*Close)( LemonIOService service , LemonIO self );
+
+#ifndef LEMON_IO_IOCP
+	LemonIOAction												OptionsQ;
+#endif //LEMON_IO_IOCP
 };
 
 #endif //LEMON_IO_H

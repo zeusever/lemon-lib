@@ -79,9 +79,7 @@ LEMON_IO_API
 	__lemon_in LemonIOService service,
 	__lemon_inout LemonErrorInfo * errorCode);
 
-LEMON_IO_API
-	void LemonCloseIOService(
-	__lemon_free LemonIOService service);
+ 
 
 LEMON_IO_API
 	void LemonIOServicePostJob(
@@ -99,6 +97,11 @@ LEMON_IO_API
 	void LemonIOServiceReset(
 	__lemon_in LemonIOService service,
 	__lemon_inout LemonErrorInfo * errorCode);
+
+
+LEMON_IO_API
+	void LemonCloseIOService(
+	__lemon_free LemonIOService service);
 
 
 //////////////////////////////////////////////////////////////////////////

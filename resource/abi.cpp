@@ -225,14 +225,9 @@ LEMON_RESOURCE_API
 	__lemon_in const LemonUuid * uuid,
 	__lemon_inout LemonErrorInfo * errorCode)
 {
-	try
-	{
-		reinterpret_cast<Package*>(resource)->Uuid(uuid);
-	}
-	catch(const error_info & e)
-	{
-		*errorCode = e;
-	}
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	reinterpret_cast<Package*>(resource)->Uuid(uuid);
 }
 
 LEMON_RESOURCE_API 

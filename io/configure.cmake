@@ -1,3 +1,4 @@
+include(CheckTypeSize)
 include(CheckIncludeFiles)
 
 #if(WIN32)
