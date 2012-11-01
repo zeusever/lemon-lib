@@ -50,7 +50,7 @@ LEMON_SYS_API lemon_bool LemonMutexTryLock(__lemon_in LemonMutex mutex,__lemon_i
 LEMON_SYS_API void LemonMutexUnLock(__lemon_in LemonMutex mutex,__lemon_inout LemonErrorInfo * errorCode);
 
 //////////////////////////////////////////////////////////////////
-//conditionvariable
+//ConditionVariable
 
 LEMON_SYS_API LemonConditionVariable LemonCreateConditionVariable(__lemon_inout LemonErrorInfo * errorCode);
 
@@ -59,6 +59,12 @@ LEMON_SYS_API void LemonReleaseConditionVariable(__lemon_in LemonConditionVariab
 LEMON_SYS_API void LemonConditionVariableWait(
 	__lemon_in LemonConditionVariable  cv,
 	__lemon_in LemonMutex mutex,
+	__lemon_inout LemonErrorInfo * errorCode);
+
+LEMON_SYS_API lemon_bool LemonConditionVariableWaitTimeout(
+	__lemon_in LemonConditionVariable  cv,
+	__lemon_in LemonMutex mutex,
+	__lemon_in size_t milliseconds,
 	__lemon_inout LemonErrorInfo * errorCode);
 
 LEMON_SYS_API void LemonConditionVariableNotify(__lemon_in LemonConditionVariable  cv,LemonErrorInfo * errorCode);

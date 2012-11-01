@@ -43,6 +43,13 @@ typedef struct LemonIoReader{
 
 typedef void (*LemonIOCallback)( void * userdata , size_t numberOfBytesTransferred , const LemonErrorInfo *errorCode);
 
+
+typedef struct LemonIODebugger{
+	
+	void(*RaiseException)(const LemonErrorInfo * errorCode);
+
+}LemonIODebugger;
+
 //////////////////////////////////////////////////////////////////////////
 // io 
 
@@ -64,45 +71,44 @@ LEMON_IO_API
 LEMON_IO_API
 	LemonIOService 
 	LemonCreateIOService(
+	__lemon_nullable LemonIODebugger *Debugger,
 	__lemon_inout LemonErrorInfo * errorCode);
 
+/*
+ * Cancel all pending async io operations, and stop all dispatch processing 
+ * loop
+ */
 LEMON_IO_API
-	void
-	LemonNewIOServiceWorkThreads(
+	void 
+	LemonStopIOService(
 	__lemon_in LemonIOService service,
-	__lemon_in size_t newThreads,
-	__lemon_inout LemonErrorInfo * errorCode);
+	__lemon_inout LemonErrorInfo *errorCode);
 
+LEMON_IO_API 
+	lemon_bool 
+	LemonIOServiceStatus(
+	__lemon_in LemonIOService service);
+
+/*
+ * Reset the io_service in preparation for a subsequent run() invocation.
+ */
 LEMON_IO_API
-	void
-	LemonIOServiceStopAll(
+	void LemonResetIOService(
 	__lemon_in LemonIOService service,
-	__lemon_inout LemonErrorInfo * errorCode);
+	__lemon_inout LemonErrorInfo *errorCode);
 
- 
-
+/*
+ * Run the dispatch processing loop
+ */
 LEMON_IO_API
-	void LemonIOServicePostJob(
+	void 
+	LemonIODispatch(
 	__lemon_in LemonIOService service,
-	__lemon_in LemonIOCallback callback,
-	__lemon_in void * userdata,
-	__lemon_inout LemonErrorInfo * errorCode);
-
-LEMON_IO_API
-	void LemonIOServiceJoin(
-	__lemon_in LemonIOService service,
-	__lemon_inout LemonErrorInfo * errorCode);
-
-LEMON_IO_API
-	void LemonIOServiceReset(
-	__lemon_in LemonIOService service,
-	__lemon_inout LemonErrorInfo * errorCode);
-
+	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_IO_API
 	void LemonCloseIOService(
 	__lemon_free LemonIOService service);
-
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -124,7 +130,7 @@ typedef int				__lemon_native_socket;
 #define SD_RECEIVE SHUT_RD
 #endif //SD_BOTH
 
-typedef void (*LemonAcceptCallback)(void * userdata , LemonIO io , size_t numberOfBytesTransferred , const LemonErrorInfo *errorCode);
+typedef void (*LemonAcceptCallback)(void * userdata , LemonIO io , const LemonErrorInfo *errorCode);
 
 LEMON_IO_API 
 	LemonIO

@@ -35,6 +35,10 @@ LEMON_MEMORY_API
 	__lemon_in size_t blockSize,
 	__lemon_inout LemonErrorInfo * errorCode);
 
+LEMON_MEMORY_API
+	void LemoFixObjectFreeAll(
+	__lemon_in LemonFixObjectAllocator allocator);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// @fn	LEMON_MEMORY_API void LemonReleaseFixObjectAllocator( __lemon_in LemonFixObjectAllocator allocator)
 ///

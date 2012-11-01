@@ -35,6 +35,8 @@ typedef lemon_utf8_t lemon_char_t;
 
 #endif
 
+#define lemon_infinite		0xFFFFFFFF
+
 
 
 #ifndef LEMON_HAS_STDBOOL_H

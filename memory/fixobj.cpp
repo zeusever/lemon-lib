@@ -135,6 +135,33 @@ LEMON_MEMORY_API
 	return allocator;
 }
 
+LEMON_MEMORY_API
+	void LemoFixObjectFreeAll(
+	__lemon_in LemonFixObjectAllocator allocator)
+{
+	LemonMemoryChunk * chunk = allocator->Chunks;
+
+	while(chunk)
+	{
+		chunk->FirstAvailableBlock = 0;
+
+		chunk->AvailableBlocks = UCHAR_MAX;
+
+		lemon_byte_t * p = chunk->Data;
+
+		for(lemon_byte_t i = 0; i != UCHAR_MAX; p += allocator->BlockSize){
+
+			BlockCheckSet(p,allocator->BlockSize);
+
+			p[0] = ++ i;
+		}
+
+		chunk = chunk->NextChunk;
+	};
+
+	allocator->LastAllocChunk = allocator->LastFreeChunk = NULL;
+}
+
 LEMON_MEMORY_API 
 	void
 	LemonReleaseFixObjectAllocator(

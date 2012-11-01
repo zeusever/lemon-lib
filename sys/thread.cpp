@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <lemon/sys/thread.h>
 #include <lemon/sys/assembly.h>
 #ifdef LEMON_HAS_WIN32_THREAD
@@ -199,10 +200,58 @@ LEMON_SYS_API void LemonConditionVariableWait(
 
 		LemonAtomicDecrement(&cv->BlockThreads);
 
+		if(LEMON_SUCCESS(*errorCode)){
+			if(!SetEvent(cv->NotifyAllEvent)){
+
+				LEMON_WIN32_ERROR(*errorCode,GetLastError());
+			}
+		}
+}
+
+LEMON_SYS_API lemon_bool LemonConditionVariableWaitTimeout(
+	__lemon_in LemonConditionVariable  cv,
+	__lemon_in LemonMutex mutex,
+	__lemon_in size_t milliseconds,
+	__lemon_inout LemonErrorInfo * errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	LemonMutexLock(cv->NotifyMutex,errorCode);
+
+	assert(LEMON_SUCCESS(*errorCode));
+
+	LemonAtomicIncrement(&cv->BlockThreads);
+
+	LemonMutexUnLock(cv->NotifyMutex,errorCode);
+
+	assert(LEMON_SUCCESS(*errorCode));
+
+	LemonMutexUnLock(mutex,errorCode);
+
+	assert(LEMON_SUCCESS(*errorCode));
+
+	DWORD result = ::WaitForSingleObject(cv->Event,milliseconds);
+
+	if(WAIT_TIMEOUT != result && WAIT_OBJECT_0 != result){
+
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+	}
+
+	LemonMutexLock(mutex,errorCode);
+
+	LemonAtomicDecrement(&cv->BlockThreads);
+
+	if(LEMON_SUCCESS(*errorCode)){
+
 		if(!SetEvent(cv->NotifyAllEvent)){
 
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
 		}
+
+		return lemon_true;
+	}
+
+	return lemon_false;
 }
 
 LEMON_SYS_API void LemonConditionVariableNotify(__lemon_in LemonConditionVariable  cv,LemonErrorInfo * errorCode){

@@ -134,22 +134,35 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-#define LEMON_IO_SENDTO								0x00
+#define LEMON_IO_READ_OP								0x01
 
-#define LEMON_IO_RECVFROM							0x01
+#define LEMON_IO_WRITE_OP								0x02
 
-#define LEMON_IO_SEND								0x02
+#define LEMON_IO_EXCEPTION_OP							0x04
 
-#define LEMON_IO_RECV								0x03
+#define LEMON_IO_CONNECT_OP								0x01
 
-#define LEMON_IO_READ								0x04
+#define LEMON_IO_SENDTO_OP								0x02
 
-#define LEMON_IO_WRITE								0x05
+#define LEMON_IO_SEND_OP								0x03
 
-#define LEMON_IO_CONNECT							0x06
+#define LEMON_IO_RECVFROM_OP							0x04
 
-#define LEMON_IO_ACCEPT								0x07
+#define LEMON_IO_RECV_OP								0x05
 
-#define LEMON_IO_ACTION_TYPES						0x08
+#define LEMON_IO_ACCEPT_OP								0x06
+
+#define LEMON_CHECK_IO_FLAG_EX(l,r)						((l >> 16) == r)
+
+//////////////////////////////////////////////////////////////////////////
+
+LEMON_IMPLEMENT_HANDLE(LemonIO){
+
+	LemonIOService										Service;
+
+	__lemon_io_file										Handle;
+
+	void												(*Close)(LemonIO self);
+};
 
 #endif //LEMON_IO_H
