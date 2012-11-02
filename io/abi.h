@@ -66,6 +66,11 @@ LEMON_IO_API
 	LemonCloseIO(
 	__lemon_free LemonIO io);
 
+LEMON_IO_API
+	void 
+	LemonCancelIO(
+	__lemon_in LemonIO io);
+
 //////////////////////////////////////////////////////////////////////////
 
 LEMON_IO_API

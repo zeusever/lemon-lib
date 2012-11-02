@@ -115,6 +115,21 @@ LEMON_IO_API
 	LEMON_FREE_HANDLE(Multiplexer);
 }
 
+LEMON_IO_API
+	void LemonIOMultiplexerRegister(
+	__lemon_in LemonIOMultiplexer /*Multiplexer*/,
+	__lemon_in __lemon_io_file /*handle*/,
+	__lemon_in LemonIOEvent E,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+#ifdef WIN32
+	if(E->Flags == MSG_OOB) LEMON_COMBINE_FLAG(E->Type,LEMON_IO_EXCEPTION_OP);
+
+	if(LEMON_CHECK_IO_ADVANCE_FLAG(E->Type,LEMON_IO_CONNECT_OP)) LEMON_COMBINE_FLAG(E->Type,LEMON_IO_EXCEPTION_OP);
+#endif //WIN32
+}
+
 LEMON_IO_API 
 	void 
 	LemonIOPoll(

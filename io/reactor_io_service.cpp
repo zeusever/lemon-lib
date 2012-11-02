@@ -1,29 +1,126 @@
 #include <assert.h>
+#include <lemon/io/socket.h>
 #include <lemon/io/reactor_multiplexer.h>
 
 #ifndef LEMON_IO_IOCP
 
 #define LEMON_IO_POLL_TIMEOUT											100
 
-LEMON_IMPLEMENT_HANDLE(LemonIOService){
-
-	lemon_bool								Stopped;
-
-	LemonIOEventQ							Q;
-
-	LemonIOEventCompleteQ					CompleteQ;
-
-	LemonIOMultiplexer						Mutiplexer;
-
-	LemonThread								BackGroupThread;
-
-	LemonIODebugger							Debugger;
-};
+#define LEMON_IO_QUERY_COMPLETE_TIMEOUT									100
 
 //////////////////////////////////////////////////////////////////////////
 
-LEMON_IO_PRIVATE lemon_bool __IOExecuteor(LemonIOEvent /*E*/, size_t * /*numberOfBytesTransferred*/, LemonErrorInfo * /*errorCode*/)
+LEMON_IO_PRIVATE 
+	lemon_bool 
+	__IOExecuteor(
+	__lemon_in __lemon_io_file handle,
+	__lemon_in LemonIOEvent E, 
+	__lemon_inout size_t * numberOfBytesTransferred, 
+	__lemon_inout LemonErrorInfo * errorCode)
 {
+
+	switch(LEMON_IO_ADVANCE_FLAG(E->Type))
+	{
+	case LEMON_IO_RECVFROM_OP:
+		{
+			return LemonNIORecvFrom
+				(
+				(__lemon_native_socket)handle,
+				E->Buffer.Read,
+				E->BufferLength,
+				numberOfBytesTransferred,
+				E->Flags,
+				E->Address.From.addr,
+				E->Address.From.len,
+				errorCode
+				);
+		}
+
+	case LEMON_IO_SENDTO_OP:
+		{
+
+			return LemonNIOSendTo
+				(
+				(__lemon_native_socket)handle,
+				E->Buffer.Write,
+				E->BufferLength,
+				numberOfBytesTransferred,
+				E->Flags,
+				E->Address.To.addr,
+				E->Address.To.len,
+				errorCode
+				);
+		}
+	case LEMON_IO_RECV_OP:
+		{
+			return LemonNIORecv
+				(
+				(__lemon_native_socket)handle,
+				E->Buffer.Read,
+				E->BufferLength,
+				numberOfBytesTransferred,
+				E->Flags,
+				errorCode
+				);
+		}
+
+	case LEMON_IO_SEND_OP:
+		{
+
+			return LemonNIOSend
+				(
+				(__lemon_native_socket)handle,
+				E->Buffer.Write,
+				E->BufferLength,
+				numberOfBytesTransferred,
+				E->Flags,
+				errorCode
+				);
+		}
+
+	case LEMON_IO_ACCEPT_OP:
+		{
+			__lemon_native_socket peer;
+
+			lemon_bool status = LemonNIOAccept
+				(
+				(__lemon_native_socket)handle,
+				&peer,
+				E->Address.From.addr,
+				E->Address.From.len,
+				errorCode
+				);
+
+			if(status && LEMON_SUCCESS(*errorCode))
+			{
+				LEMON_ALLOC_HANDLE(LemonIO,io);
+
+				io->Handle = (__lemon_io_file)peer;
+
+				io->Close = &LemonCloseSocket;
+
+				LemonNIOSocket(peer,errorCode);
+
+				if(LEMON_FAILED(*errorCode)) LemonCloseSocket(io);
+
+				E->IO = io;
+			}
+
+			return status;
+		}
+
+	case LEMON_IO_CONNECT_OP:
+		{
+			return LemonNIOConnect
+				(
+				(__lemon_native_socket)handle,
+				E->Address.To.addr,
+				E->Address.To.len,
+				errorCode
+				);
+		}
+	}
+
 	return lemon_true;
 }
 
@@ -155,10 +252,12 @@ LEMON_IO_API
 		
 		LEMON_VAR(LemonCompletedIOEvent,completeIOEvent);
 
-		if(lemon_true == LemonQueryCompleteIO(service->CompleteQ,&completeIOEvent,0,errorCode)){
+		if(lemon_true == LemonQueryCompleteIO(service->CompleteQ,&completeIOEvent,LEMON_IO_QUERY_COMPLETE_TIMEOUT,errorCode)){
 			
-			if(!LEMON_CHECK_IO_FLAG_EX(completeIOEvent.Type,LEMON_IO_ACCEPT_OP)){
+			if(LEMON_CHECK_IO_ADVANCE_FLAG(completeIOEvent.Type,LEMON_IO_ACCEPT_OP)){
 				
+				completeIOEvent.IO->Service = service;//pendint the service.
+
 				completeIOEvent.CallBack.Accept(completeIOEvent.UserData,completeIOEvent.IO,&completeIOEvent.ErrorCode);
 
 			}else{

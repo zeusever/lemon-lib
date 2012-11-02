@@ -10,6 +10,7 @@
 #define LEMON_IO_H
 #include <limits.h>
 #include <lemon/io/abi.h>
+#include <lemon/sys/thread.h>
 
 #ifdef WIN32
 #	ifdef _WIN64 
@@ -132,6 +133,8 @@
 
 #define __lemon_would_block 						LEMON_IO_SOCKET_ERROR(EWOULDBLOCK)
 
+#define __lemon_ealerady							LEMON_IO_SOCKET_ERROR(EALREADY)
+
 //////////////////////////////////////////////////////////////////////////
 
 #define LEMON_IO_READ_OP								0x01
@@ -144,16 +147,32 @@
 
 #define LEMON_IO_SENDTO_OP								0x02
 
-#define LEMON_IO_SEND_OP								0x03
+#define LEMON_IO_SEND_OP								0x04
 
-#define LEMON_IO_RECVFROM_OP							0x04
+#define LEMON_IO_RECVFROM_OP							0x08
 
-#define LEMON_IO_RECV_OP								0x05
+#define LEMON_IO_RECV_OP								0x10
 
-#define LEMON_IO_ACCEPT_OP								0x06
+#define LEMON_IO_ACCEPT_OP								0x20
 
-#define LEMON_CHECK_IO_FLAG_EX(l,r)						((l >> 16) == r)
+#define LEMON_IO_ADVANCE_FLAG(flag)								((flag >> 16) & 0xffff) 
 
+#define LEMON_CHECK_IO_ADVANCE_FLAG(l,r)						(LEMON_IO_ADVANCE_FLAG(l) == r)
+
+#define LEMON_MAKE_FLAG(a,b)									((((lemon_uint32_t)a << 16) & 0xffff0000) | b)
+
+#define LEMON_COMBINE_FLAG(l,r)									(l | r)
+
+//////////////////////////////////////////////////////////////////////////
+LEMON_DECLARE_HANDLE(LemonIOEvent);
+
+LEMON_DECLARE_HANDLE(LemonIOEventQ);
+
+LEMON_DECLARE_HANDLE(LemonIOEventQObj);
+
+LEMON_DECLARE_HANDLE(LemonIOEventCompleteQ);
+
+LEMON_DECLARE_HANDLE(LemonIOMultiplexer);
 //////////////////////////////////////////////////////////////////////////
 
 LEMON_IMPLEMENT_HANDLE(LemonIO){
@@ -164,5 +183,28 @@ LEMON_IMPLEMENT_HANDLE(LemonIO){
 
 	void												(*Close)(LemonIO self);
 };
+
+#ifndef LEMON_IO_IOCP
+
+LEMON_IMPLEMENT_HANDLE(LemonIOService){
+
+	lemon_bool								Stopped;
+
+	LemonIOEventQ							Q;
+
+	LemonIOEventCompleteQ					CompleteQ;
+
+	LemonIOMultiplexer						Mutiplexer;
+
+	LemonThread								BackGroupThread;
+
+	LemonIODebugger							Debugger;
+};
+
+#else
+
+#	error "not implement"
+
+#endif //
 
 #endif //LEMON_IO_H

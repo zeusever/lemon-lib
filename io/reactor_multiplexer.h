@@ -11,8 +11,6 @@
 #include <lemon/io/io.h>
 #include <lemon/io/reactor_events.h>
 
-LEMON_DECLARE_HANDLE(LemonIOMultiplexer);
-
 LEMON_IO_API 
 	LemonIOMultiplexer 
 	LemonCreateIOMultiplexer(
@@ -22,6 +20,13 @@ LEMON_IO_API
 	void 
 	LemonReleaseIOMultiplexer(
 	__lemon_free LemonIOMultiplexer Multiplexer);
+
+LEMON_IO_API
+	void LemonIOMultiplexerRegister(
+	__lemon_in LemonIOMultiplexer Multiplexer,
+	__lemon_in __lemon_io_file handle,
+	__lemon_in LemonIOEvent E,
+	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_IO_API 
 	void 

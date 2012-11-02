@@ -171,6 +171,25 @@ LEMON_IO_API
 }
 
 LEMON_IO_API
+	void LemonReleaseIOEvent(
+	__lemon_in LemonIOEventQ Q,
+	__lemon_free LemonIOEvent E)
+{
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LemonMutexLock(Q->Mutex,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
+
+	LemonFixObjectFree(Q->EventAllocator,E);
+
+	LemonMutexUnLock(Q->Mutex,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
+
+}
+
+LEMON_IO_API
 	void
 	LemonRegisterIOEvent(
 	__lemon_in LemonIOEventQ Q,
@@ -247,6 +266,8 @@ Finally:
 }
 
 typedef struct LemonExecuteIOEventsContext{
+
+	__lemon_io_file			Handle;
 	
 	LemonIOEvent			Es;
 
@@ -276,7 +297,7 @@ LEMON_IO_PRIVATE
 
 		LEMON_DECLARE_ERRORINFO(errorCode);
 
-		if(lemon_true == executor(events,&numberOfBytesTransferred,&errorCode)){
+		if(lemon_true == executor(context->Handle,events,&numberOfBytesTransferred,&errorCode)){
 
 			LemonCompleteIOEvent(completeQ,events,numberOfBytesTransferred,&errorCode);
 
@@ -314,11 +335,40 @@ LEMON_IO_PRIVATE
 	void 
 	__LemonRegisterIOEvents(
 	__lemon_in LemonIOEventQ Q,
+	__lemon_in __lemon_io_file file,
 	__lemon_in size_t hashCode,
 	__lemon_in LemonIOEvent header,
 	__lemon_in LemonIOEvent tail)
 {
 	LemonIOEventQObj current = Q->Array[hashCode];
+
+	while(current){
+
+		if(current->Handle == file) break;
+
+		current = current->Next;
+	}
+
+	//no pending io event to execute
+	if(current == NULL) {
+
+		if(header == NULL) return;
+
+		current = (LemonIOEventQObj)LemonFixObjectAlloc(Q->ObjAllocator);
+
+		++ Q->Counter;
+
+		current->Prev = NULL;
+
+		current->Header = current->Tail = NULL;
+
+		current->Handle = file;
+
+		current->Next = Q->Array[hashCode];
+
+		Q->Array[hashCode] = current;
+	}
+
 	//insert the uncompleted io event again!!!
 	if(current->Header == NULL){ 
 		//no pending io event to this file
@@ -383,6 +433,8 @@ LEMON_IO_API
 	//no pending io event to execute
 	if(current == NULL || current->Header == NULL) goto Finally;
 
+	context.Handle = current->Handle;
+
 	context.Es = current->Header;
 
 	current->Header = current->Tail = NULL;
@@ -400,7 +452,7 @@ LEMON_IO_API
 
 	assert(LEMON_SUCCESS(*errorCode));
 	
-	__LemonRegisterIOEvents(Q,LemonIOHashMapF(file,Q->Buckets),context.Header,context.Tail);
+	__LemonRegisterIOEvents(Q,file,LemonIOHashMapF(file,Q->Buckets),context.Header,context.Tail);
 	
 	//free the complete event resource
 
@@ -440,17 +492,19 @@ LEMON_IO_API
 				continue;
 			}
 
-			LemonExecuteIOEventsContext context = {current->Header,NULL,NULL,NULL};
+			LemonExecuteIOEventsContext context = {current->Handle,current->Header,NULL,NULL,NULL};
+
+			__lemon_io_file file = current->Handle;
 
 			current->Header = current->Tail = NULL;
 
+			current = current->Next;
+
 			__LemonExecuteIOEvents(&context,completeQ,executor);
 
-			__LemonRegisterIOEvents(Q,i,context.Header,context.Tail);
+			__LemonRegisterIOEvents(Q,file,i,context.Header,context.Tail);
 
 			__LemonReleaseIOEvents(Q,context.GC);
-
-			current = current->Next;
 		}
 	}
 
@@ -487,6 +541,68 @@ LEMON_IO_API
 
 Finally:
 
+	LemonMutexUnLock(Q->Mutex,&ec);
+
+	assert(LEMON_SUCCESS(ec));
+}
+
+LEMON_IO_API void 
+	LemonCancelIOEventsOfFile(
+	__lemon_in LemonIOEventQ Q,
+	__lemon_in __lemon_io_file file)
+{
+	LEMON_DECLARE_ERRORINFO(ec);
+
+	LemonMutexLock(Q->Mutex,&ec);
+
+	size_t hashCode = LemonIOHashMapF(file,Q->Buckets);
+	//get the io event FIFO queue
+
+	LemonIOEventQObj current =  Q->Array[hashCode];
+
+	while(current){
+
+		if(current->Handle == file) break;
+
+		current = current->Next;
+	}
+
+	if(NULL == current || current->Header == NULL) goto Finally;
+
+	LemonIOEvent events = current->Header;
+
+	LEMON_USER_ERROR(ec,LEMON_IO_ASYNC_CANCEL);
+
+	while(events) { 
+
+		if(LEMON_CHECK_IO_ADVANCE_FLAG(events->Type,LEMON_IO_ACCEPT_OP)){
+
+			events->CallBack.Accept(events->UserData,NULL,&ec);
+
+		}else{
+
+			events->CallBack.RW(events->UserData,0,&ec);
+		}
+		
+		events = events->Next; 
+	}
+
+	__LemonReleaseIOEvents(Q,current->Header);
+
+	if(current->Prev != NULL){
+
+		current->Prev->Next = current->Next;
+
+		current->Next->Prev = current->Prev;
+
+	}else{
+
+		Q->Array[hashCode] = current->Next;
+	}
+
+	LemonFixObjectFree(Q->ObjAllocator,current);
+
+Finally:
 	LemonMutexUnLock(Q->Mutex,&ec);
 
 	assert(LEMON_SUCCESS(ec));
@@ -553,7 +669,7 @@ LEMON_IO_API void LemonIOEventQCancel(__lemon_in LemonIOEventQ Q)
 
 			while(events){
 
-				if(LEMON_CHECK_IO_FLAG_EX(events->Type,LEMON_IO_ACCEPT_OP)){
+				if(LEMON_CHECK_IO_ADVANCE_FLAG(events->Type,LEMON_IO_ACCEPT_OP)){
 
 					events->CallBack.Accept(events->UserData,NULL,&ec);
 
@@ -572,6 +688,8 @@ LEMON_IO_API void LemonIOEventQCancel(__lemon_in LemonIOEventQ Q)
 	LemoFixObjectFreeAll(Q->ObjAllocator);
 
 	LemoFixObjectFreeAll(Q->EventAllocator);
+
+	memset(Q->Array,0,Q->Buckets * sizeof(LemonIOEventQObj));
 
 	Q->Counter = 0;
 

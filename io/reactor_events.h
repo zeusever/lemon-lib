@@ -14,14 +14,6 @@
 #include <lemon/memory/fixobj.h>
 #include <lemon/memory/ringbuffer.h>
 
-LEMON_DECLARE_HANDLE(LemonIOEvent);
-
-LEMON_DECLARE_HANDLE(LemonIOEventQ);
-
-LEMON_DECLARE_HANDLE(LemonIOEventQObj);
-
-LEMON_DECLARE_HANDLE(LemonIOEventCompleteQ);
-
 //////////////////////////////////////////////////////////////////////////
 
 typedef union LemonIOEventCallBack{
@@ -123,7 +115,7 @@ LEMON_IMPLEMENT_HANDLE(LemonIOEventCompleteQ){
 
 //////////////////////////////////////////////////////////////////////////
 
-typedef lemon_bool (*LemonIOEventExecutor)(LemonIOEvent E, size_t * numberOfBytesTransferred, LemonErrorInfo * errorCode);
+typedef lemon_bool (*LemonIOEventExecutor)(__lemon_io_file handle,LemonIOEvent E, size_t * numberOfBytesTransferred, LemonErrorInfo * errorCode);
 
 typedef lemon_bool (*LemonIOEventQForeachF)(void * userdata,const LemonIOEventQObj obj,LemonErrorInfo * errorCode);
 
@@ -144,6 +136,11 @@ LEMON_IO_API
 	LemonCreateIOEvent(
 	__lemon_in LemonIOEventQ Q,
 	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_IO_API
+	void LemonReleaseIOEvent(
+	__lemon_in LemonIOEventQ Q,
+	__lemon_free LemonIOEvent E);
 
 LEMON_IO_API
 	void 
@@ -181,6 +178,11 @@ LEMON_IO_API
 	__lemon_in LemonErrorInfo * errorCode);
 
 LEMON_IO_API void LemonIOEventQCancel(__lemon_in LemonIOEventQ Q);
+
+LEMON_IO_API void 
+	LemonCancelIOEventsOfFile(
+	__lemon_in LemonIOEventQ Q,
+	__lemon_in __lemon_io_file file);
 
 //////////////////////////////////////////////////////////////////////////
 //debug APIs
