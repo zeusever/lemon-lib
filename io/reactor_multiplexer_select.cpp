@@ -158,7 +158,7 @@ LEMON_IO_API
 
 	}else {
 
-		timeval timeout = {milliseconds/1000,milliseconds%1000 * 1000};
+		timeval timeout = {(long)milliseconds/1000,(long)milliseconds%1000 * 1000};
 
 		if(context.Counter != 0){
 			

@@ -230,7 +230,7 @@ LEMON_SYS_API lemon_bool LemonConditionVariableWaitTimeout(
 
 	assert(LEMON_SUCCESS(*errorCode));
 
-	DWORD result = ::WaitForSingleObject(cv->Event,milliseconds);
+	DWORD result = ::WaitForSingleObject(cv->Event,(DWORD)milliseconds);
 
 	if(WAIT_TIMEOUT != result && WAIT_OBJECT_0 != result){
 
