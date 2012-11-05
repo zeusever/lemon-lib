@@ -24,14 +24,13 @@ LEMON_DECLARE_HANDLE(LemonIRPCompleteQ);
 
 //////////////////////////////////////////////////////////////////////////
 
-/*
- * the real irp performance function.
- * 
- *@return int	If return 0, indicate the IRP has been executed.
- */
-typedef int (*LemonIRProc)(LemonIRP irp);
+typedef lemon_bool (*LemonIRProc)(LemonIRP irp,LemonErrorInfo * errorCode);
 
-typedef lemon_bool (LemonIRPTableForearchF)(LemonIRPTableFileObj obj,LemonErrorInfo * errorCode);
+typedef lemon_bool (*LemonIRPTableForearchF)(void * userdata,LemonIRPTableFileObj obj,LemonErrorInfo * errorCode);
+
+typedef lemon_bool (*LemonIOStatusF)(void * userdata,__lemon_io_file handle);
+
+typedef lemon_bool (*LemonIRPCompleteF)(void * userdata,const LemonErrorInfo * errorCode);
 
 typedef union LemonIRPSockAddr{
 	
@@ -77,11 +76,11 @@ LEMON_IMPLEMENT_HANDLE(LemonIRP){
 //////////////////////////////////////////////////////////////////////////
 //All of those APIs are not thread safe
 // 
-LEMON_IO_PRIVATE 
+LEMON_IO_API 
 	size_t 
 	LemonIRPTableHashF(
-	__lemon_in __lemon_io_file handle,
-	__lemon_in size_t buckets);
+	__lemon_in size_t buckets,
+	__lemon_in __lemon_io_file handle);
 
 LEMON_IO_API
 	void LemonPushIRP(
@@ -111,7 +110,6 @@ LEMON_IO_API
 	LemonIRPTableFileObj 
 	LemonCreateIRPTableFileObj(
 	__lemon_in LemonIRPTable table,
-	__lemon_in LemonIRPTableFileObj prev,
 	__lemon_in __lemon_io_file file,
 	__lemon_inout LemonErrorInfo * errorCode);
 
@@ -122,11 +120,51 @@ LEMON_IO_API
 	__lemon_free LemonIRPTableFileObj obj);
 
 LEMON_IO_API
+	void
+	LemonExecuteIRPs(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRPTableFileObj obj,
+	__lemon_in LemonIRPCompleteF completeF,
+	__lemon_in void * userdata);
+
+LEMON_IO_API
 	void LemonIRPTableResize(
 	__lemon_in LemonIRPTable table,
 	__lemon_in size_t newBuckets,
 	__lemon_inout LemonErrorInfo * errorCode);
 
+LEMON_IO_API
+	LemonIRPTableFileObj
+	LemonIRPTableSearch(
+	__lemon_in LemonIRPTable table,
+	__lemon_in __lemon_io_file handle);
+
+LEMON_IO_API
+	void 
+	LemonIRPTableRemove(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRPTableFileObj obj);
+
+LEMON_IO_API
+	void 
+	LemonIRPTableAdd(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRPTableFileObj obj,
+	__lemon_in LemonErrorInfo *errorCode);
+
+LEMON_IO_API size_t LemonIRPTableBuckets(__lemon_in LemonIRPTable table);
+
+LEMON_IO_API size_t LemonIRPTableSize(__lemon_in LemonIRPTable table);
+
+LEMON_IO_API double LemonIRPTableLoadFactor(__lemon_in LemonIRPTable table);
+
+LEMON_IO_API
+	void 
+	LemonIRPTableForeach(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRPTableForearchF F,
+	__lemon_in void * userdata,
+	__lemon_inout LemonErrorInfo *errorCode);
 
 //////////////////////////////////////////////////////////////////////////
 // the thread safe functions 
@@ -163,41 +201,74 @@ LEMON_IO_API
 	LemonCloseIRPTable_TS(
 	__lemon_free LemonIRPTable table);
 
-//////////////////////////////////////////////////////////////////////////
-//TODO: below APIs not implement
 LEMON_IO_API
 	void 
-	LemonRegisterIRP_TS(
+	LemonInsertIRP_TS(
 	__lemon_in LemonIRPTable table,
 	__lemon_in __lemon_io_file handle,
 	__lemon_in LemonIRP irp,
 	__lemon_inout LemonErrorInfo * errorCode);
 
 LEMON_IO_API
-	void LemonUnregisterIRP_TS(
+	void 
+	LemonRemoveIRP_TS(
 	__lemon_in LemonIRPTable table, 
+	__lemon_in __lemon_io_file handle,
 	__lemon_in LemonIRP irp);
+
+LEMON_IO_API
+	void 
+	LemonRemoveIRPsAll_TS(
+	__lemon_in LemonIRPTable table, 
+	__lemon_in __lemon_io_file handle);
+
+LEMON_IO_API
+	size_t 
+	LemonIRPCounter_TS(
+	__lemon_in LemonIRPTable table, 
+	__lemon_in __lemon_io_file handle);
+
+LEMON_IO_API
+	void 
+	LemonIRPTableForeach_TS(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRPTableForearchF F,
+	__lemon_in void * userdata,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_IO_API
+	void 
+	LemonIRPCancel_TS(
+	__lemon_in LemonIRPTable table,
+	__lemon_in __lemon_io_file handle);
+
+LEMON_IO_API
+	void
+	LemonIRPCancelEx_TS(
+	__lemon_in LemonIRPTable table);
+
 
 #ifndef LEMON_IO_IOCP
 
 LEMON_IO_API
-	void 
-	LemonIRPTableForeach(
+	void
+	LemonExecuteIRPs_TS(
 	__lemon_in LemonIRPTable table,
-	__lemon_in LemonIRPTableForearchF F,
-	__lemon_inout LemonErrorInfo *errorCode);
+	__lemon_in __lemon_io_file handle,
+	__lemon_in LemonIRPCompleteF completeF,
+	__lemon_in void * userdata);
 
 LEMON_IO_API
 	void
-	LemonExecuteIRPs(
+	LemonExecuteIRPsEx_TS(
 	__lemon_in LemonIRPTable table,
-	__lemon_in __lemon_io_file handle,
-	__lemon_in LemonIRPCompleteQ completeQ,
-	__lemon_inout LemonErrorInfo * errorCode);
+	__lemon_in LemonIOStatusF F,
+	__lemon_in void * statusUserdata,
+	__lemon_in LemonIRPCompleteF completeF,
+	__lemon_in void * completeUserdata);
 
 
 #endif //LEMON_IO_IOCP
-
 
 #endif //LEMON_IO_IRP_H
 
