@@ -10,27 +10,15 @@
 #define LEMON_IO_IRP_H
 #include <lemon/io/private.h>
 
-LEMON_DECLARE_HANDLE(LemonIRP);
-
-LEMON_DECLARE_HANDLE(LemonIRPTable);
-
-LEMON_DECLARE_HANDLE(LemonIRPTableFileObj);
-
-#ifndef LEMON_IO_IOCP
-
-LEMON_DECLARE_HANDLE(LemonIRPCompleteQ);
-
-#endif LEMON_IO_IOCP
-
 //////////////////////////////////////////////////////////////////////////
 
-typedef lemon_bool (*LemonIRProc)(LemonIRP irp,LemonErrorInfo * errorCode);
+typedef lemon_bool (*LemonIRProc)(LemonIRP irp,const LemonErrorInfo * errorCode);
 
-typedef lemon_bool (*LemonIRPTableForearchF)(void * userdata,LemonIRPTableFileObj obj,LemonErrorInfo * errorCode);
+typedef lemon_bool (*LemonIRPTableForearchF)(void * userdata,const LemonIRPTableFileObj obj,LemonErrorInfo * errorCode);
 
 typedef lemon_bool (*LemonIOStatusF)(void * userdata,__lemon_io_file handle);
 
-typedef lemon_bool (*LemonIRPCompleteF)(void * userdata,const LemonErrorInfo * errorCode);
+typedef void (*LemonIRPCompleteF)(void * userdata,const LemonErrorInfo * errorCode);
 
 typedef union LemonIRPSockAddr{
 	
@@ -49,11 +37,29 @@ typedef union LemonIRPBuf{
 
 }LemonIRPBuf;
 
+typedef union LemonIRPCallBack{
+	
+	LemonIOCallback										RW;
+
+	LemonAcceptCallback									Accept;
+
+}LemonIRPCallBack;
+
 
 LEMON_IMPLEMENT_HANDLE(LemonIRP){
 
 #ifdef LEMON_IO_IOCP
+	
 	OVERLAPPED											Overlapped;
+
+	WSABUF												Buf;
+
+	lemon_bool											Canceled;
+
+	size_t												NumberOfBytesTransferred;
+
+	lemon_byte_t										AcceptExBuf[LEMON_IO_ACCEPTEX_BUF_SIZE * 2];
+
 #endif //LEMON_IO_IOCP
 
 	LemonIRP											Prev;
@@ -63,6 +69,14 @@ LEMON_IMPLEMENT_HANDLE(LemonIRP){
 	LemonIRProc											Proc;
 
 	LemonIRPSockAddr									Address;
+
+	LemonIRPCallBack									CallBack;
+
+	void												*UserData;
+
+	LemonIO												Peer;
+
+	LemonIO												Self;
 
 #ifndef LEMON_IO_IOCP
 	
@@ -118,6 +132,12 @@ LEMON_IO_API
 	LemonCloseIRPTableFileObj(
 	__lemon_in LemonIRPTable table,
 	__lemon_free LemonIRPTableFileObj obj);
+
+LEMON_IO_API
+	void 
+	LemonIRPFileCancel(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRPTableFileObj obj);
 
 LEMON_IO_API
 	void
@@ -217,12 +237,6 @@ LEMON_IO_API
 	__lemon_in LemonIRP irp);
 
 LEMON_IO_API
-	void 
-	LemonRemoveIRPsAll_TS(
-	__lemon_in LemonIRPTable table, 
-	__lemon_in __lemon_io_file handle);
-
-LEMON_IO_API
 	size_t 
 	LemonIRPCounter_TS(
 	__lemon_in LemonIRPTable table, 
@@ -237,18 +251,37 @@ LEMON_IO_API
 	__lemon_inout LemonErrorInfo *errorCode);
 
 LEMON_IO_API
-	void 
-	LemonIRPCancel_TS(
-	__lemon_in LemonIRPTable table,
-	__lemon_in __lemon_io_file handle);
-
-LEMON_IO_API
 	void
-	LemonIRPCancelEx_TS(
+	LemonIRPTableCancel_TS(
 	__lemon_in LemonIRPTable table);
 
 
-#ifndef LEMON_IO_IOCP
+LEMON_IO_API
+	void 
+	LemonIRPCloseFile_TS(
+	__lemon_in LemonIRPTable table, 
+	__lemon_in __lemon_io_file handle);
+
+//////////////////////////////////////////////////////////////////////////
+// LemonIRPFileCancel_TS has different semantic on win32 or *nix
+LEMON_IO_API
+	void 
+	LemonIRPFileCancel_TS(
+	__lemon_in LemonIRPTable table,
+	__lemon_in __lemon_io_file handle);
+
+//////////////////////////////////////////////////////////////////////////
+
+#ifdef LEMON_IO_IOCP
+
+LEMON_IO_API 
+	void 
+	LemonIRPComplete_TS(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRP irp,
+	__lemon_in const LemonErrorInfo * errorCode);
+
+#else
 
 LEMON_IO_API
 	void

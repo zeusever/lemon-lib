@@ -120,6 +120,11 @@ LEMON_IO_API
 	LemonIRP irps = obj->IRPsHeader;
 
 	while(irps){
+
+#ifdef LEMON_IO_IOCP
+		if(!irps->Canceled) 
+#endif //LEMON_IO_IOCP
+
 		++ counter;
 
 		irps = irps->Next;
@@ -416,13 +421,6 @@ LEMON_IO_API
 	};
 
 	LemonCloseIRPs(table,GC);
-
-	if(LemonIRPCounter(obj) == 0){
-		
-		LemonIRPTableRemove(table,obj);
-
-		LemonCloseIRPTableFileObj(table,obj);
-	}
 }
 //////////////////////////////////////////////////////////////////////////
 
@@ -529,6 +527,53 @@ LEMON_IO_API
 	LEMON_FREE_HANDLE(table);
 }
 
+LEMON_IO_API
+	void 
+	LemonIRPFileCancel(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRPTableFileObj obj)
+{
+	assert(table && obj);
+
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LEMON_USER_ERROR(errorCode,LEMON_IO_ASYNC_CANCEL);
+
+#ifndef LEMON_IO_IOCP
+
+	LemonIRP irps = NULL;
+
+	LemonIRP current = NULL;
+
+	irps = LemonRemoveIRPsAll(obj);
+
+	current = irps;
+
+	while(current){
+
+		current->Proc(current,&errorCode);
+
+		current = current->Next;
+	}
+
+	LemonCloseIRPs(table,irps);
+
+#else
+
+	LemonIRP current = obj->IRPsHeader;
+
+	while(current){
+		
+		current->Canceled = lemon_true;
+
+		current->Proc(current,&errorCode);
+
+		current = current->Next;
+	}
+
+#endif //
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 LEMON_IO_API
@@ -595,33 +640,6 @@ Finally:
 }
 
 LEMON_IO_API
-	void 
-	LemonRemoveIRPsAll_TS(
-	__lemon_in LemonIRPTable table, 
-	__lemon_in __lemon_io_file handle)
-{
-	LemonIRPTableLock_TS(table);
-
-	LemonIRPTableFileObj obj = LemonIRPTableSearch(table,handle);
-
-	if(NULL == obj) goto Finally;
-
-	LemonIRP irps = LemonRemoveIRPsAll(obj);
-
-	LemonCloseIRPs(table,irps);
-
-	assert(LemonIRPCounter(obj) == 0);
-
-	LemonIRPTableRemove(table,obj);
-
-	LemonCloseIRPTableFileObj(table,obj);
-
-Finally:
-
-	LemonIRPTableUnLock_TS(table);
-}
-
-LEMON_IO_API
 	size_t 
 	LemonIRPCounter_TS(
 	__lemon_in LemonIRPTable table, 
@@ -652,17 +670,25 @@ LEMON_IO_API
 	__lemon_in void * userdata,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
+	size_t counter = 0;
+
 	for(size_t i = 0; i < table->Buckets; ++ i){
 
 		LemonIRPTableFileObj current = table->Array[i];
 
 		while(current){
 
-			lemon_bool status = F(userdata,table->Array[i],errorCode);
+			++ counter;
+
+			lemon_bool status = F(userdata,current,errorCode);
 
 			if(LEMON_FAILED(*errorCode) || status == lemon_false) return;
+
+			current = current->Next;
 		}
 	}
+
+	assert(counter == table->Counter);
 }
 
 LEMON_IO_API
@@ -679,6 +705,148 @@ LEMON_IO_API
 
 	LemonIRPTableUnLock_TS(table);
 }
+
+//////////////////////////////////////////////////////////////////////////
+LEMON_IO_PRIVATE
+	lemon_bool 
+	LemonIRPCancelEx_TS_F(
+	__lemon_in void * /*userdata*/,
+	__lemon_in const LemonIRPTableFileObj obj,
+	__lemon_inout LemonErrorInfo * /*errorCode*/)
+{
+	LemonIRP irps = LemonRemoveIRPsAll(obj);
+
+	LemonIRP current = irps;
+
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LEMON_USER_ERROR(errorCode,LEMON_IO_ASYNC_CANCEL);
+
+	while(current){
+
+		current->Proc(current,&errorCode);
+
+		current = current->Next;
+	}
+
+	return lemon_true;
+}
+
+LEMON_IO_API
+	void
+	LemonIRPTableCancel_TS(
+	__lemon_in LemonIRPTable table)
+{
+	LemonIRPTableLock_TS(table);
+
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LemonIRPTableForeach(table,&LemonIRPCancelEx_TS_F,NULL,&errorCode);
+
+	LemoFixObjectFreeAll(table->IRPAllocator);
+
+	LemoFixObjectFreeAll(table->FileObjAllocator);
+
+	table->Counter = 0;
+
+	memset(table->Array,0,sizeof(LemonIRPTableFileObj) * table->Buckets);
+
+	LemonIRPTableUnLock_TS(table);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+LEMON_IO_API
+	void 
+	LemonIRPCloseFile_TS(
+	__lemon_in LemonIRPTable table, 
+	__lemon_in __lemon_io_file handle)
+{
+	LemonIRP irps = NULL;
+
+	LemonIRP current = NULL;
+
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LEMON_USER_ERROR(errorCode,LEMON_IO_ASYNC_CANCEL);
+
+	LemonIRPTableLock_TS(table);
+
+	LemonIRPTableFileObj obj = LemonIRPTableSearch(table,handle);
+
+	if(obj == NULL) goto Finally;
+
+	assert(table && obj);
+
+	irps = LemonRemoveIRPsAll(obj);
+
+	current = irps;
+
+	while(current){
+
+		current->Proc(current,&errorCode);
+
+		current = current->Next;
+	}
+
+	LemonCloseIRPs(table,irps);
+
+	LemonIRPTableRemove(table,obj);
+
+	LemonCloseIRPTableFileObj(table,obj);
+
+Finally:
+
+	LemonIRPTableUnLock_TS(table);
+}
+
+LEMON_IO_API
+	void 
+	LemonIRPFileCancel_TS(
+	__lemon_in LemonIRPTable table,
+	__lemon_in __lemon_io_file handle)
+{
+	LemonIRPTableLock_TS(table);
+
+	LemonIRPTableFileObj obj = LemonIRPTableSearch(table,handle);
+
+	if(obj == NULL) goto Finally;
+
+	LemonIRPFileCancel(table,obj);
+
+Finally:
+
+	LemonIRPTableUnLock_TS(table);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+
+#ifdef LEMON_IO_IOCP
+
+LEMON_IO_API 
+	void 
+	LemonIRPComplete_TS(
+	__lemon_in LemonIRPTable table,
+	__lemon_in LemonIRP irp,
+	__lemon_in const LemonErrorInfo * errorCode)
+{
+	LemonIRPTableLock_TS(table); 
+
+	LemonIRPTableFileObj obj = LemonIRPTableSearch(table,irp->Self->Handle);
+
+	assert(obj &&  "on win32 platform , can't call LemonIRPComplete_TS after call LemonIRPCloseFile_TS");
+
+	LemonRemoveIRP(obj,irp);
+
+	if(!irp->Canceled) { irp->Proc(irp,errorCode); }
+
+	LemonCloseIRPs(table,irp);
+
+	LemonIRPTableUnLock_TS(table);
+}
+
+#else
 
 LEMON_IO_API
 	void
@@ -746,85 +914,4 @@ LEMON_IO_API
 	LemonIRPTableForeach_TS(table,&LemonExecuteIRPsEx_TS_F,&context,&errorCode);
 }
 
-LEMON_IO_API
-	void 
-	LemonIRPCancel_TS(
-	__lemon_in LemonIRPTable table,
-	__lemon_in __lemon_io_file handle)
-{
-	LemonIRP irps = NULL;
-
-	LemonIRP current = NULL;
-
-	LEMON_DECLARE_ERRORINFO(errorCode);
-
-	LEMON_USER_ERROR(errorCode,LEMON_IO_ASYNC_CANCEL);
-
-	LemonIRPTableLock_TS(table);
-
-	LemonIRPTableFileObj obj = LemonIRPTableSearch(table,handle);
-
-	if(obj == NULL) goto Finally;
-
-	irps = LemonRemoveIRPsAll(obj);
-
-	current = irps;
-
-	while(current){
-
-		current->Proc(current,&errorCode);
-		
-		current = current->Next;
-	}
-
-	LemonCloseIRPs(table,irps);
-
-	LemonCloseIRPTableFileObj(table,obj);
-
-Finally:
-
-	LemonIRPTableUnLock_TS(table);
-}
-
-LEMON_IO_PRIVATE
-	lemon_bool 
-	LemonIRPCancelEx_TS_F(
-	__lemon_in void * /*userdata*/,
-	__lemon_in LemonIRPTableFileObj obj,
-	__lemon_inout LemonErrorInfo * /*errorCode*/)
-{
-	LemonIRP irps = LemonRemoveIRPsAll(obj);
-
-	LemonIRP current = irps;
-
-	LEMON_DECLARE_ERRORINFO(errorCode);
-
-	LEMON_USER_ERROR(errorCode,LEMON_IO_ASYNC_CANCEL);
-
-	while(current){
-
-		current->Proc(current,&errorCode);
-
-		current = current->Next;
-	}
-
-	return lemon_true;
-}
-
-LEMON_IO_API
-	void
-	LemonIRPCancelEx_TS(
-	__lemon_in LemonIRPTable table)
-{
-	LemonIRPTableLock_TS(table);
-
-	LEMON_DECLARE_ERRORINFO(errorCode);
-
-	LemonIRPTableForeach(table,&LemonIRPCancelEx_TS_F,NULL,&errorCode);
-
-	LemoFixObjectFreeAll(table->IRPAllocator);
-
-	LemoFixObjectFreeAll(table->FileObjAllocator);
-
-	LemonIRPTableUnLock_TS(table);
-}
+#endif //LEMON_IO_IOCP

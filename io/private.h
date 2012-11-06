@@ -26,6 +26,8 @@
 
 #define LEMON_IO_COMPLETEQ_MAX_SIZE									1024
 
+#define LEMON_IO_ACCEPTEX_BUF_SIZE									32
+
 #ifdef WIN32
 
 #	define __lemon_io_file							HANDLE
@@ -143,5 +145,49 @@
 
 #define LEMON_IO_EXCEPTION							0x04		
 
+//////////////////////////////////////////////////////////////////////////
+
+LEMON_DECLARE_HANDLE(LemonIRP);
+
+LEMON_DECLARE_HANDLE(LemonIRPTable);
+
+LEMON_DECLARE_HANDLE(LemonIRPTableFileObj);
+
+#ifndef LEMON_IO_IOCP
+
+LEMON_DECLARE_HANDLE(LemonIRPCompleteQ);
+
+#endif LEMON_IO_IOCP
+
+LEMON_IMPLEMENT_HANDLE(LemonIOService){
+	
+	LemonIRPTable						IRPs;
+
+	LemonIODebugger						Debugger;
+
+	lemon_bool							Status;
+
+#ifdef LEMON_IO_IOCP
+	
+	HANDLE								CompleteQ;
+
+	lemon_atomic_t						WorkingThreads;
+#else
+
+	LemonIRPCompleteQ					CompleteQ;
+
+	LemonThread							BackGroudThread;
+
+#endif //LEMON_IO_IOCP
+};
+
+LEMON_IMPLEMENT_HANDLE(LemonIO){
+
+	__lemon_io_file						Handle;
+
+	LemonIOService						IOService;
+
+	void								(*Close)(LemonIO io);
+};
 
 #endif //LEMON_IO_H
