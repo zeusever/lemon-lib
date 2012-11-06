@@ -28,6 +28,8 @@
 
 #define LEMON_IO_ACCEPTEX_BUF_SIZE									32
 
+#define LEMON_IO_SERVICE_LOOP_TIMEOUT								100
+
 #ifdef WIN32
 
 #	define __lemon_io_file							HANDLE
@@ -143,7 +145,11 @@
 
 #define LEMON_IO_WRITE								0x02
 
-#define LEMON_IO_EXCEPTION							0x04		
+#define LEMON_IO_EXCEPTION							0x04
+
+#define LEMON_IO_ACCEPT								0x08
+
+#define LEMON_IO_CONNECT							0x10
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -156,6 +162,9 @@ LEMON_DECLARE_HANDLE(LemonIRPTableFileObj);
 #ifndef LEMON_IO_IOCP
 
 LEMON_DECLARE_HANDLE(LemonIRPCompleteQ);
+
+
+LEMON_DECLARE_HANDLE(LemonPollService);
 
 #endif LEMON_IO_IOCP
 
@@ -177,6 +186,8 @@ LEMON_IMPLEMENT_HANDLE(LemonIOService){
 	LemonIRPCompleteQ					CompleteQ;
 
 	LemonThread							BackGroudThread;
+
+	LemonPollService					PollService;
 
 #endif //LEMON_IO_IOCP
 };

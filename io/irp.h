@@ -12,13 +12,21 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef LEMON_IO_IOCP
+
 typedef lemon_bool (*LemonIRProc)(LemonIRP irp,const LemonErrorInfo * errorCode);
+
+#else
+
+typedef lemon_bool (*LemonIRProc)(LemonIRP irp, LemonErrorInfo * errorCode);
+
+#endif //
 
 typedef lemon_bool (*LemonIRPTableForearchF)(void * userdata,const LemonIRPTableFileObj obj,LemonErrorInfo * errorCode);
 
 typedef lemon_bool (*LemonIOStatusF)(void * userdata,__lemon_io_file handle);
 
-typedef void (*LemonIRPCompleteF)(void * userdata,const LemonErrorInfo * errorCode);
+typedef void (*LemonIRPCompleteF)(void *completeQ,LemonIRP irp,const LemonErrorInfo * errorCode);
 
 typedef union LemonIRPSockAddr{
 	
@@ -31,9 +39,9 @@ typedef union LemonIRPSockAddr{
 
 typedef union LemonIRPBuf{
 
-	struct {void * buf; size_t	len; }					R;
+	struct {lemon_byte_t * buf; size_t	len; }					R;
 
-	struct {const void * buf; size_t len; }				W;
+	struct {const lemon_byte_t * buf; size_t len; }				W;
 
 }LemonIRPBuf;
 
@@ -56,8 +64,6 @@ LEMON_IMPLEMENT_HANDLE(LemonIRP){
 
 	lemon_bool											Canceled;
 
-	size_t												NumberOfBytesTransferred;
-
 	lemon_byte_t										AcceptExBuf[LEMON_IO_ACCEPTEX_BUF_SIZE * 2];
 
 #endif //LEMON_IO_IOCP
@@ -78,14 +84,48 @@ LEMON_IMPLEMENT_HANDLE(LemonIRP){
 
 	LemonIO												Self;
 
+	size_t												NumberOfBytesTransferred;
+
 #ifndef LEMON_IO_IOCP
 	
 	LemonIRPBuf											Buf;
 
 	int													Flag;
 
+	size_t												Type;
+
 #endif //LEMON_IO_IOCP
 };
+
+LEMON_IMPLEMENT_HANDLE(LemonIRPTableFileObj){
+
+	LemonIRPTableFileObj								Prev;
+
+	LemonIRPTableFileObj								Next;
+
+	__lemon_io_file										Handle;
+
+	//FIFO queue
+	LemonIRP											IRPsHeader;
+
+	LemonIRP											IRPsTail;
+};
+
+typedef struct LemonCompletedIRP{
+
+	size_t												Type;
+
+	LemonIO												IO;
+
+	LemonIRPCallBack									CallBack;
+
+	void												*UserData;
+
+	size_t												NumberOfBytesTransferred;
+
+	LemonErrorInfo										ErrorCode;
+
+}LemonCompletedIRP;
 
 //////////////////////////////////////////////////////////////////////////
 //All of those APIs are not thread safe
@@ -300,8 +340,32 @@ LEMON_IO_API
 	__lemon_in LemonIRPCompleteF completeF,
 	__lemon_in void * completeUserdata);
 
+LEMON_IO_API
+	LemonIRPCompleteQ 
+	LemonCreateIRPCompleteQ_TS(
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_IO_API
+	void 
+	LemonIRPComplete_TS(
+	__lemon_in LemonIRPCompleteQ completeQ,
+	__lemon_in LemonIRP irp,
+	__lemon_in const LemonErrorInfo * errorCode);
+
+LEMON_IO_API
+	lemon_bool LemonGetCompletedIRP(
+	__lemon_in LemonIRPCompleteQ completeQ,
+	__lemon_inout LemonCompletedIRP * completedIRP,
+	__lemon_in size_t milliseconds,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_IO_API 
+	void 
+	LemonCloseIRPCompleteQ_TS(
+	__lemon_free LemonIRPCompleteQ Q);
 
 #endif //LEMON_IO_IOCP
+
 
 #endif //LEMON_IO_IRP_H
 

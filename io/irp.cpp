@@ -4,21 +4,7 @@
 #include <lemon/sys/thread.h>
 #include <lemon/sys/assembly.h>
 #include <lemon/memory/fixobj.h>
-
-
-LEMON_IMPLEMENT_HANDLE(LemonIRPTableFileObj){
-
-	LemonIRPTableFileObj								Prev;
-
-	LemonIRPTableFileObj								Next;
-
-	__lemon_io_file										Handle;
-
-	//FIFO queue
-	LemonIRP											IRPsHeader;
-
-	LemonIRP											IRPsTail;
-};
+#include <lemon/memory/ringbuffer.h>
 
 LEMON_IMPLEMENT_HANDLE(LemonIRPTable){
 
@@ -33,6 +19,15 @@ LEMON_IMPLEMENT_HANDLE(LemonIRPTable){
 	size_t												Counter;
 
 	LemonIRPTableFileObj								*Array;
+};
+
+LEMON_IMPLEMENT_HANDLE(LemonIRPCompleteQ){
+
+	LemonMutex											Mutex;
+
+	LemonConditionVariable								Condition;
+
+	LemonRingBuffer										RingBuffer;
 };
 
 LEMON_IO_PRIVATE 
@@ -342,6 +337,8 @@ LEMON_IO_API
 
 	obj->Next = table->Array[hashCode];
 
+	if(table->Array[hashCode]) table->Array[hashCode]->Prev = obj;
+
 	table->Array[hashCode] = obj;
 
 	++ table->Counter;
@@ -407,7 +404,7 @@ LEMON_IO_API
 
 		if(lemon_true == current->Proc(current,&errorCode)) {
 			
-			completeF(userdata,&errorCode);
+			completeF(userdata,current,&errorCode);
 
 			current->Next = GC;
 
@@ -559,6 +556,8 @@ LEMON_IO_API
 	LemonCloseIRPs(table,irps);
 
 #else
+
+	table;
 
 	LemonIRP current = obj->IRPsHeader;
 
@@ -912,6 +911,131 @@ LEMON_IO_API
 	LemonExecuteIRPsExContext context = {table,F,statusUserdata,completeF,completeUserdata};
 
 	LemonIRPTableForeach_TS(table,&LemonExecuteIRPsEx_TS_F,&context,&errorCode);
+}
+
+LEMON_IO_API
+	LemonIRPCompleteQ 
+	LemonCreateIRPCompleteQ_TS(
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	LEMON_ALLOC_HANDLE(LemonIRPCompleteQ,Q);
+
+	Q->Condition = LemonCreateConditionVariable(errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	Q->Mutex = LemonCreateMutex(errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	Q->RingBuffer = LemonCreateRingBuffer(LEMON_IO_COMPLETEQ_MAX_SIZE,sizeof(LemonCompletedIRP),LEMON_IO_COMPLETEQ_MAX_SIZE,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	return Q;
+
+Error:
+	LemonCloseIRPCompleteQ_TS(Q);
+
+	return LEMON_HANDLE_NULL_VALUE;
+}
+
+LEMON_IO_API
+	void 
+	LemonIRPComplete_TS(
+	__lemon_in LemonIRPCompleteQ completeQ,
+	__lemon_in LemonIRP irp,
+	__lemon_in const LemonErrorInfo * errorCode)
+{
+	LEMON_DECLARE_ERRORINFO(ec);
+
+	LemonMutexLock(completeQ->Mutex,&ec);
+
+	assert(LEMON_SUCCESS(ec));
+
+	LemonCompletedIRP * IC = NULL;
+
+	if(LemonRingBufferCapacity(completeQ->RingBuffer) == LemonRingBufferLength(completeQ->RingBuffer)){
+
+		IC = (LemonCompletedIRP*)LemonRingBufferWriteBack(completeQ->RingBuffer);
+
+		assert(IC->CallBack.RW);
+
+		if(IC->Type & LEMON_IO_ACCEPT){
+			IC->CallBack.Accept(IC->UserData,IC->IO,&IC->ErrorCode);
+		}else{
+			IC->CallBack.RW(IC->UserData,IC->NumberOfBytesTransferred,&IC->ErrorCode);
+		}
+
+	}else{
+
+		IC = (LemonCompletedIRP*)LemonRingBufferWriteBack(completeQ->RingBuffer);
+	}
+
+	IC->CallBack = irp->CallBack;
+
+	IC->ErrorCode = *errorCode;
+
+	IC->IO = irp->Peer;
+
+	IC->NumberOfBytesTransferred = irp->NumberOfBytesTransferred;
+
+	IC->Type = irp->Type;
+
+	IC->UserData = irp->UserData;
+
+	LemonMutexUnLock(completeQ->Mutex,&ec);
+
+	assert(LEMON_SUCCESS(ec));
+}
+
+LEMON_IO_API
+	lemon_bool LemonGetCompletedIRP(
+	__lemon_in LemonIRPCompleteQ completeQ,
+	__lemon_inout LemonCompletedIRP * completedIRP,
+	__lemon_in size_t milliseconds,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	lemon_bool status = lemon_false;
+
+	LemonMutexLock(completeQ->Mutex,errorCode);
+
+	assert(LEMON_SUCCESS(*errorCode));
+
+	if(LemonRingBufferLength(completeQ->RingBuffer) == 0){
+
+		LemonConditionVariableWaitTimeout(completeQ->Condition,completeQ->Mutex,milliseconds,errorCode);
+
+		if(LemonRingBufferLength(completeQ->RingBuffer) == 0) goto Finally;
+	}
+
+	status = lemon_true;
+
+	*completedIRP = *(LemonCompletedIRP*)LemonRingBufferReadFront(completeQ->RingBuffer);
+
+Finally:
+
+	LemonMutexUnLock(completeQ->Mutex,errorCode);
+
+	assert(LEMON_SUCCESS(*errorCode));
+
+	return status;
+}
+
+LEMON_IO_API 
+	void 
+	LemonCloseIRPCompleteQ_TS(
+	__lemon_free LemonIRPCompleteQ Q)
+{
+	if(LEMON_CHECK_HANDLE(Q->RingBuffer)) LemonReleaseRingBuffer(Q->RingBuffer);
+
+	if(LEMON_CHECK_HANDLE(Q->Mutex)) LemonReleaseMutex(Q->Mutex);
+
+	if(LEMON_CHECK_HANDLE(Q->Condition)) LemonReleaseConditionVariable(Q->Condition);
+
+	LEMON_FREE_HANDLE(Q);
 }
 
 #endif //LEMON_IO_IOCP

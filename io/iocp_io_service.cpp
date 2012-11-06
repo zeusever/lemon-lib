@@ -125,7 +125,12 @@ LEMON_IO_API
 {
 	if(service->CompleteQ != NULL) ::CloseHandle(service->CompleteQ);
 
-	if(LEMON_CHECK_HANDLE(service->IRPs)) LemonCloseIRPTable_TS(service->IRPs);
+	if(LEMON_CHECK_HANDLE(service->IRPs)) {
+		
+		LemonIRPTableCancel_TS(service->IRPs);
+
+		LemonCloseIRPTable_TS(service->IRPs);
+	}
 
 	LEMON_FREE_HANDLE(service);
 }
