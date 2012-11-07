@@ -7,6 +7,17 @@
 #pragma warning(disable:4127)
 #endif //WIN32
 
+#ifdef LEMON_HAS_SELECT_H
+#	include <sys/select.h>
+#endif //LEMON_HAS_SELECT_H
+
+#ifdef LEMON_HAS_FCNTL_H
+#	include <fcntl.h>
+#endif //LEMON_HAS_FCNTL_H
+
+#ifdef LEMON_IO_POLL
+#	include <poll.h>
+#endif //LEMON_IO_POLL
 
 #ifndef LEMON_IO_IOCP
 
@@ -27,7 +38,7 @@ LEMON_IO_PRIVATE void LemonNIOPollWrite(__lemon_native_socket handle,LemonErrorI
 #else
 	pollfd fds;
 
-	fds.fd = s;
+	fds.fd = handle;
 
 	fds.events = POLLOUT;
 
@@ -53,7 +64,7 @@ LEMON_IO_PRIVATE void LemonNIOPollRead(__lemon_native_socket handle,LemonErrorIn
 #else
 	pollfd fds;
 
-	fds.fd = s;
+	fds.fd = handle;
 
 	fds.events = POLLIN;
 
@@ -90,7 +101,7 @@ LEMON_IO_PRIVATE void LemonNIOPollConnect(__lemon_native_socket handle,LemonErro
 #else
 	pollfd fds;
 
-	fds.fd = s;
+	fds.fd = handle;
 
 	fds.events = POLLOUT;
 
@@ -311,29 +322,22 @@ LEMON_IO_PRIVATE
 
 	if( __lemon_socket_error == ::connect((__lemon_native_socket)socket,address,addressSize)) __lemon_socket_last_error(*errorCode);
 
-	switch(errorCode->Error.Code)
-	{
-	case __lemon_try_again:
-	case __lemon_would_block:
-	case __lemon_ealerady:
-		{
-			LEMON_RESET_ERRORINFO(*errorCode);
+	lemon_uint32_t code = errorCode->Error.Code;
 
-			return lemon_false;
-		}
-	case __lemon_already_connected:
-		{
-			LEMON_RESET_ERRORINFO(*errorCode);
+	if(code == __lemon_try_again || code == __lemon_would_block || code == __lemon_ealerady){
+		LEMON_RESET_ERRORINFO(*errorCode);
 
-			return lemon_true;
-		}
-	default:
-		{
-			assert(false && "can't be here");
+           	return lemon_false;
+	}else if(__lemon_already_connected == code){
+		LEMON_RESET_ERRORINFO(*errorCode);
 
-			return lemon_false;
-		}
+                return lemon_true;
+	}else{
+	    	assert(false && "can't be here");
+
+                return lemon_false;	
 	}
+
 }
 
 

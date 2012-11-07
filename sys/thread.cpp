@@ -600,6 +600,32 @@ LEMON_SYS_API void LemonConditionVariableNotifyAll(__lemon_in LemonConditionVari
 	}
 }
 
+
+
+LEMON_SYS_API 
+	lemon_bool 
+	LemonConditionVariableWaitTimeout(
+	__lemon_in LemonConditionVariable  cv,
+	__lemon_in LemonMutex mutex,
+	__lemon_in size_t milliseconds,
+	__lemon_inout LemonErrorInfo * errorCode)
+{
+
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	struct timespec timeout = {(long)milliseconds/1000,(long)milliseconds%1000 * 1000 * 1000};
+
+        int code = pthread_cond_timedwait(reinterpret_cast<pthread_cond_t*>(cv),reinterpret_cast<pthread_mutex_t*>(mutex),&timeout);
+
+	if(0 == code) return lemon_true;
+
+        if (0 != code && ETIMEDOUT != code) {
+
+                LEMON_POSIX_ERROR(*errorCode, code);
+        }
+
+	return lemon_false;	
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //
 

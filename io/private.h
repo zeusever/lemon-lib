@@ -166,7 +166,7 @@ LEMON_DECLARE_HANDLE(LemonIRPCompleteQ);
 
 LEMON_DECLARE_HANDLE(LemonPollService);
 
-#endif LEMON_IO_IOCP
+#endif //LEMON_IO_IOCP
 
 LEMON_IMPLEMENT_HANDLE(LemonIOService){
 	
