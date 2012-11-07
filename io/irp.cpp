@@ -249,11 +249,15 @@ LEMON_IO_API
 
 				LemonIRPTableFileObj next = current->Next;
 
+				current->Next = current->Prev = NULL;
+
 				size_t hashCode = LemonIRPTableHashF(newBuckets, current->Handle);
 
 				assert(hashCode < newBuckets);
 
 				current->Next = newArray[hashCode];
+
+				if(newArray[hashCode]) newArray[hashCode]->Prev = current;
 
 				newArray[hashCode] = current;
 
