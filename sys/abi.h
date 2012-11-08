@@ -130,6 +130,8 @@ LEMON_SYS_API lemon_bool LemonErrorCodeCompare(const LemonError * lhs,const Lemo
 
 #define LEMON_VAR(type,name)	type name;memset(&name,0,sizeof(type));
 
+#define LEMON_HANDLE_STACK_VAR(type,name) LEMON_HANDLE_STRUCT_NAME(type) name;memset(&name,0,sizeof(type));
+
 //////////////////////////////////////////////////////////////////////////
 
 typedef lemon_uint32_t lemon_pid_t;

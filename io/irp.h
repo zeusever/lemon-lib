@@ -349,6 +349,17 @@ LEMON_IO_API
 	__lemon_in const LemonErrorInfo * errorCode);
 
 LEMON_IO_API
+	void 
+	LemonIRPCompleteEx_TS(
+	__lemon_in LemonIRPCompleteQ completeQ,
+	__lemon_in size_t type,
+	__lemon_in LemonIRPCallBack callback,
+	__lemon_in void * userdata,
+	__lemon_in LemonIO	peer,
+	__lemon_in size_t numberOfBytesTransferred,
+	__lemon_in const LemonErrorInfo * errorCode);
+
+LEMON_IO_API
 	lemon_bool LemonGetCompletedIRP(
 	__lemon_in LemonIRPCompleteQ completeQ,
 	__lemon_inout LemonCompletedIRP * completedIRP,

@@ -205,124 +205,7 @@ LEMON_IO_API
 }
 
 //////////////////////////////////////////////////////////////////////////
-LEMON_IO_API 
-	void 
-	LemonAsyncConnect(
-	__lemon_in LemonIO socket,
-	__lemon_in const struct sockaddr * addr,
-	__lemon_in socklen_t addrlen,
-	__lemon_in LemonIOCallback callback,
-	__lemon_in void * userData,
-	__lemon_inout LemonErrorInfo *errorCode)
-{
-	LemonIRPTable Q = socket->IOService->IRPs;
 
-	LEMON_RESET_ERRORINFO(*errorCode);
-
-	assert(Q);
-
-	if( __lemon_socket_error == ::connect((__lemon_native_socket)socket->Handle,addr,addrlen)) __lemon_socket_last_error(*errorCode);
-
-	int ec = errorCode->Error.Code;
-
-	if(ec != __lemon_try_again && ec != __lemon_would_block && ec != __lemon_in_progress) return;
-
-	LemonIRP E = LemonCreateIRP_TS(Q,errorCode);
-
-	if(LEMON_FAILED(*errorCode)) return;
-	// init the io event
-
-	E->CallBack.RW = callback; E->UserData = userData;
-
-	E->Type = LEMON_IO_CONNECT | LEMON_IO_WRITE;
-
-	E->Proc = &LemonIRProcConnect;
-
-	E->Self = socket;
-
-	E->Address.W.addr = addr;
-	
-	E->Address.W.len = addrlen;
-
-	LemonPollIRP(socket->IOService->PollService,E,errorCode);
-
-	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
-
-	if(LEMON_FAILED(*errorCode)) {
-		
-		LemonRemoveIRP_TS(Q,socket->Handle,E);
-
-		LemonCloseIRPs_TS(Q,E);
-	}
-}
-
-LEMON_IO_API 
-	void 
-	LemonAsyncAccept(
-	__lemon_in LemonIO socket,
-	__lemon_inout struct sockaddr * addr,
-	__lemon_inout socklen_t * addrlen,
-	__lemon_in LemonAcceptCallback callback,
-	__lemon_in void * userData,
-	__lemon_inout LemonErrorInfo *errorCode)
-{
-	LemonIRPTable Q = socket->IOService->IRPs;
-
-	LEMON_RESET_ERRORINFO(*errorCode);
-
-	assert(Q);
-
-	__lemon_native_socket newsocket = ::accept((__lemon_native_socket)socket->Handle, addr, addrlen);
-
-	if(__lemon_invalid_socket != newsocket) //sync accept
-	{
-		LEMON_ALLOC_HANDLE(LemonIO,io);
-
-		io->Handle = (__lemon_io_file)newsocket;
-
-		io->IOService = socket->IOService;
-
-		io->Close = &LemonCloseSocket;
-
-		LemonNIOSocket(newsocket,errorCode);
-
-		if(LEMON_FAILED(*errorCode)) LemonCloseSocket(io);
-		
-		callback(userData,io,errorCode);
-
-		return;
-	}
-
-	__lemon_socket_last_error(*errorCode);
-
-	if(errorCode->Error.Code != __lemon_try_again && errorCode->Error.Code != __lemon_would_block) return;
-
-	LemonIRP E = LemonCreateIRP_TS(Q,errorCode);
-
-	if(LEMON_FAILED(*errorCode)) return;
-	// init the io event
-	
-	E->Address.R.addr = addr; E->Address.R.len = addrlen;
-
-	E->CallBack.Accept = callback; E->UserData = userData;
-
-	E->Type =  LEMON_IO_ACCEPT | LEMON_IO_READ;
-
-	E->Proc = &LemonIRProcAccept;
-
-	E->Self = socket;
-
-	LemonPollIRP(socket->IOService->PollService,E,errorCode);
-
-	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
-
-	if(LEMON_FAILED(*errorCode)) {
-
-		LemonRemoveIRP_TS(Q,socket->Handle,E);
-
-		LemonCloseIRPs_TS(Q,E);
-	}
-}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -425,6 +308,150 @@ LEMON_IO_API
 
 //////////////////////////////////////////////////////////////////////////
 // async APIs
+
+LEMON_IO_API 
+	void 
+	LemonAsyncConnect(
+	__lemon_in LemonIO socket,
+	__lemon_in const struct sockaddr * addr,
+	__lemon_in socklen_t addrlen,
+	__lemon_in LemonIOCallback callback,
+	__lemon_in void * userData,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LemonIRPTable Q = socket->IOService->IRPs;
+
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	assert(Q);
+
+	size_t type =  LEMON_IO_CONNECT | LEMON_IO_WRITE;
+
+	if( __lemon_socket_error != ::connect((__lemon_native_socket)socket->Handle,addr,addrlen)){
+
+		LemonIRPCallBack cb;
+
+		cb.RW = callback;
+
+		LemonIRPCompleteEx_TS(socket->IOService->CompleteQ,type,cb,userData,NULL,0,errorCode);
+
+		return;
+	}		
+
+	__lemon_socket_last_error(*errorCode);
+
+	int ec = errorCode->Error.Code;
+
+	if(ec != __lemon_try_again && ec != __lemon_would_block && ec != __lemon_in_progress) return;
+
+	LemonIRP E = LemonCreateIRP_TS(Q,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) return;
+	// init the io event
+
+	E->CallBack.RW = callback; E->UserData = userData;
+
+	E->Type = type;
+
+	E->Proc = &LemonIRProcConnect;
+
+	E->Self = socket;
+
+	E->Address.W.addr = addr;
+
+	E->Address.W.len = addrlen;
+
+	LemonPollIRP(socket->IOService->PollService,E,errorCode);
+
+	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) {
+
+		LemonRemoveIRP_TS(Q,socket->Handle,E);
+
+		LemonCloseIRPs_TS(Q,E);
+	}
+}
+
+LEMON_IO_API 
+	void 
+	LemonAsyncAccept(
+	__lemon_in LemonIO socket,
+	__lemon_inout struct sockaddr * addr,
+	__lemon_inout socklen_t * addrlen,
+	__lemon_in LemonAcceptCallback callback,
+	__lemon_in void * userData,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LemonIRPTable Q = socket->IOService->IRPs;
+
+	LEMON_RESET_ERRORINFO(*errorCode);
+
+	assert(Q);
+
+	size_t type = LEMON_IO_ACCEPT | LEMON_IO_READ;
+
+	__lemon_native_socket newsocket = ::accept((__lemon_native_socket)socket->Handle, addr, addrlen);
+
+	if(__lemon_invalid_socket != newsocket) //sync accept
+	{
+		LEMON_ALLOC_HANDLE(LemonIO,io);
+
+		io->Handle = (__lemon_io_file)newsocket;
+
+		io->IOService = socket->IOService;
+
+		io->Close = &LemonCloseSocket;
+
+		LemonNIOSocket(newsocket,errorCode);
+
+		if(LEMON_SUCCESS(*errorCode))
+		{
+			LemonIRPCallBack cb;
+
+			cb.Accept = callback;
+
+			LemonIRPCompleteEx_TS(socket->IOService->CompleteQ,type,cb,userData,io,0,errorCode);
+		}
+		else
+		{
+			LemonCloseSocket(io);
+		}
+
+		return;
+	}
+
+	__lemon_socket_last_error(*errorCode);
+
+	if(errorCode->Error.Code != __lemon_try_again && errorCode->Error.Code != __lemon_would_block) return;
+
+	LemonIRP E = LemonCreateIRP_TS(Q,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) return;
+	// init the io event
+
+	E->Address.R.addr = addr; E->Address.R.len = addrlen;
+
+	E->CallBack.Accept = callback; E->UserData = userData;
+
+	E->Type =  type;
+
+	E->Proc = &LemonIRProcAccept;
+
+	E->Self = socket;
+
+	LemonPollIRP(socket->IOService->PollService,E,errorCode);
+
+	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) {
+
+		LemonRemoveIRP_TS(Q,socket->Handle,E);
+
+		LemonCloseIRPs_TS(Q,E);
+	}
+}
+
 LEMON_IO_API
 	void
 	LemonAsyncSendTo(
@@ -444,6 +471,8 @@ LEMON_IO_API
 
 	assert(Q);
 
+	size_t type = LEMON_IO_WRITE;
+
 	int length = ::sendto(
 		(__lemon_native_socket)socket->Handle, 
 		(char*)buffer, 
@@ -452,14 +481,20 @@ LEMON_IO_API
 		address,
 		addressSize);
 
-	if(__lemon_socket_error != length){ callback(userData,length,errorCode); return; }
-
-	if(__lemon_would_block != errorCode->Error.Code && __lemon_try_again != errorCode->Error.Code)
+	if(__lemon_socket_error != length)
 	{
-		__lemon_socket_last_error(*errorCode);
+		LemonIRPCallBack cb;
+
+		cb.RW = callback;
+
+		LemonIRPCompleteEx_TS(socket->IOService->CompleteQ,type,cb,userData,NULL,length,errorCode);
 
 		return;
 	}
+
+	__lemon_socket_last_error(*errorCode);
+
+	if(__lemon_would_block != errorCode->Error.Code && __lemon_try_again != errorCode->Error.Code) return;
 
 	LemonIRP E = LemonCreateIRP_TS(Q,errorCode);
 
@@ -473,7 +508,7 @@ LEMON_IO_API
 
 	E->Flag = flags;
 
-	E->Type = LEMON_IO_WRITE;
+	E->Type = type;
 
 	E->Proc = &LemonIRProcSendTo;
 
@@ -508,20 +543,29 @@ LEMON_IO_API
 
 	assert(Q);
 
+	size_t type = LEMON_IO_WRITE;
+
 	int length = ::send(
 		(__lemon_native_socket)socket->Handle, 
 		(char*)buffer, 
 		(int)bufferSize,
 		flags);
 
-	if(__lemon_socket_error != length){ callback(userData,length,errorCode); return; }
+	if(__lemon_socket_error != length){ 
 
-	if(__lemon_would_block != errorCode->Error.Code && __lemon_try_again != errorCode->Error.Code)
-	{
-		__lemon_socket_last_error(*errorCode);
+		LemonIRPCallBack cb;
+
+		cb.RW = callback;
+
+		LemonIRPCompleteEx_TS(socket->IOService->CompleteQ,type,cb,userData,NULL,length,errorCode);
 
 		return;
+
 	}
+
+	__lemon_socket_last_error(*errorCode);
+
+	if(__lemon_would_block != errorCode->Error.Code && __lemon_try_again != errorCode->Error.Code) return;
 
 	LemonIRP E = LemonCreateIRP_TS(Q,errorCode);
 
@@ -533,7 +577,7 @@ LEMON_IO_API
 
 	E->Flag = flags;
 
-	E->Type = LEMON_IO_WRITE;
+	E->Type = type;
 
 	E->Proc = &LemonIRProcSend;
 
@@ -570,6 +614,8 @@ LEMON_IO_API
 
 	assert(Q);
 
+	size_t type = LEMON_IO_READ;
+
 	int length = ::recvfrom(
 		(__lemon_native_socket)socket->Handle, 
 		(char*)buffer, 
@@ -578,7 +624,17 @@ LEMON_IO_API
 		address,
 		addressSize);
 
-	if(__lemon_socket_error != length){ callback(userData,length,errorCode); return; }
+	if(__lemon_socket_error != length){
+
+		LemonIRPCallBack cb;
+
+		cb.RW = callback;
+
+		LemonIRPCompleteEx_TS(socket->IOService->CompleteQ,type,cb,userData,NULL,length,errorCode);
+
+		return;
+
+	}
 
 	__lemon_socket_last_error(*errorCode);
 
@@ -631,13 +687,25 @@ LEMON_IO_API
 
 	assert(Q);
 
+	size_t type = LEMON_IO_READ;
+
 	int length = ::recv(
 		(__lemon_native_socket)socket->Handle, 
 		(char*)buffer, 
 		(int)bufferSize,
 		flags);
 
-	if(__lemon_socket_error != length){ callback(userData,length,errorCode); return; }
+	if(__lemon_socket_error != length){
+
+		LemonIRPCallBack cb;
+
+		cb.RW = callback;
+
+		LemonIRPCompleteEx_TS(socket->IOService->CompleteQ,type,cb,userData,NULL,length,errorCode);
+
+		return;
+
+	}
 
 	__lemon_socket_last_error(*errorCode);
 
@@ -654,7 +722,7 @@ LEMON_IO_API
 
 	E->Flag = flags;
 
-	E->Type = LEMON_IO_READ;
+	E->Type = type;
 
 	E->Proc = &LemonIRProcRecv;
 

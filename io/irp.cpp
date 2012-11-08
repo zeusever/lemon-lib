@@ -1000,6 +1000,59 @@ LEMON_IO_API
 }
 
 LEMON_IO_API
+	void 
+	LemonIRPCompleteEx_TS(
+	__lemon_in LemonIRPCompleteQ completeQ,
+	__lemon_in size_t type,
+	__lemon_in LemonIRPCallBack callback,
+	__lemon_in void * userdata,
+	__lemon_in LemonIO	peer,
+	__lemon_in size_t numberOfBytesTransferred,
+	__lemon_in const LemonErrorInfo * errorCode)
+{
+	LEMON_DECLARE_ERRORINFO(ec);
+
+	LemonMutexLock(completeQ->Mutex,&ec);
+
+	assert(LEMON_SUCCESS(ec));
+
+	LemonCompletedIRP * IC = NULL;
+
+	if(LemonRingBufferCapacity(completeQ->RingBuffer) == LemonRingBufferLength(completeQ->RingBuffer)){
+
+		IC = (LemonCompletedIRP*)LemonRingBufferWriteBack(completeQ->RingBuffer);
+
+		assert(IC->CallBack.RW);
+
+		if(IC->Type & LEMON_IO_ACCEPT){
+			IC->CallBack.Accept(IC->UserData,IC->IO,&IC->ErrorCode);
+		}else{
+			IC->CallBack.RW(IC->UserData,IC->NumberOfBytesTransferred,&IC->ErrorCode);
+		}
+
+	}else{
+
+		IC = (LemonCompletedIRP*)LemonRingBufferWriteBack(completeQ->RingBuffer);
+	}
+
+	IC->CallBack = callback;
+
+	IC->ErrorCode = *errorCode;
+
+	IC->IO = peer;
+
+	IC->NumberOfBytesTransferred = numberOfBytesTransferred;
+
+	IC->Type = type;
+
+	IC->UserData = userdata;
+
+	LemonMutexUnLock(completeQ->Mutex,&ec);
+
+	assert(LEMON_SUCCESS(ec));
+}
+
+LEMON_IO_API
 	lemon_bool LemonGetCompletedIRP(
 	__lemon_in LemonIRPCompleteQ completeQ,
 	__lemon_inout LemonCompletedIRP * completedIRP,
