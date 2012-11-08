@@ -397,6 +397,10 @@ LEMON_IO_API
 	{
 		LEMON_ALLOC_HANDLE(LemonIO,io);
 
+		LemonIRPCallBack cb;
+
+		cb.Accept = callback;
+
 		io->Handle = (__lemon_io_file)newsocket;
 
 		io->IOService = socket->IOService;
@@ -405,18 +409,18 @@ LEMON_IO_API
 
 		LemonNIOSocket(newsocket,errorCode);
 
-		if(LEMON_SUCCESS(*errorCode))
-		{
-			LemonIRPCallBack cb;
+		if(LEMON_FAILED(*errorCode)) goto Error;
 
-			cb.Accept = callback;
+		LemonPollOpenFile(socket->IOService->PollService,io->Handle,errorCode);
 
-			LemonIRPCompleteEx_TS(socket->IOService->CompleteQ,type,cb,userData,io,0,errorCode);
-		}
-		else
-		{
-			LemonCloseSocket(io);
-		}
+		if(LEMON_FAILED(*errorCode)) goto Error;
+
+		LemonIRPCompleteEx_TS(socket->IOService->CompleteQ,type,cb,userData,io,0,errorCode);
+
+		return;
+Error:
+		
+		LemonCloseSocket(io);
 
 		return;
 	}
