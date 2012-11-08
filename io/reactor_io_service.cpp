@@ -27,9 +27,9 @@ LEMON_IO_API
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
-	/*service->PollService = LemonCreateIOMultiplexer(errorCode);
+	service->PollService = LemonCreatePollService(errorCode);
 
-	if(LEMON_FAILED(*errorCode)) goto Error;*/
+	if(LEMON_FAILED(*errorCode)) goto Error;
 
 	LemonResetIOService(service,errorCode);
 

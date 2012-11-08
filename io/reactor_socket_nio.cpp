@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <lemon/io/private.h>
 #include <lemon/io/reactor_socket.h>
+#include <lemon/io/reactor_poll_service.h>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -327,15 +328,17 @@ LEMON_IO_PRIVATE
 	if(code == __lemon_try_again || code == __lemon_would_block || code == __lemon_ealerady){
 		LEMON_RESET_ERRORINFO(*errorCode);
 
-           	return lemon_false;
-	}else if(__lemon_already_connected == code){
+        return lemon_false;
+	}else if(__lemon_already_connected == code || 0 == code){
+		
 		LEMON_RESET_ERRORINFO(*errorCode);
 
-                return lemon_true;
+        return lemon_true;
 	}else{
-	    	assert(false && "can't be here");
+	    
+	    assert(false && "can't be here");
 
-                return lemon_false;	
+        return lemon_false;	
 	}
 
 }
@@ -408,9 +411,15 @@ lemon_bool LemonIRProcAccept(LemonIRP irp, LemonErrorInfo * errorCode)
 
 		io->Close = &LemonCloseSocket;
 
+		io->IOService = irp->Self->IOService;
+
 		LemonNIOSocket(peer,errorCode);
 
-		if(LEMON_FAILED(*errorCode)) LemonCloseSocket(io);
+		if(LEMON_FAILED(*errorCode)) { LemonCloseSocket(io); return status; }
+
+		LemonPollOpenFile(io->IOService->PollService,io->Handle,errorCode);
+
+		if(LEMON_FAILED(*errorCode)) { LemonCloseSocket(io); return status; }
 
 		irp->Peer = io;
 	}

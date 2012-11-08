@@ -24,7 +24,7 @@ LEMON_IO_PRIVATE
 	__lemon_in DWORD completeKey,
 	__lemon_inout LemonErrorInfo * errorCode);
 
-#endif LEMON_IO_IOCP
+#endif //LEMON_IO_IOCP
 
 #endif //LEMON_IO_IOCP_IO_SERVICE_H
 

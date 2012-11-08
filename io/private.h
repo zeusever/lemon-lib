@@ -30,6 +30,8 @@
 
 #define LEMON_IO_SERVICE_LOOP_TIMEOUT								100
 
+#define LEMON_IO_EPOLL_MAX_EVENTS									10
+
 #ifdef WIN32
 
 #	define __lemon_io_file							HANDLE

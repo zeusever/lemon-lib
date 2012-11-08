@@ -50,6 +50,10 @@ LEMON_IO_API
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
+	LemonPollOpenFile(io_service->PollService,io->Handle,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
 	return io;
 
 Error:
@@ -62,12 +66,17 @@ Error:
 
 LEMON_IO_PRIVATE void LemonCloseSocket(__lemon_free LemonIO io)
 {
-	if((__lemon_native_socket)io->Handle != __lemon_invalid_socket)
+
+	if((__lemon_native_socket)io->Handle != __lemon_invalid_socket){
+
+		LemonPollCloseFile(io->IOService->PollService,io->Handle);
+
 #ifdef WIN32
 		::closesocket((__lemon_native_socket)io->Handle);
 #else
 		::close(io->Handle);
 #endif //WIN32
+	}
 
 	LEMON_FREE_HANDLE(io);
 }
@@ -163,7 +172,12 @@ LEMON_IO_API
 
 		LemonNIOSocket(newsocket,errorCode);
 
+		if(LEMON_FAILED(*errorCode)) goto Error;
+
+		LemonPollOpenFile(socket->IOService->PollService,io->Handle,errorCode);
+
 		if(LEMON_SUCCESS(*errorCode)) return io;
+Error:
 
 		LemonCloseSocket(io);
 
@@ -183,7 +197,9 @@ LEMON_IO_API
 
 	if( __lemon_socket_error == ::connect((__lemon_native_socket)socket->Handle,addr,addrlen)) __lemon_socket_last_error(*errorCode);
 
-	if(errorCode->Error.Code != __lemon_try_again && errorCode->Error.Code != __lemon_would_block) return;
+	int ec = errorCode->Error.Code;
+
+	if(ec != __lemon_try_again && ec != __lemon_would_block && ec != __lemon_in_progress) return;
 
 	LemonNIOPollConnect((__lemon_native_socket)socket->Handle,errorCode);
 }
@@ -207,7 +223,9 @@ LEMON_IO_API
 
 	if( __lemon_socket_error == ::connect((__lemon_native_socket)socket->Handle,addr,addrlen)) __lemon_socket_last_error(*errorCode);
 
-	if(errorCode->Error.Code != __lemon_try_again && errorCode->Error.Code != __lemon_would_block) return;
+	int ec = errorCode->Error.Code;
+
+	if(ec != __lemon_try_again && ec != __lemon_would_block && ec != __lemon_in_progress) return;
 
 	LemonIRP E = LemonCreateIRP_TS(Q,errorCode);
 
@@ -221,6 +239,10 @@ LEMON_IO_API
 	E->Proc = &LemonIRProcConnect;
 
 	E->Self = socket;
+
+	E->Address.W.addr = addr;
+	
+	E->Address.W.len = addrlen;
 
 	LemonPollIRP(socket->IOService->PollService,E,errorCode);
 

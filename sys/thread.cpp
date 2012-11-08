@@ -649,6 +649,7 @@ LEMON_IMPLEMENT_HANDLE(LemonThread){
 
 };
 
+#include <signal.h>
 #include <assert.h>
 #include <iostream>
 
@@ -659,6 +660,16 @@ void* ProcWrapper(void* data)
 	LEMON_DECLARE_ERRORINFO(errorCode);
 
 	LemonThread current = (LemonThread)data;
+
+	//block sigpipe error
+
+	sigset_t signal_mask;
+	
+	sigemptyset (&signal_mask);
+
+	sigaddset (&signal_mask, SIGPIPE);
+	
+	pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
 
 #ifdef LEMON_HAS_GETTID
 	current->Id = gettid();
