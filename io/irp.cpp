@@ -316,6 +316,8 @@ LEMON_IO_API
 		obj->Prev->Next = obj->Next;
 	}
 
+	if(obj->Next) obj->Next->Prev = obj->Prev;
+
 	-- table->Counter;
 }
 
