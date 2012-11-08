@@ -222,7 +222,7 @@ LEMON_IO_API
 
 	E->Self = socket;
 
-	LemonPollServiceRegister(socket->IOService->PollService,E,errorCode);
+	LemonPollIRP(socket->IOService->PollService,E,errorCode);
 
 	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
 
@@ -290,7 +290,7 @@ LEMON_IO_API
 
 	E->Self = socket;
 
-	LemonPollServiceRegister(socket->IOService->PollService,E,errorCode);
+	LemonPollIRP(socket->IOService->PollService,E,errorCode);
 
 	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
 
@@ -457,7 +457,7 @@ LEMON_IO_API
 
 	E->Self = socket;
 
-	LemonPollServiceRegister(socket->IOService->PollService,E,errorCode);
+	LemonPollIRP(socket->IOService->PollService,E,errorCode);
 
 	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
 
@@ -517,7 +517,7 @@ LEMON_IO_API
 
 	E->Self = socket;
 
-	LemonPollServiceRegister(socket->IOService->PollService,E,errorCode);
+	LemonPollIRP(socket->IOService->PollService,E,errorCode);
 
 	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
 
@@ -580,7 +580,7 @@ LEMON_IO_API
 
 	E->Self = socket;
 
-	LemonPollServiceRegister(socket->IOService->PollService,E,errorCode);
+	LemonPollIRP(socket->IOService->PollService,E,errorCode);
 
 	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
 
@@ -638,7 +638,7 @@ LEMON_IO_API
 
 	E->Self = socket;
 
-	LemonPollServiceRegister(socket->IOService->PollService,E,errorCode);
+	LemonPollIRP(socket->IOService->PollService,E,errorCode);
 
 	LemonInsertIRP_TS(socket->IOService->IRPs,socket->Handle,E,errorCode);
 

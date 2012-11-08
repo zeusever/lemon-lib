@@ -386,6 +386,8 @@ LEMON_IO_API
 	}
 }
 
+#ifndef LEMON_IO_IOCP
+
 LEMON_IO_API
 	void
 	LemonExecuteIRPs(
@@ -423,6 +425,8 @@ LEMON_IO_API
 
 	LemonCloseIRPs(table,GC);
 }
+
+#endif //LEMON_IO_IOCP
 //////////////////////////////////////////////////////////////////////////
 
 LEMON_IO_API
@@ -842,7 +846,7 @@ LEMON_IO_API
 
 	LemonRemoveIRP(obj,irp);
 
-	if(!irp->Canceled) { irp->Proc(irp,errorCode); }
+	if(!irp->Canceled) { irp->Proc(irp,(LemonErrorInfo*)errorCode);}
 
 	LemonCloseIRPs(table,irp);
 

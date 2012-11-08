@@ -12,15 +12,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-#ifdef LEMON_IO_IOCP
-
-typedef lemon_bool (*LemonIRProc)(LemonIRP irp,const LemonErrorInfo * errorCode);
-
-#else
-
 typedef lemon_bool (*LemonIRProc)(LemonIRP irp, LemonErrorInfo * errorCode);
-
-#endif //
 
 typedef lemon_bool (*LemonIRPTableForearchF)(void * userdata,const LemonIRPTableFileObj obj,LemonErrorInfo * errorCode);
 
@@ -179,6 +171,8 @@ LEMON_IO_API
 	__lemon_in LemonIRPTable table,
 	__lemon_in LemonIRPTableFileObj obj);
 
+#ifndef LEMON_IO_IOCP
+
 LEMON_IO_API
 	void
 	LemonExecuteIRPs(
@@ -186,6 +180,8 @@ LEMON_IO_API
 	__lemon_in LemonIRPTableFileObj obj,
 	__lemon_in LemonIRPCompleteF completeF,
 	__lemon_in void * userdata);
+
+#endif //LEMON_IO_IOCP
 
 LEMON_IO_API
 	void LemonIRPTableResize(

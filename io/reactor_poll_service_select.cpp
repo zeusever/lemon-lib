@@ -24,7 +24,7 @@ typedef struct LemonPollServiceContext{
 }LemonPollServiceContext;
 
 
-LEMON_IO_API 
+LEMON_IO_PRIVATE 
 	LemonPollService 
 	LemonCreatePollService(
 	__lemon_inout LemonErrorInfo * errorCode)
@@ -36,7 +36,7 @@ LEMON_IO_API
 	return poll;
 }
 
-LEMON_IO_API 
+LEMON_IO_PRIVATE 
 	void 
 	LemonClosePollSerivce(
 	__lemon_free LemonPollService poll)
@@ -62,8 +62,8 @@ LEMON_IO_PRIVATE
 	return lemon_false;
 }
 
-LEMON_IO_API
-	void LemonPollServiceRegister(
+LEMON_IO_PRIVATE
+	void LemonPollIRP(
 	__lemon_in LemonPollService /*poll*/,
 	__lemon_in LemonIRP irp,
 	__lemon_inout LemonErrorInfo *errorCode)
@@ -74,6 +74,25 @@ LEMON_IO_API
 
 	if(LEMON_IO_CONNECT & irp->Type) irp->Type |= LEMON_IO_EXCEPTION;
 #endif //WIN32
+}
+
+LEMON_IO_PRIVATE
+	void 
+	LemonPollOpenFile(
+	__lemon_in LemonPollService /*poll*/,
+	__lemon_in __lemon_io_file /*handle*/,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LEMON_RESET_ERRORINFO(*errorCode);
+}
+
+LEMON_IO_PRIVATE
+	void 
+	LemonPollCloseFile(
+	__lemon_in LemonPollService /*poll*/,
+	__lemon_in __lemon_io_file /*handle*/)
+{
+
 }
 
 LEMON_IO_PRIVATE
@@ -125,7 +144,7 @@ LEMON_IO_PRIVATE
 	return lemon_true;
 }
 
-LEMON_IO_API 
+LEMON_IO_PRIVATE 
 	void 
 	LemonIOPoll(
 	__lemon_in LemonPollService /*poll*/,

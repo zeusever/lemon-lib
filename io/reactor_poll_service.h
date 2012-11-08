@@ -13,23 +13,37 @@
 
 #ifndef LEMON_IO_IOCP
 
-LEMON_IO_API 
+LEMON_IO_PRIVATE 
 	LemonPollService 
 	LemonCreatePollService(
 	__lemon_inout LemonErrorInfo * errorCode);
 
-LEMON_IO_API 
+LEMON_IO_PRIVATE 
 	void 
 	LemonClosePollSerivce(
 	__lemon_free LemonPollService poll);
 
-LEMON_IO_API
-	void LemonPollServiceRegister(
+LEMON_IO_PRIVATE
+	void 
+	LemonPollOpenFile(
+	__lemon_in LemonPollService poll,
+	__lemon_in __lemon_io_file handle,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_IO_PRIVATE
+	void 
+	LemonPollCloseFile(
+	__lemon_in LemonPollService poll,
+	__lemon_in __lemon_io_file handle);
+
+LEMON_IO_PRIVATE
+	void 
+	LemonPollIRP(
 	__lemon_in LemonPollService poll,
 	__lemon_in LemonIRP irp,
 	__lemon_inout LemonErrorInfo *errorCode);
 
-LEMON_IO_API 
+LEMON_IO_PRIVATE 
 	void 
 	LemonIOPoll(
 	__lemon_in LemonPollService poll,

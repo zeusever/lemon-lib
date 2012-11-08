@@ -2,10 +2,8 @@ include(CheckTypeSize)
 include(CheckIncludeFiles)
 
 if(WIN32)
-	#set(LEMON_IO_IOCP TRUE)
+	set(LEMON_IO_IOCP TRUE)
 endif(WIN32)
-
-set(LEMON_IO_SELECT TRUE)
 
 check_include_files(poll.h  LEMON_IO_POLL)
 

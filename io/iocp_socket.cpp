@@ -65,7 +65,7 @@ LEMON_IO_PRIVATE
 	::closesocket((__lemon_native_socket)io->Handle);
 }
 
-lemon_bool LemonWin32SocketRWF(LemonIRP irp,const LemonErrorInfo * errorCode)
+lemon_bool LemonWin32SocketRWF(LemonIRP irp,LemonErrorInfo * errorCode)
 {
 	assert(irp->CallBack.RW);
 
@@ -74,7 +74,7 @@ lemon_bool LemonWin32SocketRWF(LemonIRP irp,const LemonErrorInfo * errorCode)
 	return lemon_true;
 }
 
-lemon_bool LemonWin32SocketAcceptF(LemonIRP irp,const LemonErrorInfo * errorCode)
+lemon_bool LemonWin32SocketAcceptF(LemonIRP irp,LemonErrorInfo * errorCode)
 {
 	assert(irp->CallBack.Accept);
 
