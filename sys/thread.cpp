@@ -949,3 +949,22 @@ LEMON_SYS_API lemon_int32_t LemonAtomicDecrement(lemon_atomic_t* source){
 #endif //defined(LEMON_USE_GCC_BITS_ATOMICITY_H) || defined(LEMON_USE_GCC_EXT_ATOMICITY_H)
 
 #endif //__GNUC__
+
+
+LEMON_SYS_API void LemonMutexLockEx(__lemon_in LemonMutex mutex)
+{
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LemonMutexLock(mutex,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
+}
+
+LEMON_SYS_API void LemonMutexUnLockEx(__lemon_in LemonMutex mutex)
+{
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LemonMutexUnLock(mutex,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
+}

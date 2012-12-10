@@ -8,6 +8,7 @@
 */
 #ifndef LEMON_SYS_THREAD_H
 #define LEMON_SYS_THREAD_H
+#include <assert.h>
 #include <lemon/sys/abi.h>
 
 #ifdef LEMON_HAS_PTHREAD
@@ -48,6 +49,11 @@ LEMON_SYS_API void LemonMutexLock(__lemon_in LemonMutex mutex,__lemon_inout Lemo
 LEMON_SYS_API lemon_bool LemonMutexTryLock(__lemon_in LemonMutex mutex,__lemon_inout LemonErrorInfo * errorCode);
 
 LEMON_SYS_API void LemonMutexUnLock(__lemon_in LemonMutex mutex,__lemon_inout LemonErrorInfo * errorCode);
+
+
+LEMON_SYS_API void LemonMutexLockEx(__lemon_in LemonMutex mutex);
+
+LEMON_SYS_API void LemonMutexUnLockEx(__lemon_in LemonMutex mutex);
 
 //////////////////////////////////////////////////////////////////
 //ConditionVariable
