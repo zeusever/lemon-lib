@@ -175,6 +175,28 @@ LEMON_MEMORY_API
 }
 
 LEMON_MEMORY_API
+	LemonHashMapNode
+	__LemonHashMapSearch(
+	__lemon_in LemonHashMap table,
+	__lemon_in const void* key)
+{
+	size_t hashCode = LemonHashMapReHashF(table->Buckets,table->F(key));
+
+	LemonHashMapNode node = table->Array[hashCode];
+
+	while(node){
+
+		if(node->Key == key) break;
+
+		if(table->CompareF(node->Key,key) == 0) break;
+
+		node = node->Next;
+	}
+
+	return node;
+}
+
+LEMON_MEMORY_API
 	void
 	LemonHashMapAdd(
 	__lemon_in LemonHashMap table,
@@ -192,6 +214,10 @@ LEMON_MEMORY_API
 
 		if(LEMON_FAILED(*errorCode)) return;
 	}
+
+	node = __LemonHashMapSearch(table,key);
+
+	if(node){ node->Value = val; return; }
 
 	node = (LemonHashMapNode)LemonFixObjectAlloc(table->Allocator);
 
@@ -214,6 +240,8 @@ LEMON_MEMORY_API
 
 	++ table->Counter;
 }
+
+
 
 LEMON_MEMORY_API
 	void*
@@ -245,9 +273,11 @@ LEMON_MEMORY_API
 		if(node->Next) node->Next->Prev = node->Prev;
 
 		-- table->Counter;
+
+		return node->Value;
 	}
 
-	return node->Value;
+	return NULL;
 }
 
 LEMON_MEMORY_API
@@ -258,18 +288,7 @@ LEMON_MEMORY_API
 {
 	assert(table && key);
 
-	size_t hashCode = LemonHashMapReHashF(table->Buckets,table->F(key));
-
-	LemonHashMapNode node = table->Array[hashCode];
-
-	while(node){
-
-		if(node->Key == key) break;
-
-		if(table->CompareF(node->Key,key) == 0) break;
-
-		node = node->Next;
-	}
+	LemonHashMapNode node = __LemonHashMapSearch(table,key);
 
 	if(node) return node->Value;
 

@@ -30,6 +30,28 @@
 #define __lemon_buffer(length)
 
 #define __lemon_nullable 
+
+//////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////// 
+
+typedef struct LemonBuff{
+
+	lemon_byte_t											*Data;
+
+	size_t													Length;
+
+}															LemonBuffer;
+
+typedef struct LemonCBuff{
+
+	const lemon_byte_t										*Data;
+
+	size_t													Length;
+
+}															LemonCBuff;
+
+#define LEMON_CHECK_BUFF(buf)								((buf).Data != NULL && (buf).Length != 0)
+
 //////////////////////////////////////////////////////////////////////////
 
 typedef struct LemonVersion{

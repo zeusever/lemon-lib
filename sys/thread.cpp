@@ -62,7 +62,7 @@ LEMON_SYS_API void* LemonTlsGet(LemonTls tls,LemonErrorInfo * errorCode){
 
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
 		}
-			
+
 	}
 
 	return result;
@@ -173,39 +173,40 @@ LEMON_SYS_API void LemonReleaseConditionVariable(__lemon_in LemonConditionVariab
 LEMON_SYS_API void LemonConditionVariableWait(
 	__lemon_in LemonConditionVariable  cv,
 	__lemon_in LemonMutex mutex,
-	__lemon_inout LemonErrorInfo * errorCode){
+	__lemon_inout LemonErrorInfo * errorCode)
+{
 
-		LEMON_RESET_ERRORINFO(*errorCode);
+	LEMON_RESET_ERRORINFO(*errorCode);
 
-		LemonMutexLock(cv->NotifyMutex,errorCode);
+	LemonMutexLock(cv->NotifyMutex,errorCode);
 
-		if(LEMON_FAILED(*errorCode)) return;
+	if(LEMON_FAILED(*errorCode)) return;
 
-		LemonAtomicIncrement(&cv->BlockThreads);
+	LemonAtomicIncrement(&cv->BlockThreads);
 
-		LemonMutexUnLock(cv->NotifyMutex,errorCode);
+	LemonMutexUnLock(cv->NotifyMutex,errorCode);
 
-		if(LEMON_FAILED(*errorCode)) return;
+	if(LEMON_FAILED(*errorCode)) return;
 
-		LemonMutexUnLock(mutex,errorCode);
+	LemonMutexUnLock(mutex,errorCode);
 
-		if(LEMON_FAILED(*errorCode)) return;
+	if(LEMON_FAILED(*errorCode)) return;
 
-		if(WAIT_OBJECT_0 != ::WaitForSingleObject(cv->Event,INFINITE)){
+	if(WAIT_OBJECT_0 != ::WaitForSingleObject(cv->Event,INFINITE)){
+
+		LEMON_WIN32_ERROR(*errorCode,GetLastError());
+	}
+
+	LemonAtomicDecrement(&cv->BlockThreads);
+
+	if(LEMON_SUCCESS(*errorCode)){
+		if(!SetEvent(cv->NotifyAllEvent)){
 
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
 		}
+	}
 
-		LemonMutexLock(mutex,errorCode);
-
-		LemonAtomicDecrement(&cv->BlockThreads);
-
-		if(LEMON_SUCCESS(*errorCode)){
-			if(!SetEvent(cv->NotifyAllEvent)){
-
-				LEMON_WIN32_ERROR(*errorCode,GetLastError());
-			}
-		}
+	LemonMutexLock(mutex,errorCode);
 }
 
 LEMON_SYS_API lemon_bool LemonConditionVariableWaitTimeout(
@@ -216,15 +217,7 @@ LEMON_SYS_API lemon_bool LemonConditionVariableWaitTimeout(
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	LemonMutexLock(cv->NotifyMutex,errorCode);
-
-	assert(LEMON_SUCCESS(*errorCode));
-
 	LemonAtomicIncrement(&cv->BlockThreads);
-
-	LemonMutexUnLock(cv->NotifyMutex,errorCode);
-
-	assert(LEMON_SUCCESS(*errorCode));
 
 	LemonMutexUnLock(mutex,errorCode);
 
@@ -286,7 +279,7 @@ LEMON_SYS_API void LemonConditionVariableNotifyAll(__lemon_in LemonConditionVari
 
 			LEMON_WIN32_ERROR(*errorCode,GetLastError());
 
-			 break;
+			break;
 		}
 
 		if(WAIT_OBJECT_0 != ::WaitForSingleObject(cv->NotifyAllEvent,INFINITE)){
@@ -615,14 +608,14 @@ LEMON_SYS_API
 
 	struct timespec timeout = {(long)milliseconds/1000,(long)milliseconds%1000 * 1000 * 1000};
 
-        int code = pthread_cond_timedwait(reinterpret_cast<pthread_cond_t*>(cv),reinterpret_cast<pthread_mutex_t*>(mutex),&timeout);
+	int code = pthread_cond_timedwait(reinterpret_cast<pthread_cond_t*>(cv),reinterpret_cast<pthread_mutex_t*>(mutex),&timeout);
 
 	if(0 == code) return lemon_true;
 
-        if (0 != code && ETIMEDOUT != code) {
+	if (0 != code && ETIMEDOUT != code) {
 
-                LEMON_POSIX_ERROR(*errorCode, code);
-        }
+		LEMON_POSIX_ERROR(*errorCode, code);
+	}
 
 	return lemon_false;	
 }
@@ -664,11 +657,11 @@ void* ProcWrapper(void* data)
 	//block sigpipe error
 
 	sigset_t signal_mask;
-	
+
 	sigemptyset (&signal_mask);
 
 	sigaddset (&signal_mask, SIGPIPE);
-	
+
 	pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
 
 #ifdef LEMON_HAS_GETTID
@@ -753,7 +746,7 @@ LEMON_SYS_API void LemonThreadJoin(LemonThread t,LemonErrorInfo * errorCode){
 
 	if(0 != code){
 
-	 	LEMON_POSIX_ERROR(*errorCode,code);
+		LEMON_POSIX_ERROR(*errorCode,code);
 
 	} else {
 
