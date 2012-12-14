@@ -25,9 +25,11 @@
 
 #define LEMON_JOB_WHITE										0x00
 
-#define LEMON_JOB_GRAY										0x01
+#define LEMON_JOB_RED										0x01
 
-#define LEMON_JOB_BLACK										0x02
+#define LEMON_JOB_GRAY										0x02
+
+#define LEMON_JOB_BLACK										0x03
 
 LEMON_DECLARE_HANDLE(LemonJob);
 

@@ -105,6 +105,10 @@ LEMON_RUNQ_API
 
 	while(!runQ->Stopped){
 
+		LemonJob job = NULL;
+
+		LemonJobMessage message = NULL;
+
 		if(0 == LemonQueuedJobs(&runQ->FIFO)){
 
 			LemonConditionVariableWait(runQ->RunQCondition,runQ->RunQMutex,errorCode);
@@ -116,7 +120,7 @@ LEMON_RUNQ_API
 
 		//get the first job in FIFO
 
-		LemonJob job = LemonPopJob(&runQ->FIFO);
+		job = LemonPopJob(&runQ->FIFO);
 
 		assert(job);
 
@@ -124,7 +128,7 @@ LEMON_RUNQ_API
 
 		assert(0 != LemonJobMessages(&job->FIFO));
 
-		LemonJobMessage message = LemonPopJobMessage(&job->FIFO);
+		message = LemonPopJobMessage(&job->FIFO);
 
 		assert(message);
 
@@ -212,13 +216,30 @@ LEMON_RUNQ_API
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
-	job->UserData = jobClass->Start(runQ,job->Id,errorCode);
+	job->Color = LEMON_JOB_RED;
 
-	if(LEMON_FAILED(*errorCode)) {
+	LemonMutexUnLockEx(runQ->RunQMutex);
+
+	job->UserData = jobClass->Start(runQ,id,errorCode);
+
+	LemonMutexLockEx(runQ->RunQMutex);
+
+	if(LEMON_FAILED(*errorCode)){
 
 		LemonHashMapRemove(runQ->JobTable,&job->Id);
-		
+
 		goto Error;
+	} 
+
+	if(LemonJobMessages(&job->FIFO)){
+
+		job->Color = LEMON_JOB_GRAY;
+
+		LemonPushJob(&runQ->FIFO,job);
+
+	}else{
+
+		job->Color = LEMON_JOB_WHITE;
 	}
 
 	goto Finally;
@@ -316,6 +337,10 @@ LEMON_RUNQ_API
 	__lemon_in LemonBuffer buffer,
 	__lemon_inout LemonErrorInfo * errorCode)
 {
+	LemonJobMessage message = NULL;
+
+	LemonJob job = NULL;
+
 	LemonMutexLockEx(runQ->RunQMutex);
 
 	if(LEMON_JOB_ID_REMOTE(target) != 0)
@@ -333,9 +358,9 @@ LEMON_RUNQ_API
 		goto Finally;
 	}
 
-	LemonJobMessage message = NULL;
+	
 
-	LemonJob job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&target);
+	job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&target);
 
 	if(!job){
 		
