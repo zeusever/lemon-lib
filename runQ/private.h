@@ -35,6 +35,10 @@
 
 #define LEMON_JOB_CLOSED									0x04
 
+#define LEMON_JOB_TIMER_OPENED								0x00
+
+#define LEMON_JOB_TIMER_CLOSED								0x01
+
 LEMON_DECLARE_HANDLE(LemonJob);
 
 LEMON_DECLARE_HANDLE(LemonJobMessage);
@@ -94,6 +98,10 @@ LEMON_IMPLEMENT_HANDLE(LemonJob){
 
 LEMON_IMPLEMENT_HANDLE(LemonJobTimer){
 
+	int														Color;
+
+	LemonJobTimer											Next;
+
 	lemon_job_id											Id;
 
 	LemonTimeDuration										Duration;
@@ -104,6 +112,12 @@ LEMON_IMPLEMENT_HANDLE(LemonJobTimer){
 LEMON_IMPLEMENT_HANDLE(LemonJobTimerQ){
 
 	lemon_bool												Stopped;
+
+	size_t													Counter;
+
+	LemonJobTimer											Header;
+
+	LemonJobTimer											Tail;
 
 	LemonRunQ												RunQ;
 

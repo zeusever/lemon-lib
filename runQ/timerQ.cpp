@@ -4,18 +4,11 @@
 
 LEMON_RUNQ_PRIVATE
 	void
-	LemonJobTimerQLoop(
-	__lemon_in void *userdata,
-	__lemon_in const void * key, 
-	__lemon_in void * val)
+	LemonJobTimerCheck(
+	__lemon_in LemonJobTimerQ Q,
+	__lemon_in LemonJobTimer timer)
 {
 	LEMON_DECLARE_ERRORINFO(errorCode);
-
-	LemonJobTimerQ Q = (LemonJobTimerQ)userdata;
-
-	lemon_job_id id = *(lemon_job_id*)key;
-
-	LemonJobTimer timer = (LemonJobTimer)val;
 
 	LemonTime now = LemonNow(&errorCode);
 
@@ -27,8 +20,59 @@ LEMON_RUNQ_PRIVATE
 	{
 		timer->LastUpdate = lastUpdate;
 
-		LemonJobTimeout(Q->RunQ,id);
+		LemonJobTimeout(Q->RunQ,timer->Id);
 	}
+}
+
+LEMON_RUNQ_PRIVATE
+	void 
+	LemonPushJobTimer(
+	__lemon_in LemonJobTimerQ Q,
+	__lemon_in LemonJobTimer timer)
+{
+	if(0 == Q->Counter){
+
+		Q->Header = Q->Tail = timer;
+
+	} else {
+
+		assert(Q->Header && Q->Tail);
+
+		Q->Tail->Next = timer;
+
+		Q->Tail = timer;
+	}
+
+	Q->Counter ++;
+
+	timer->Next = NULL;
+}
+
+LEMON_RUNQ_PRIVATE
+	LemonJobTimer
+	LemonPopJobTimer(
+	__lemon_in LemonJobTimerQ Q)
+{
+	if(0 == Q->Counter) return NULL;
+
+	LemonJobTimer timer = Q->Header;
+
+	Q->Counter --;
+
+	if(0 == Q->Counter) {
+
+		assert(Q->Header == Q->Tail && Q->Header);
+
+		Q->Header = Q->Tail = NULL;
+
+	} else {
+
+		assert(Q->Header->Next);
+
+		Q->Header = Q->Header->Next;
+	}
+
+	return timer;
 }
 
 void LemonJobTimerQProc(void * userData)
@@ -41,31 +85,43 @@ void LemonJobTimerQProc(void * userData)
 
 	while(!Q->Stopped){
 
-		LemonHashMapForeach(Q->Timers,Q,&LemonJobTimerQLoop);
+		LemonJobTimer timer = NULL;
+
+		size_t counter = Q->Counter;
+
+		for(size_t i = 0; i < counter; ++ i){
+
+			if(Q->Stopped) goto Finally;
+
+			timer = LemonPopJobTimer(Q);
+
+			if(NULL == timer) break;
+
+			if(timer->Color == LEMON_JOB_TIMER_CLOSED){
+
+				LemonFixObjectFree(Q->TimerAllocator,timer);
+
+				continue;
+			}
+
+			LemonMutexUnLockEx(Q->Mutex);
+
+			LemonJobTimerCheck(Q,timer);
+
+			LemonMutexLockEx(Q->Mutex);
+
+			LemonPushJobTimer(Q,timer);
+		}
 
 		LemonConditionVariableWaitTimeout(Q->Condition,Q->Mutex,LEMON_JOB_TIMERQ_INTERVAL,&errorCode);
-
-		if(LEMON_FAILED(errorCode)){
-
-			printf("%d\n",errorCode.Error.Code);
-
-		}
 	}
+
+Finally:
 
 	LemonMutexUnLockEx(Q->Mutex);
 }
 
-LEMON_RUNQ_PRIVATE
-	void
-	LemonJobTimerQGc(
-	__lemon_in void *userdata,
-	__lemon_in const void * , 
-	__lemon_in void * val)
-{
-	LemonJobTimerQ Q = (LemonJobTimerQ)userdata;
 
-	LemonFixObjectFree(Q->TimerAllocator,val);
-}
 
 LEMON_RUNQ_PRIVATE
 	LemonJobTimerQ 
@@ -139,9 +195,18 @@ LEMON_RUNQ_PRIVATE
 
 	if(Q->Thread) return;
 
-	LemonHashMapForeach(Q->Timers,Q,&LemonJobTimerQGc);
-
 	LemonHashMapClear(Q->Timers);
+
+	LemonJobTimer timer;
+	
+	while(NULL != (timer = LemonPopJobTimer(Q))){
+
+		LemonFixObjectFree(Q->TimerAllocator,timer);
+	}
+
+	Q->Counter = 0;
+
+	Q->Header = Q->Tail = NULL;
 
 	Q->Stopped = lemon_false;
 
@@ -209,6 +274,8 @@ LEMON_RUNQ_PRIVATE
 	LemonHashMapAdd(Q->Timers,&timer->Id,timer,errorCode);
 
 	if(LEMON_FAILED(*errorCode)) LemonFixObjectFree(Q->TimerAllocator,timer);
+
+	LemonPushJobTimer(Q,timer);
 	
 Finally:
 
@@ -225,7 +292,9 @@ LEMON_RUNQ_PRIVATE
 
 	LemonJobTimer timer = (LemonJobTimer)LemonHashMapRemove(Q->Timers,&job);
 
-	if(timer) LemonFixObjectFree(Q->TimerAllocator,timer);
+	if(timer) timer->Color = LEMON_JOB_TIMER_CLOSED;
+
+	//if(timer) LemonFixObjectFree(Q->TimerAllocator,timer);
 
 	LemonMutexUnLockEx(Q->Mutex);
 }
