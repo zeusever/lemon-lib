@@ -6,6 +6,8 @@ LEMON_RUNQ_PRIVATE
 	__LemonCloseRunQ(
 	__lemon_free LemonRunQ runQ)
 {
+	if(LEMON_CHECK_HANDLE(runQ->TimerQ)) LemonCloseJobTimerQ(runQ->TimerQ);
+
 	if(LEMON_CHECK_HANDLE(runQ->RunQCondition)) LemonReleaseConditionVariable(runQ->RunQCondition);
 
 	if(LEMON_CHECK_HANDLE(runQ->RunQMutex)) LemonReleaseMutex(runQ->RunQMutex);
@@ -69,6 +71,10 @@ LEMON_RUNQ_API
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
+	Q->TimerQ = LemonCreateJobTimerQ(Q,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
 	Q->Stopped = lemon_false;
 
 	Q->RouteF = routeF;
@@ -88,7 +94,11 @@ LEMON_RUNQ_API
 	LemonCloseRunQ(
 	__lemon_free LemonRunQ runQ)
 {
-	LemonRunQReset(runQ);
+	LEMON_DECLARE_ERRORINFO(errorCode);
+
+	LemonRunQStop(runQ,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
 
 	__LemonCloseRunQ(runQ);
 }
@@ -124,32 +134,36 @@ LEMON_RUNQ_API
 
 		assert(job);
 
-		if(job->Color == LEMON_JOB_BLACK) { __LemonCloseJob(runQ,job); continue;  }
-
-		assert(0 != LemonJobMessages(&job->FIFO));
+		if(job->Color == LEMON_JOB_CLOSED) { __LemonCloseJob(runQ,job); continue;  }
 
 		message = LemonPopJobMessage(&job->FIFO);
-
-		assert(message);
 
 		// leave lock section
 		LemonMutexUnLockEx(runQ->RunQMutex);
 
-		job->Recv(runQ,job->UserData,job->Id,message->Source,message->Buff);
+		if(message) job->Recv(runQ,job->UserData,job->Id,message->Source,message->Buff);
+
+		if(job->Color == LEMON_JOB_TIMEOUT) job->TimerF(runQ,job->UserData,job->Id);
 
 		// enter lock section
 		LemonMutexLockEx(runQ->RunQMutex);
 
 		//clear the LemonBuffer, Job recv function must free it manual
 
-		message->Buff.Data = NULL; message->Buff.Length = 0;
+		if(message){
+			
+			message->Buff.Data = NULL; message->Buff.Length = 0;
 
-		__LemonCloseJobMessage(runQ,message);
+			__LemonCloseJobMessage(runQ,message);
+
+		}
 
 
-		if(job->Color == LEMON_JOB_BLACK){ __LemonCloseJob(runQ,job); continue; }
+		if(job->Color == LEMON_JOB_CLOSED){ __LemonCloseJob(runQ,job); continue; }
 
-		if(LemonJobMessages(&job->FIFO) == 0)  { job->Color = LEMON_JOB_WHITE; continue;}
+		if(LemonJobMessages(&job->FIFO) == 0)  { job->Color = LEMON_JOB_SLEEP; continue;}
+
+		job->Color = LEMON_JOB_STANDBY;
 		
 		LemonPushJob(&runQ->FIFO,job);
 	}
@@ -165,6 +179,10 @@ LEMON_RUNQ_API
 	__lemon_in LemonRunQ runQ,
 	__lemon_inout LemonErrorInfo * errorCode)
 {
+	LemonJobTimerQStop(runQ->TimerQ,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) return;
+
 	LemonMutexLockEx(runQ->RunQMutex);
 
 	runQ->Stopped = lemon_true;
@@ -177,8 +195,13 @@ LEMON_RUNQ_API
 LEMON_RUNQ_API
 	void
 	LemonRunQReset(
-	__lemon_in LemonRunQ runQ)
+	__lemon_in LemonRunQ runQ,
+	__lemon_inout LemonErrorInfo * errorCode)
 {
+	LemonJobTimerQReset(runQ->TimerQ,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) return;
+
 	LemonJob job = NULL;
 	
 	while(NULL != (job = LemonPopJob(&runQ->FIFO))){
@@ -220,7 +243,7 @@ LEMON_RUNQ_API
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
-	job->Color = LEMON_JOB_RED;
+	job->Color = LEMON_JOB_INIT;
 
 	LemonMutexUnLockEx(runQ->RunQMutex);
 
@@ -235,15 +258,15 @@ LEMON_RUNQ_API
 		goto Error;
 	}
 
-	if(LemonJobMessages(&job->FIFO) || job->Color == LEMON_JOB_BLACK){
+	if(LemonJobMessages(&job->FIFO) || job->Color != LEMON_JOB_INIT){
 
-		if(job->Color == LEMON_JOB_RED) job->Color = LEMON_JOB_GRAY;
+		if(job->Color == LEMON_JOB_INIT) job->Color = LEMON_JOB_STANDBY;
 
 		LemonPushJob(&runQ->FIFO,job);
 
 	}else{
 
-		job->Color = LEMON_JOB_WHITE;
+		job->Color = LEMON_JOB_SLEEP;
 	}
 
 	goto Finally;
@@ -272,21 +295,23 @@ LEMON_RUNQ_API
 {
 	LEMON_DECLARE_ERRORINFO(errorCode);
 
+	LemonCloseJobTimer(runQ->TimerQ,id);
+
 	LemonMutexLockEx(runQ->RunQMutex);
 
 	LemonJob job = (LemonJob)LemonHashMapRemove(runQ->JobTable,&id);
 
 	if(job){
 
-		if(job->Color == LEMON_JOB_WHITE){
+		if(job->Color == LEMON_JOB_SLEEP){
 
-			job->Color = LEMON_JOB_BLACK;
+			job->Color = LEMON_JOB_CLOSED;
 
 			LemonPushJob(&runQ->FIFO,job);
 
 		}else{
 
-			job->Color = LEMON_JOB_BLACK;
+			job->Color = LEMON_JOB_CLOSED;
 		}
 
 		LemonConditionVariableNotify(runQ->RunQCondition,&errorCode);
@@ -381,16 +406,48 @@ LEMON_RUNQ_API
 
 	LemonPushJobMessage(&job->FIFO,message);
 
-	if(LEMON_JOB_WHITE == job->Color){
+	if(LEMON_JOB_SLEEP == job->Color){
 
-		job->Color = LEMON_JOB_GRAY;
+		job->Color = LEMON_JOB_STANDBY;
 
 		LemonPushJob(&runQ->FIFO,job);
+
+		LemonConditionVariableNotify(runQ->RunQCondition,errorCode);
 	}
 
-	LemonConditionVariableNotify(runQ->RunQCondition,errorCode);
+Finally:
 
-	assert(LEMON_SUCCESS(*errorCode));
+	LemonMutexUnLockEx(runQ->RunQMutex);
+}
+
+LEMON_RUNQ_API
+	void
+	LemonJobTimeout(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id id)
+{
+	LemonMutexLockEx(runQ->RunQMutex);
+
+	LemonJob job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&id);
+
+	if(!job) goto Finally;
+
+	if(LEMON_JOB_SLEEP == job->Color){
+
+		job->Color = LEMON_JOB_TIMEOUT;
+
+		LemonPushJob(&runQ->FIFO,job);
+
+		LEMON_DECLARE_ERRORINFO(errorCode);
+
+		LemonConditionVariableNotify(runQ->RunQCondition,&errorCode);
+
+		assert(LEMON_SUCCESS(errorCode));
+
+	}else{
+
+		job->Color = LEMON_JOB_TIMEOUT;
+	}
 
 Finally:
 
@@ -408,4 +465,24 @@ LEMON_RUNQ_API
 	LemonMutexUnLockEx(runQ->RunQMutex);
 
 	return number;
+}
+
+LEMON_RUNQ_API
+	void
+	LemonRunQTimerStart(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id source,
+	__lemon_in LemonTimeDuration duration,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LemonCreateJobTimer(runQ->TimerQ,source,duration,errorCode);
+}
+
+LEMON_RUNQ_API
+	void
+	LemonRunQTimerStop(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id source)
+{
+	LemonCloseJobTimer(runQ->TimerQ,source);
 }

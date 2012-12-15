@@ -23,17 +23,25 @@
 
 #define LEMON_RUNQ_MAX_SMALLOBJ_SIZE						1024
 
-#define LEMON_JOB_WHITE										0x00
+#define LEMON_JOB_TIMERQ_INTERVAL							100
 
-#define LEMON_JOB_RED										0x01
+#define LEMON_JOB_SLEEP										0x00
 
-#define LEMON_JOB_GRAY										0x02
+#define LEMON_JOB_INIT										0x01
 
-#define LEMON_JOB_BLACK										0x03
+#define LEMON_JOB_STANDBY									0x02
+
+#define LEMON_JOB_TIMEOUT									0x03
+
+#define LEMON_JOB_CLOSED									0x04
 
 LEMON_DECLARE_HANDLE(LemonJob);
 
 LEMON_DECLARE_HANDLE(LemonJobMessage);
+
+LEMON_DECLARE_HANDLE(LemonJobTimer);
+
+LEMON_DECLARE_HANDLE(LemonJobTimerQ);
 
 typedef struct LemonRunQFIFO{
 
@@ -75,11 +83,39 @@ LEMON_IMPLEMENT_HANDLE(LemonJob){
 
 	LemonJobStopF											Stop;
 
+	LemonJobTimerF											TimerF;
+
 	lemon_job_id											Id;
 
 	void													*UserData;
 
 	LemonJobMessageQ										FIFO;
+};
+
+LEMON_IMPLEMENT_HANDLE(LemonJobTimer){
+
+	lemon_job_id											Id;
+
+	LemonTimeDuration										Duration;
+
+	LemonTimeDuration										LastUpdate;
+};
+
+LEMON_IMPLEMENT_HANDLE(LemonJobTimerQ){
+
+	lemon_bool												Stopped;
+
+	LemonRunQ												RunQ;
+
+	LemonThread												Thread;
+
+	LemonHashMap											Timers;
+
+	LemonFixObjectAllocator									TimerAllocator;
+
+	LemonMutex												Mutex;
+
+	LemonConditionVariable									Condition;
 };
 
 LEMON_IMPLEMENT_HANDLE(LemonRunQ){
@@ -107,6 +143,8 @@ LEMON_IMPLEMENT_HANDLE(LemonRunQ){
 	void														*UserData;
 
 	LemonRunQRemoteRouteF										RouteF;
+
+	LemonJobTimerQ												TimerQ;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,6 +229,45 @@ LEMON_RUNQ_PRIVATE
 	__lemon_in void *userdata,
 	__lemon_in const void * key, 
 	__lemon_in void * val);
+
+//////////////////////////////////////////////////////////////////////////
+
+LEMON_RUNQ_PRIVATE
+	LemonJobTimerQ 
+	LemonCreateJobTimerQ(
+	__lemon_in LemonRunQ Q,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonJobTimerQReset(
+	__lemon_in LemonJobTimerQ Q,
+	__lemon_inout LemonErrorInfo * errorCode);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonJobTimerQStop(
+	__lemon_in LemonJobTimerQ Q,
+	__lemon_inout LemonErrorInfo * errorCode);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonCloseJobTimerQ(
+	__lemon_free LemonJobTimerQ Q);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonCreateJobTimer(
+	__lemon_in LemonJobTimerQ Q,
+	__lemon_in lemon_job_id job,
+	__lemon_in LemonTimeDuration duration,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonCloseJobTimer(
+	__lemon_in LemonJobTimerQ Q,
+	__lemon_in lemon_job_id job);
 
 #endif //LEMON_RUNQ_PRIVATE_H
 

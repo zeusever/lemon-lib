@@ -83,7 +83,8 @@ LEMON_RUNQ_API
 LEMON_RUNQ_API
 	void
 	LemonRunQReset(
-	__lemon_in LemonRunQ runQ);
+	__lemon_in LemonRunQ runQ,
+	__lemon_inout LemonErrorInfo * errorCode);
 
 LEMON_RUNQ_API
 	size_t
@@ -119,6 +120,12 @@ LEMON_RUNQ_API
 	__lemon_in LemonRunQ runQ,
 	__lemon_in lemon_job_id id);
 
+LEMON_RUNQ_API
+	void
+	LemonJobTimeout(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id id);
+
 //////////////////////////////////////////////////////////////////////////
 //RunQ communicate functions
 // 
@@ -140,7 +147,6 @@ LEMON_RUNQ_API
 	LemonRunQTimerStart(
 	__lemon_in LemonRunQ runQ,
 	__lemon_in lemon_job_id source,
-	__lemon_in LemonJobTimerF F,
 	__lemon_in LemonTimeDuration duration,
 	__lemon_inout LemonErrorInfo *errorCode);
 
@@ -148,8 +154,7 @@ LEMON_RUNQ_API
 	void
 	LemonRunQTimerStop(
 	__lemon_in LemonRunQ runQ,
-	__lemon_in lemon_job_id source,
-	__lemon_inout LemonErrorInfo *errorCode);
+	__lemon_in lemon_job_id source);
 
 #endif //LEMON_RUNQ_ABI_H
 
