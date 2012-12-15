@@ -314,3 +314,21 @@ LEMON_MEMORY_API
 		}
 	}
 }
+
+LEMON_MEMORY_API
+	void
+	LemonHashMapClear(__lemon_in LemonHashMap map)
+{
+	memset(map->Array,0,map->Buckets * sizeof(LemonHashMapNode));
+
+	LemoFixObjectFreeAll(map->Allocator);
+
+	map->Counter = 0;
+}
+
+LEMON_MEMORY_API
+	size_t
+	LemonHashMapSize(__lemon_in LemonHashMap map)
+{
+	return map->Counter;
+}

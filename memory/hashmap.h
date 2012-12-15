@@ -32,6 +32,14 @@ LEMON_MEMORY_API
 	LemonReleaseHashMap(
 	__lemon_free LemonHashMap map);
 
+LEMON_MEMORY_API
+	void
+	LemonHashMapClear(__lemon_in LemonHashMap map);
+
+LEMON_MEMORY_API
+	size_t
+	LemonHashMapSize(__lemon_in LemonHashMap map);
+
 
 LEMON_MEMORY_API
 	void LemonResizeHashMap(

@@ -9,6 +9,7 @@
 #ifndef LEMON_RUNQ_ABI_H
 #define LEMON_RUNQ_ABI_H
 #include <lemon/sys/abi.h>
+#include <lemon/sys/datetime.h>
 #include <lemon/runQ/configure.h>
 
 //////////////////////////////////////////////////////////////////////////
@@ -34,6 +35,8 @@ typedef	void*												(*LemonJobStartF)(LemonRunQ,lemon_job_id id,LemonErrorI
 
 typedef	void												(*LemonJobRecvF)(LemonRunQ Q, void * userdata, lemon_job_id self,lemon_job_id source, LemonBuffer buff);
 
+typedef void												(*LemonJobTimerF)(LemonRunQ Q, void * userdata, lemon_job_id self);
+
 typedef void												(*LemonJobStopF)(LemonRunQ Q,void * userdata);
 
 typedef void												(*LemonRunQRemoteRouteF)(LemonRunQ Q, void* userdata, lemon_job_id source, lemon_job_id target, LemonBuffer buff);
@@ -41,6 +44,8 @@ typedef void												(*LemonRunQRemoteRouteF)(LemonRunQ Q, void* userdata, le
 typedef struct LemonJobClass{
 
 	LemonJobStartF											Start;
+
+	LemonJobTimerF											TimerF;
 
 	LemonJobRecvF											Recv;
 
@@ -79,6 +84,10 @@ LEMON_RUNQ_API
 	void
 	LemonRunQReset(
 	__lemon_in LemonRunQ runQ);
+
+LEMON_RUNQ_API
+	size_t
+	LemonRunQJobs(__lemon_in LemonRunQ runQ);
 
 //////////////////////////////////////////////////////////////////////////
 //RunQ memory manage functions
@@ -125,6 +134,22 @@ LEMON_RUNQ_API
 	__lemon_in lemon_job_id target,
 	__lemon_in LemonBuffer buffer,
 	__lemon_inout LemonErrorInfo * errorCode);
+
+LEMON_RUNQ_API
+	void
+	LemonRunQTimerStart(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id source,
+	__lemon_in LemonJobTimerF F,
+	__lemon_in LemonTimeDuration duration,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_API
+	void
+	LemonRunQTimerStop(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id source,
+	__lemon_inout LemonErrorInfo *errorCode);
 
 #endif //LEMON_RUNQ_ABI_H
 

@@ -189,6 +189,10 @@ LEMON_RUNQ_API
 	}
 
 	LemonHashMapForeach(runQ->JobTable,runQ,&LemonJobTableGc);
+
+	LemonHashMapClear(runQ->JobTable);
+
+	runQ->Stopped = lemon_false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -229,11 +233,11 @@ LEMON_RUNQ_API
 		LemonHashMapRemove(runQ->JobTable,&job->Id);
 
 		goto Error;
-	} 
+	}
 
-	if(LemonJobMessages(&job->FIFO)){
+	if(LemonJobMessages(&job->FIFO) || job->Color == LEMON_JOB_BLACK){
 
-		job->Color = LEMON_JOB_GRAY;
+		if(job->Color == LEMON_JOB_RED) job->Color = LEMON_JOB_GRAY;
 
 		LemonPushJob(&runQ->FIFO,job);
 
@@ -249,8 +253,6 @@ Error:
 	id = LEMON_INVALID_JOB_ID;
 
 	if(job){
-
-		if(job->UserData) job->Stop(runQ,job->UserData);
 		
 		__LemonCloseJob(runQ,job);
 	}
@@ -393,4 +395,17 @@ LEMON_RUNQ_API
 Finally:
 
 	LemonMutexUnLockEx(runQ->RunQMutex);
+}
+
+LEMON_RUNQ_API
+	size_t
+	LemonRunQJobs(__lemon_in LemonRunQ runQ)
+{
+	LemonMutexLockEx(runQ->RunQMutex);
+
+	size_t number = LemonHashMapSize(runQ->JobTable);
+
+	LemonMutexUnLockEx(runQ->RunQMutex);
+
+	return number;
 }

@@ -10,5 +10,9 @@ assembly=
 		{
 			name="ROUTE_REMOTE_ERROR";
 		};
+
+		{
+			name="TIMER_SET_ERROR";
+		};
 	};
 }

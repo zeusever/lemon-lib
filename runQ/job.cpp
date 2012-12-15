@@ -93,5 +93,7 @@ LEMON_RUNQ_PRIVATE
 		__LemonCloseJobMessage(runQ,message);
 	}
 
+	if(job->UserData) job->Stop(runQ,job->UserData);
+
 	LemonFixObjectFree(runQ->JobAllocator,job);
 }
