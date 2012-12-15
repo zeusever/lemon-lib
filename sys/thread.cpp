@@ -606,13 +606,19 @@ LEMON_SYS_API
 
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	struct timespec timeout = {(long)milliseconds/1000,(long)milliseconds%1000 * 1000 * 1000};
+	struct timespec ts = {0};
 
-	int code = pthread_cond_timedwait(reinterpret_cast<pthread_cond_t*>(cv),reinterpret_cast<pthread_mutex_t*>(mutex),&timeout);
+	clock_gettime(CLOCK_REALTIME, &ts);
+
+	ts.tv_sec += (long)milliseconds/1000;
+
+	ts.tv_nsec += (long)((milliseconds%1000) * 1000 * 1000);
+
+	int code = pthread_cond_timedwait(reinterpret_cast<pthread_cond_t*>(cv),reinterpret_cast<pthread_mutex_t*>(mutex),&ts);
 
 	if(0 == code) return lemon_true;
 
-	if (0 != code && ETIMEDOUT != code) {
+	if (0 != code && ETIMEDOUT != code && code != EINVAL) {
 
 		LEMON_POSIX_ERROR(*errorCode, code);
 	}

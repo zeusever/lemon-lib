@@ -41,11 +41,15 @@ void LemonJobTimerQProc(void * userData)
 
 	while(!Q->Stopped){
 
-		assert(LEMON_SUCCESS(errorCode));
-
 		LemonHashMapForeach(Q->Timers,Q,&LemonJobTimerQLoop);
 
 		LemonConditionVariableWaitTimeout(Q->Condition,Q->Mutex,LEMON_JOB_TIMERQ_INTERVAL,&errorCode);
+
+		if(LEMON_FAILED(errorCode)){
+
+			printf("%d\n",errorCode.Error.Code);
+
+		}
 	}
 
 	LemonMutexUnLockEx(Q->Mutex);
@@ -172,11 +176,13 @@ LEMON_RUNQ_PRIVATE
 {
 	LemonMutexLockEx(Q->Mutex);
 
+	LemonJobTimer timer;
+
 	LemonTime now = LemonNow(errorCode);
 
 	if(LEMON_FAILED(*errorCode)) goto Finally;
 
-	LemonJobTimer timer = (LemonJobTimer)LemonHashMapSearch(Q->Timers,&job);
+	timer = (LemonJobTimer)LemonHashMapSearch(Q->Timers,&job);
 
 	if(timer){
 

@@ -134,7 +134,16 @@ LEMON_RUNQ_API
 
 		assert(job);
 
-		if(job->Color == LEMON_JOB_CLOSED) { __LemonCloseJob(runQ,job); continue;  }
+		if(job->Color == LEMON_JOB_CLOSED) {
+
+			LemonMutexUnLockEx(runQ->RunQMutex);
+
+			job->Stop(runQ,job->UserData);
+
+			LemonMutexLockEx(runQ->RunQMutex);
+
+			__LemonCloseJob(runQ,job); continue;  
+		}
 
 		message = LemonPopJobMessage(&job->FIFO);
 
@@ -159,7 +168,16 @@ LEMON_RUNQ_API
 		}
 
 
-		if(job->Color == LEMON_JOB_CLOSED){ __LemonCloseJob(runQ,job); continue; }
+		if(job->Color == LEMON_JOB_CLOSED){
+
+			LemonMutexUnLockEx(runQ->RunQMutex);
+
+			job->Stop(runQ,job->UserData);
+
+			LemonMutexLockEx(runQ->RunQMutex);
+
+			 __LemonCloseJob(runQ,job); continue; 
+		}
 
 		if(LemonJobMessages(&job->FIFO) == 0)  { job->Color = LEMON_JOB_SLEEP; continue;}
 
@@ -275,10 +293,7 @@ Error:
 
 	id = LEMON_INVALID_JOB_ID;
 
-	if(job){
-		
-		__LemonCloseJob(runQ,job);
-	}
+	if(job) __LemonCloseJob(runQ,job);
 
 Finally:
 

@@ -90,7 +90,7 @@ endif()
 set(LEMON_UUID_BUILDIN TRUE)
 
 
-lemon_project_link_libs(dl)
+lemon_project_link_libs(dl rt)
 
 ##########################################################################################################################################
 # 
