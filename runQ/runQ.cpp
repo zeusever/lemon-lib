@@ -28,13 +28,13 @@ LEMON_RUNQ_PRIVATE
 LEMON_RUNQ_API 
 	LemonRunQ 
 	LemonCreateRunQ(
-	__lemon_option void * userdata,
-	__lemon_option LemonRunQRemoteRouteF routeF,
 	__lemon_inout LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
 
 	LEMON_ALLOC_HANDLE(LemonRunQ,Q);
+
+	Q->ProxyJob = LEMON_INVALID_JOBID;
 
 	Q->JobTable = LemonCreateHashMap
 		(
@@ -76,10 +76,6 @@ LEMON_RUNQ_API
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
 	Q->Stopped = lemon_false;
-
-	Q->RouteF = routeF;
-
-	Q->UserData = userdata;
 
 	return Q;
 
@@ -150,9 +146,15 @@ LEMON_RUNQ_API
 		// leave lock section
 		LemonMutexUnLockEx(runQ->RunQMutex);
 
-		if(message) job->Recv(runQ,job->UserData,job->Id,message->Source,message->Buff);
+		if(message) job->Recv(runQ,job->UserData,message->Source, message->Target, message->Buff);
 
-		if(job->Color == LEMON_JOB_TIMEOUT) job->TimerF(runQ,job->UserData,job->Id);
+		if(job->Color == LEMON_JOB_TIMEOUT) {
+
+			LemonBuffer buffer  = {0,0};
+			
+			job->Recv(runQ,job->UserData,LEMON_INVALID_JOBID, LEMON_TIMEOUT_JOBID,buffer);
+
+		}
 
 		// enter lock section
 		LemonMutexLockEx(runQ->RunQMutex);
@@ -245,7 +247,7 @@ LEMON_RUNQ_API
 	__lemon_in const LemonJobClass *jobClass,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
-	lemon_job_id id = LEMON_INVALID_JOB_ID;
+	lemon_job_id id = LEMON_INVALID_JOBID;
 
 	LemonJob job = LEMON_HANDLE_NULL_VALUE;
 
@@ -291,7 +293,7 @@ LEMON_RUNQ_API
 
 Error:
 
-	id = LEMON_INVALID_JOB_ID;
+	id = LEMON_INVALID_JOBID;
 
 	if(job) __LemonCloseJob(runQ,job);
 
@@ -385,24 +387,21 @@ LEMON_RUNQ_API
 
 	LemonMutexLockEx(runQ->RunQMutex);
 
-	if(LEMON_JOB_ID_REMOTE(target) != 0)
-	{
-		if(!runQ->RouteF){
+	if(LEMON_JOBID_IS_REMOTE(target)){
 
-			LEMON_USER_ERROR(*errorCode,LEMON_RUNQ_ROUTE_REMOTE_ERROR);
+		if(runQ->ProxyJob == LEMON_INVALID_JOBID){
+
+			LEMON_USER_ERROR(*errorCode,LEMON_RUNQ_PROXY_JOB_ERROR);
 
 			goto Finally;
-
 		}
 
-		runQ->RouteF(runQ,runQ->UserData,source,target,buffer);
+		job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&runQ->ProxyJob);
 
-		goto Finally;
+	}else{
+
+		job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&target);
 	}
-
-	
-
-	job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&target);
 
 	if(!job){
 		
@@ -418,6 +417,8 @@ LEMON_RUNQ_API
 	message->Buff = buffer;
 
 	message->Source = source;
+
+	message->Target = target;
 
 	LemonPushJobMessage(&job->FIFO,message);
 
@@ -500,4 +501,13 @@ LEMON_RUNQ_API
 	__lemon_in lemon_job_id source)
 {
 	LemonCloseJobTimer(runQ->TimerQ,source);
+}
+
+LEMON_RUNQ_API
+	void
+	LemonCreateProxyJob(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id id)
+{
+	runQ->ProxyJob = id;
 }

@@ -13,39 +13,53 @@
 #include <lemon/runQ/configure.h>
 
 //////////////////////////////////////////////////////////////////////////
-//macros
+// local job id range			 : 0x0000000000000000 ~ 0x00000000ffffffff
 // 
+// remote job id range			 : 0x0000000100000000 ~ 0x0000ffffffffffff
+// 
+// local multicast job id range	 : 0x0001000000000000 ~ 0x00010000ffffffff
+// 
+// remote multicast job id range : 0x0001000100000000 ~ 0x0001ffffffffffff
+// 
+// timeout job id				 : 0x0002000000000000 
+// 
+// local broadcast job id		 :  0x8000000000000000
+// 
+// remote broadcast job id range : 0x8000[A]00000000 where A -> [0x0001 ~ 0xffff]
+//////////////////////////////////////////////////////////////////////////
+typedef lemon_uint64_t										lemon_job_id;
 
-#define LEMON_INVALID_JOB_ID								0xffffffff
+#define LEMON_INVALID_JOBID									0xffffffffffffffffULL
 
-#define LEMON_MAKE_JOB_ID(remote,local)						((((lemon_uint64_t)remote << 32) & 0xffffffff00000000) | (local & 0xffffffff))
+#define LEMON_TIMEOUT_JOBID									0x0002000000000000ULL
 
-#define LEMON_JOB_ID_REMOTE(id)								((id >> 32) & 0xffffffff)
+#define LEMON_JOBID_IS_REMOTE(id)							(0x0000ffff00000000ULL & id)
 
-#define LEMON_JOB_ID_LOCAL(id)								(id & 0xffffffff)
+#define LEMON_GET_JOBID_REMOTE(id)							((((lemon_job_id)(id)) >> 32) & 0xffff)
 
+#define LEMON_GET_JOBID_LOCAL(id)							(((lemon_job_id)(id)) & 0xffffffff)
+
+#define LEMON_JOBID_IS_MULTICAST(id)						(0x0001000000000000ULL & (id))
+
+#define LEMON_JOBID_IS_BROADCAST(id)						(0x8000000000000000ULL & (id)) 
+
+#define LEMON_SET_JOBID_REMOTE(id,remote)					((id) + (((lemon_job_id)(remote) << 32) & 0x0000ffff00000000ULL))
 
 //////////////////////////////////////////////////////////////////////////
 
-typedef lemon_uint64_t										lemon_job_id;
+
 
 LEMON_DECLARE_HANDLE										(LemonRunQ);
 
-typedef	void*												(*LemonJobStartF)(LemonRunQ,lemon_job_id id,LemonErrorInfo*);
+typedef	void*												(*LemonJobStartF)(LemonRunQ,lemon_job_id ,LemonErrorInfo*);
 
-typedef	void												(*LemonJobRecvF)(LemonRunQ Q, void * userdata, lemon_job_id self,lemon_job_id source, LemonBuffer buff);
+typedef	void												(*LemonJobRecvF)(LemonRunQ Q, void *userdata,lemon_job_id source, lemon_job_id target, LemonBuffer buffer);
 
-typedef void												(*LemonJobTimerF)(LemonRunQ Q, void * userdata, lemon_job_id self);
-
-typedef void												(*LemonJobStopF)(LemonRunQ Q,void * userdata);
-
-typedef void												(*LemonRunQRemoteRouteF)(LemonRunQ Q, void* userdata, lemon_job_id source, lemon_job_id target, LemonBuffer buff);
+typedef void												(*LemonJobStopF)(LemonRunQ Q, void *userdata);
 
 typedef struct LemonJobClass{
 
 	LemonJobStartF											Start;
-
-	LemonJobTimerF											TimerF;
 
 	LemonJobRecvF											Recv;
 
@@ -59,8 +73,6 @@ typedef struct LemonJobClass{
 LEMON_RUNQ_API 
 	LemonRunQ 
 	LemonCreateRunQ(
-	__lemon_option void * userdata,
-	__lemon_option LemonRunQRemoteRouteF routeF,
 	__lemon_inout LemonErrorInfo * errorCode);
 
 LEMON_RUNQ_API 
@@ -113,6 +125,12 @@ LEMON_RUNQ_API
 	__lemon_in LemonRunQ runQ,
 	__lemon_in const LemonJobClass *jobClass,
 	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_API
+	void
+	LemonCreateProxyJob(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id);
 
 LEMON_RUNQ_API
 	void

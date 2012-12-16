@@ -73,6 +73,8 @@ LEMON_IMPLEMENT_HANDLE(LemonJobMessage){
 
 	lemon_job_id											Source;
 
+	lemon_job_id											Target;
+
 	LemonBuffer												Buff;
 };
 
@@ -86,8 +88,6 @@ LEMON_IMPLEMENT_HANDLE(LemonJob){
 	LemonJobRecvF											Recv;
 
 	LemonJobStopF											Stop;
-
-	LemonJobTimerF											TimerF;
 
 	lemon_job_id											Id;
 
@@ -154,11 +154,9 @@ LEMON_IMPLEMENT_HANDLE(LemonRunQ){
 
 	LemonConditionVariable										RunQCondition;
 
-	void														*UserData;
-
-	LemonRunQRemoteRouteF										RouteF;
-
 	LemonJobTimerQ												TimerQ;
+
+	lemon_job_id												ProxyJob;
 };
 
 //////////////////////////////////////////////////////////////////////////

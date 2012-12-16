@@ -8,7 +8,7 @@ assembly=
 			name="INVALID_JOB_ID";
 		};
 		{
-			name="ROUTE_REMOTE_ERROR";
+			name="PROXY_JOB_ERROR";
 		};
 
 		{

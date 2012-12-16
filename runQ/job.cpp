@@ -75,8 +75,6 @@ LEMON_RUNQ_PRIVATE
 
 	job->Id = id;
 
-	job->TimerF = jobClass->TimerF;
-
 	return job;
 }
 
