@@ -51,11 +51,11 @@ typedef lemon_uint64_t										lemon_job_id;
 
 LEMON_DECLARE_HANDLE										(LemonRunQ);
 
-typedef	void*												(*LemonJobStartF)(LemonRunQ,lemon_job_id ,LemonErrorInfo*);
+typedef	void*												(*LemonJobStartF)(LemonRunQ Q, void *parm,lemon_job_id ,LemonErrorInfo*);
 
-typedef	void												(*LemonJobRecvF)(LemonRunQ Q, void *userdata,lemon_job_id source, lemon_job_id target, LemonBuffer buffer);
+typedef	void												(*LemonJobRecvF)(void *userdata,lemon_job_id source, lemon_job_id target, LemonBuffer buffer);
 
-typedef void												(*LemonJobStopF)(LemonRunQ Q, void *userdata);
+typedef void												(*LemonJobStopF)(void *userdata);
 
 typedef struct LemonJobClass{
 
@@ -123,6 +123,7 @@ LEMON_RUNQ_API
 	lemon_job_id
 	LemonCreateJob(
 	__lemon_in LemonRunQ runQ,
+	__lemon_in void * param,
 	__lemon_in const LemonJobClass *jobClass,
 	__lemon_inout LemonErrorInfo *errorCode);
 

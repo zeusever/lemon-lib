@@ -134,7 +134,7 @@ LEMON_RUNQ_API
 
 			LemonMutexUnLockEx(runQ->RunQMutex);
 
-			job->Stop(runQ,job->UserData);
+			job->Stop(job->UserData);
 
 			LemonMutexLockEx(runQ->RunQMutex);
 
@@ -146,13 +146,13 @@ LEMON_RUNQ_API
 		// leave lock section
 		LemonMutexUnLockEx(runQ->RunQMutex);
 
-		if(message) job->Recv(runQ,job->UserData,message->Source, message->Target, message->Buff);
+		if(message) job->Recv(job->UserData,message->Source, message->Target, message->Buff);
 
 		if(job->Color == LEMON_JOB_TIMEOUT) {
 
 			LemonBuffer buffer  = {0,0};
 			
-			job->Recv(runQ,job->UserData,LEMON_INVALID_JOBID, LEMON_TIMEOUT_JOBID,buffer);
+			job->Recv(job->UserData,LEMON_INVALID_JOBID, LEMON_TIMEOUT_JOBID,buffer);
 
 		}
 
@@ -174,7 +174,7 @@ LEMON_RUNQ_API
 
 			LemonMutexUnLockEx(runQ->RunQMutex);
 
-			job->Stop(runQ,job->UserData);
+			job->Stop(job->UserData);
 
 			LemonMutexLockEx(runQ->RunQMutex);
 
@@ -244,6 +244,7 @@ LEMON_RUNQ_API
 	lemon_job_id
 	LemonCreateJob(
 	__lemon_in LemonRunQ runQ,
+	__lemon_in void * param,
 	__lemon_in const LemonJobClass *jobClass,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
@@ -267,7 +268,7 @@ LEMON_RUNQ_API
 
 	LemonMutexUnLockEx(runQ->RunQMutex);
 
-	job->UserData = jobClass->Start(runQ,id,errorCode);
+	job->UserData = jobClass->Start(runQ,param,id,errorCode);
 
 	LemonMutexLockEx(runQ->RunQMutex);
 
