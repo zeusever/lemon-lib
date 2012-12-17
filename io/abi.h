@@ -50,6 +50,14 @@ typedef struct LemonIODebugger{
 
 }LemonIODebugger;
 
+typedef union lemon_sockaddr_t{
+	
+	sockaddr_in						V4;
+
+	sockaddr_in6					V6;
+
+}lemon_sockaddr_t;
+
 //////////////////////////////////////////////////////////////////////////
 // io 
 
