@@ -7,6 +7,10 @@ assembly=
 		{
 			name="INVALID_JOB_ID";
 		};
+
+		{
+			name="INVALID_MULTICAt_GROUP_ID";
+		};
 		{
 			name="PROXY_JOB_ERROR";
 		};

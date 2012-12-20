@@ -33,15 +33,17 @@ typedef lemon_uint64_t										lemon_job_id;
 
 #define LEMON_TIMEOUT_JOBID									0x0002000000000000ULL
 
-#define LEMON_JOBID_IS_REMOTE(id)							(0x0000ffff00000000ULL & id)
+#define LEMON_JOBID_IS_REMOTE(id)							((0x0000ffff00000000ULL & id) != 0)
 
 #define LEMON_GET_JOBID_REMOTE(id)							((((lemon_job_id)(id)) >> 32) & 0xffff)
 
 #define LEMON_GET_JOBID_LOCAL(id)							(((lemon_job_id)(id)) & 0xffffffff)
 
-#define LEMON_JOBID_IS_MULTICAST(id)						(0x0001000000000000ULL & (id))
+#define LEMON_JOBID_IS_MULTICAST(id)						((0x0001000000000000ULL & (id)) != 0)
 
-#define LEMON_JOBID_IS_BROADCAST(id)						(0x8000000000000000ULL & (id)) 
+#define LEMON_SET_JOBID_MULTICAST(id)                       (0x0001000000000000ULL | (id))
+
+#define LEMON_JOBID_IS_BROADCAST(id)						((0x8000000000000000ULL & (id)) != 0)
 
 #define LEMON_SET_JOBID_REMOTE(id,remote)					((id) + (((lemon_job_id)(remote) << 32) & 0x0000ffff00000000ULL))
 
@@ -174,6 +176,33 @@ LEMON_RUNQ_API
 	LemonRunQTimerStop(
 	__lemon_in LemonRunQ runQ,
 	__lemon_in lemon_job_id source);
+
+LEMON_RUNQ_API
+	lemon_job_id
+	LemonRunQCreateMultCastGroup(
+	__lemon_in LemonRunQ runQ,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_API
+	void
+	LemonRunQCloseMultiCastGroup(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id id);
+
+LEMON_RUNQ_API
+	void
+	LemonRunQEntryMultiCastGroup(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id group,
+	__lemon_in lemon_job_id job,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_API
+	void
+	LemonRunQLeaveMultiCastGroup(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id group,
+	__lemon_in lemon_job_id job);
 
 #endif //LEMON_RUNQ_ABI_H
 

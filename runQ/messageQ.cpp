@@ -55,7 +55,8 @@ LEMON_RUNQ_PRIVATE
 	LemonJobMessage
 	__LemonCreateJobMessage(
 	__lemon_in LemonRunQ runQ,
-	__lemon_in lemon_job_id id,
+	__lemon_in lemon_job_id source,
+	__lemon_in lemon_job_id target,
 	__lemon_in LemonBuffer buffer,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
@@ -68,7 +69,9 @@ LEMON_RUNQ_PRIVATE
 		return LEMON_HANDLE_NULL_VALUE;
 	}
 
-	message->Source = id;
+	message->Source = source;
+
+	message->Target = target;
 
 	message->Buff = buffer;
 

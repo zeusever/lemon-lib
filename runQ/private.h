@@ -47,6 +47,12 @@ LEMON_DECLARE_HANDLE(LemonJobTimer);
 
 LEMON_DECLARE_HANDLE(LemonJobTimerQ);
 
+LEMON_DECLARE_HANDLE(LemonMultiCastG);
+
+LEMON_DECLARE_HANDLE(LemonMultiCastQ);
+
+LEMON_DECLARE_HANDLE(LemonMultiCastMessage);
+
 typedef struct LemonRunQFIFO{
 
 	size_t					Counter;
@@ -66,6 +72,36 @@ typedef struct LemonJobMessageQ{
 	LemonJobMessage			Tail;
 
 }LemonJobMessageQ;
+
+LEMON_IMPLEMENT_HANDLE(LemonMultiCastMessage){
+
+	lemon_atomic_t													Counter;
+
+	LemonBuff														Buffer;
+};
+
+LEMON_IMPLEMENT_HANDLE(LemonMultiCastG){
+
+	lemon_job_id													Id;
+
+	LemonHashMap													Group;
+
+	LemonFixObjectAllocator											Allocator;
+};
+
+LEMON_IMPLEMENT_HANDLE(LemonMultiCastQ){
+
+	LemonRunQ														Q;
+
+	lemon_uint32_t													Seq;
+
+	LemonMutex														Mutex;
+
+	LemonHashMap													Groups;
+
+	LemonFixObjectAllocator											Allocator;
+};
+
 
 LEMON_IMPLEMENT_HANDLE(LemonJobMessage){
 
@@ -156,8 +192,21 @@ LEMON_IMPLEMENT_HANDLE(LemonRunQ){
 
 	LemonJobTimerQ												TimerQ;
 
+	LemonMultiCastQ												MultiCastQ;
+
 	lemon_job_id												ProxyJob;
 };
+
+//////////////////////////////////////////////////////////////////////////
+
+
+LEMON_RUNQ_API
+	void
+	__LemonRunQSend_TS(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id target,
+	__lemon_in LemonJobMessage message,
+	__lemon_inout LemonErrorInfo * errorCode);
 
 //////////////////////////////////////////////////////////////////////////
 //MessageQ function
@@ -180,7 +229,8 @@ LEMON_RUNQ_PRIVATE
 	LemonJobMessage
 	__LemonCreateJobMessage(
 	__lemon_in LemonRunQ runQ,
-	__lemon_in lemon_job_id id,
+	__lemon_in lemon_job_id source,
+	__lemon_in lemon_job_id target,
 	__lemon_in LemonBuffer buffer,
 	__lemon_inout LemonErrorInfo *errorCode);
 
@@ -280,6 +330,66 @@ LEMON_RUNQ_PRIVATE
 	LemonCloseJobTimer(
 	__lemon_in LemonJobTimerQ Q,
 	__lemon_in lemon_job_id job);
+
+//////////////////////////////////////////////////////////////////////////
+
+LEMON_RUNQ_PRIVATE
+	LemonMultiCastQ
+	LemonCreateMultiCastQ(
+	__lemon_in LemonRunQ Q,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonCloseMultiCastQ(
+	__lemon_in LemonMultiCastQ Q);
+
+LEMON_RUNQ_PRIVATE
+	lemon_job_id
+	LemonCreateMultiCastGroup(
+	__lemon_in LemonMultiCastQ Q,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonCloseMultiCastGroup(
+	__lemon_in LemonMultiCastQ Q,
+	__lemon_in lemon_job_id job);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonEntryMultiCastGroup(
+	__lemon_in LemonMultiCastQ Q,
+	__lemon_in lemon_job_id group,
+	__lemon_in lemon_job_id job,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonLeaveMultiCastG(
+	__lemon_in LemonMultiCastQ Q,
+	__lemon_in lemon_job_id group,
+	__lemon_in lemon_job_id job);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonLeaveAllMultiCastG(
+	__lemon_in LemonMultiCastQ Q,
+	__lemon_in lemon_job_id job);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonMultiCastSend(
+	__lemon_in LemonMultiCastQ Q,
+	__lemon_in lemon_job_id group,
+	__lemon_in LemonJobMessage message,
+	__lemon_inout LemonErrorInfo *errorCode);
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonCloseMultiCastMessage(
+	__lemon_in LemonRunQ Q,
+	__lemon_free LemonJobMessage message);
 
 #endif //LEMON_RUNQ_PRIVATE_H
 

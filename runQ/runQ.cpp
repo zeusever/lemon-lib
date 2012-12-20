@@ -6,6 +6,8 @@ LEMON_RUNQ_PRIVATE
 	__LemonCloseRunQ(
 	__lemon_free LemonRunQ runQ)
 {
+	if(LEMON_CHECK_HANDLE(runQ->MultiCastQ)) LemonCloseMultiCastQ(runQ->MultiCastQ);
+
 	if(LEMON_CHECK_HANDLE(runQ->TimerQ)) LemonCloseJobTimerQ(runQ->TimerQ);
 
 	if(LEMON_CHECK_HANDLE(runQ->RunQCondition)) LemonReleaseConditionVariable(runQ->RunQCondition);
@@ -72,6 +74,10 @@ LEMON_RUNQ_API
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
 	Q->TimerQ = LemonCreateJobTimerQ(Q,errorCode);
+
+	if(LEMON_FAILED(*errorCode)) goto Error;
+
+	Q->MultiCastQ = LemonCreateMultiCastQ(Q,errorCode);
 
 	if(LEMON_FAILED(*errorCode)) goto Error;
 
@@ -146,7 +152,19 @@ LEMON_RUNQ_API
 		// leave lock section
 		LemonMutexUnLockEx(runQ->RunQMutex);
 
-		if(message) job->Recv(job->UserData,message->Source, message->Target, message->Buff);
+		if(message) {
+
+			if(LEMON_JOBID_IS_MULTICAST(message->Target)){
+
+				job->Recv(job->UserData,message->Source, message->Target, ((LemonMultiCastMessage)message->Buff.Data)->Buffer);
+
+			}else{
+
+				job->Recv(job->UserData,message->Source, message->Target, message->Buff);
+
+			}
+		
+		}
 
 		if(job->Color == LEMON_JOB_TIMEOUT) {
 
@@ -162,11 +180,18 @@ LEMON_RUNQ_API
 		//clear the LemonBuffer, Job recv function must free it manual
 
 		if(message){
+
+			if(LEMON_JOBID_IS_MULTICAST(message->Target)){
+
+				LemonCloseMultiCastMessage(runQ,message);
+
+			}else{
+
+				message->Buff.Data = NULL; message->Buff.Length = 0;
+
+				__LemonCloseJobMessage(runQ,message);
+			}
 			
-			message->Buff.Data = NULL; message->Buff.Length = 0;
-
-			__LemonCloseJobMessage(runQ,message);
-
 		}
 
 
@@ -313,6 +338,8 @@ LEMON_RUNQ_API
 {
 	LEMON_DECLARE_ERRORINFO(errorCode);
 
+	LemonLeaveAllMultiCastG(runQ->MultiCastQ,id);
+
 	LemonCloseJobTimer(runQ->TimerQ,id);
 
 	LemonMutexLockEx(runQ->RunQMutex);
@@ -399,7 +426,27 @@ LEMON_RUNQ_API
 
 		job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&runQ->ProxyJob);
 
-	}else{
+	}
+	else if(LEMON_JOBID_IS_MULTICAST(target)){//multicast
+
+		message = __LemonCreateJobMessage(runQ,source,target,buffer,errorCode);
+
+		if(LEMON_FAILED(*errorCode)) goto Finally;
+
+		
+
+		LemonMultiCastSend(runQ->MultiCastQ,target,message,errorCode);
+
+		if(LEMON_FAILED(*errorCode)){
+
+			message->Buff.Data = NULL; message->Buff.Length = 0;
+			
+			__LemonCloseJobMessage(runQ,message);
+		}
+
+		goto Finally;
+	}
+	else{
 
 		job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&target);
 	}
@@ -411,15 +458,51 @@ LEMON_RUNQ_API
 		goto Finally;
 	}
 
-	message = __LemonCreateJobMessage(runQ,source,buffer,errorCode);
+	message = __LemonCreateJobMessage(runQ,source,target,buffer,errorCode);
 
 	if(LEMON_FAILED(*errorCode)) goto Finally;
 
-	message->Buff = buffer;
+	LemonPushJobMessage(&job->FIFO,message);
 
-	message->Source = source;
+	if(LEMON_JOB_SLEEP == job->Color){
 
-	message->Target = target;
+		job->Color = LEMON_JOB_STANDBY;
+
+		LemonPushJob(&runQ->FIFO,job);
+
+		LemonConditionVariableNotify(runQ->RunQCondition,errorCode);
+
+		assert(LEMON_SUCCESS(*errorCode));
+	}
+
+Finally:
+
+	LemonMutexUnLockEx(runQ->RunQMutex);
+}
+
+
+LEMON_RUNQ_API
+	void
+	__LemonRunQSend_TS(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id target,
+	__lemon_in LemonJobMessage message,
+	__lemon_inout LemonErrorInfo * errorCode)
+{
+	LemonJob job = NULL;
+
+	LemonMutexLockEx(runQ->RunQMutex);
+
+	assert(!LEMON_JOBID_IS_REMOTE(target));
+
+	job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&target);
+
+	if(!job){
+
+		LEMON_USER_ERROR(*errorCode,LEMON_RUNQ_INVALID_JOB_ID);
+
+		goto Finally;
+	}
 
 	LemonPushJobMessage(&job->FIFO,message);
 
@@ -511,4 +594,44 @@ LEMON_RUNQ_API
 	__lemon_in lemon_job_id id)
 {
 	runQ->ProxyJob = id;
+}
+
+
+LEMON_RUNQ_API
+	lemon_job_id
+	LemonRunQCreateMultCastGroup(
+	__lemon_in LemonRunQ runQ,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	return LemonCreateMultiCastGroup(runQ->MultiCastQ,errorCode);
+}
+
+LEMON_RUNQ_API
+	void
+	LemonRunQCloseMultiCastGroup(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id id)
+{
+	LemonCloseMultiCastGroup(runQ->MultiCastQ,id);
+}
+
+LEMON_RUNQ_API
+	void
+	LemonRunQEntryMultiCastGroup(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id group,
+	__lemon_in lemon_job_id job,
+	__lemon_inout LemonErrorInfo *errorCode)
+{
+	LemonEntryMultiCastGroup(runQ->MultiCastQ,group,job,errorCode);
+}
+
+LEMON_RUNQ_API
+	void
+	LemonRunQLeaveMultiCastGroup(
+	__lemon_in LemonRunQ runQ,
+	__lemon_in lemon_job_id group,
+	__lemon_in lemon_job_id job)
+{
+	LemonLeaveMultiCastG(runQ->MultiCastQ,group,job);
 }
