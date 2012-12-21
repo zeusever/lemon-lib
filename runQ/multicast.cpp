@@ -32,11 +32,15 @@ Error:
 	return LEMON_HANDLE_NULL_VALUE;
 }
 
+
 LEMON_RUNQ_PRIVATE
 	void
 	LemonCloseMultiCastQ(
 	__lemon_in LemonMultiCastQ Q)
 {
+
+	LemonMultiCastQReset(Q);
+
 	if(Q->Mutex) LemonReleaseMutex(Q->Mutex);
 
 	if(Q->Groups) LemonReleaseHashMap(Q->Groups);
@@ -58,6 +62,33 @@ LEMON_RUNQ_PRIVATE
 
 	LemonFixObjectFree(Q->Allocator,G);
 }
+
+LEMON_RUNQ_PRIVATE
+	void
+	__LemonCloseAllMultiCastG(
+	__lemon_in void * userdata,
+	__lemon_in const void * /*key*/, 
+	__lemon_in void * val)
+{
+	LemonMultiCastQ Q = (LemonMultiCastQ)userdata;
+
+	LemonMultiCastG G = (LemonMultiCastG)val;
+
+	__LemonCloseMultiCastGroup(Q,G);
+}
+
+LEMON_RUNQ_PRIVATE
+	void
+	LemonMultiCastQReset(
+	__lemon_in LemonMultiCastQ Q)
+{
+	LemonHashMapForeach(Q->Groups,Q,&__LemonCloseAllMultiCastG);
+
+	LemonHashMapClear(Q->Groups);
+
+}
+
+
 
 LEMON_RUNQ_PRIVATE
 	lemon_job_id

@@ -341,6 +341,11 @@ LEMON_RUNQ_PRIVATE
 
 LEMON_RUNQ_PRIVATE
 	void
+	LemonMultiCastQReset(
+	__lemon_in LemonMultiCastQ Q);
+
+LEMON_RUNQ_PRIVATE
+	void
 	LemonCloseMultiCastQ(
 	__lemon_in LemonMultiCastQ Q);
 

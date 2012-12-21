@@ -243,6 +243,8 @@ LEMON_RUNQ_API
 	__lemon_in LemonRunQ runQ,
 	__lemon_inout LemonErrorInfo * errorCode)
 {
+	LemonMultiCastQReset(runQ->MultiCastQ);
+
 	LemonJobTimerQReset(runQ->TimerQ,errorCode);
 
 	if(LEMON_FAILED(*errorCode)) return;
