@@ -183,7 +183,10 @@ LEMON_RUNQ_PRIVATE
 	if(Q->Mutex) LemonReleaseMutex(Q->Mutex);
 
 	if(Q->TimerAllocator) LemonReleaseFixObjectAllocator(Q->TimerAllocator);
+
+	LEMON_FREE_HANDLE(Q);
 }
+
 
 LEMON_RUNQ_PRIVATE
 	void
@@ -192,6 +195,8 @@ LEMON_RUNQ_PRIVATE
 	__lemon_inout LemonErrorInfo * errorCode)
 {
 	LEMON_RESET_ERRORINFO(*errorCode);
+
+	LemonJobTimerQStop(Q,errorCode);
 
 	if(Q->Thread) return;
 
@@ -226,6 +231,8 @@ LEMON_RUNQ_PRIVATE
 		LemonThreadJoin(Q->Thread,errorCode);
 
 		if(LEMON_FAILED(*errorCode)) return;
+
+		LemonReleaseThread(Q->Thread);
 	}
 
 	Q->Thread = LEMON_HANDLE_NULL_VALUE;

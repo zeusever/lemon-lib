@@ -255,6 +255,8 @@ LEMON_RUNQ_API
 
 		LemonHashMapRemove(runQ->JobTable,&job->Id);
 
+		job->Stop(job->UserData);
+
 		__LemonCloseJob(runQ,job);
 	}
 
@@ -493,8 +495,6 @@ LEMON_RUNQ_API
 {
 	LemonJob job = NULL;
 
-	LemonMutexLockEx(runQ->RunQMutex);
-
 	assert(!LEMON_JOBID_IS_REMOTE(target));
 
 	job = (LemonJob)LemonHashMapSearch(runQ->JobTable,&target);
@@ -519,7 +519,7 @@ LEMON_RUNQ_API
 
 Finally:
 
-	LemonMutexUnLockEx(runQ->RunQMutex);
+	return;
 }
 
 LEMON_RUNQ_API

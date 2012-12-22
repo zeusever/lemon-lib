@@ -209,13 +209,15 @@ LEMON_RUNQ_PRIVATE
 	__lemon_in lemon_job_id group,
 	__lemon_in lemon_job_id job)
 {
+	lemon_job_id * id = NULL;
+
 	LemonMutexLockEx(Q->Mutex);
 
 	LemonMultiCastG G = (LemonMultiCastG)LemonHashMapSearch(Q->Groups,&group);
 
 	if(!G) goto Finally;
 
-	lemon_job_id * id = (lemon_job_id*)LemonHashMapRemove(G->Group,&job);
+	id = (lemon_job_id*)LemonHashMapRemove(G->Group,&job);
 
 	if(id) LemonFixObjectFree(G->Allocator,id);
 
@@ -292,7 +294,11 @@ LEMON_RUNQ_PRIVATE
 	__lemon_in LemonJobMessage message,
 	__lemon_inout LemonErrorInfo *errorCode)
 {
+	LemonMultiCastG G = LEMON_HANDLE_NULL_VALUE;
+
 	MultiCastSendContext context = {message,Q->Q,group};
+
+	LemonMultiCastMessage multiCastMessage = LEMON_HANDLE_NULL_VALUE;
 
 	LemonBuff buf = LemonRunQAlloc(Q->Q,LEMON_HANDLE_IMPLEMENT_SIZEOF(LemonMultiCastMessage));
 
@@ -303,7 +309,7 @@ LEMON_RUNQ_PRIVATE
 		goto Finally;
 	}
 
-	LemonMultiCastMessage multiCastMessage = (LemonMultiCastMessage)buf.Data;
+	multiCastMessage = (LemonMultiCastMessage)buf.Data;
 
 	multiCastMessage->Buffer = message->Buff;
 
@@ -313,7 +319,7 @@ LEMON_RUNQ_PRIVATE
 
 	LemonMutexLockEx(Q->Mutex);
 
-	LemonMultiCastG G = (LemonMultiCastG)LemonHashMapSearch(Q->Groups,&group);
+	G = (LemonMultiCastG)LemonHashMapSearch(Q->Groups,&group);
 
 	if(!G){
 
