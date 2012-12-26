@@ -167,6 +167,8 @@ LEMON_IO_API
 		irp->Next->Prev = irp->Prev;
 
 	}
+
+	irp->Prev = irp->Next = NULL;
 }
 
 LEMON_IO_API
