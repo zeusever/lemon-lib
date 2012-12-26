@@ -84,7 +84,7 @@ LEMON_SYS_API LemonMutex LemonCreateMutex(__lemon_inout LemonErrorInfo* errorCod
 
 	LEMON_RESET_ERRORINFO(*errorCode);
 
-	CRITICAL_SECTION *cs = new CRITICAL_SECTION();
+	CRITICAL_SECTION *cs = (CRITICAL_SECTION*)malloc(sizeof(CRITICAL_SECTION));
 
 	InitializeCriticalSection(cs);
 
@@ -94,7 +94,7 @@ LEMON_SYS_API LemonMutex LemonCreateMutex(__lemon_inout LemonErrorInfo* errorCod
 LEMON_SYS_API void LemonReleaseMutex(__lemon_in LemonMutex mutex){
 	DeleteCriticalSection((CRITICAL_SECTION*)mutex);
 
-	delete (CRITICAL_SECTION*)mutex;
+	free(mutex);
 }
 
 LEMON_SYS_API void LemonMutexLock(__lemon_in LemonMutex mutex,__lemon_inout LemonErrorInfo * errorCode){

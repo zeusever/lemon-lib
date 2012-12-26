@@ -183,7 +183,7 @@ LEMON_SYS_API LemonCoroutine LemonThreadToCoroutine(__lemon_inout LemonErrorInfo
 		return LEMON_HANDLE_NULL_VALUE;
 	}
 
-	LemonCoroutine coro = new LEMON_HANDLE_STRUCT_NAME(LemonCoroutine)();
+	LEMON_ALLOC_HANDLE(LemonCoroutine,coro);
 
 	coro->Data = NULL;
 
@@ -221,7 +221,7 @@ LEMON_SYS_API LemonCoroutine LemonCreateCoroutine(
 	__lemon_in size_t stackSize,
 	__lemon_inout LemonErrorInfo *errorCode){
 
-		LemonCoroutine coro = new LEMON_HANDLE_STRUCT_NAME(LemonCoroutine)();
+		LEMON_ALLOC_HANDLE(LemonCoroutine,coro);
 
 		void * fiber  = ::CreateFiberEx(stackSize,stackSize,0 ,FiberProc,coro);
 

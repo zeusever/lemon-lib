@@ -16,7 +16,7 @@ LEMON_SYS_API
 	const LemonError * lhs,
 	const LemonError * rhs)
 {
-	if(lhs->Catalog == lhs->Catalog)
+	if(lhs->Catalog == rhs->Catalog)
 	{
 		if(lhs->Catalog == 0) return lemon_true;
 

@@ -166,6 +166,8 @@ BOOLEAN WINAPI DllMain(
 
 	case DLL_PROCESS_ATTACH:
 		{
+			_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );//memory leak check
+
 			SetUnhandledExceptionFilter(LemonWin32UnHandledExceptionFilter); 
 
 			CreateGlobalMutex(&errorinfo);

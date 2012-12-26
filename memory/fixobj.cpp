@@ -112,6 +112,8 @@ LEMON_IMPLEMENT_HANDLE(LemonFixObjectAllocator){
 	LemonMemoryChunk		*LastAllocChunk;
 
 	LemonMemoryChunk		*LastFreeChunk;
+
+	size_t					AllocBlocks;	
 };
 
 LEMON_MEMORY_API 
@@ -160,6 +162,8 @@ LEMON_MEMORY_API
 	};
 
 	allocator->LastAllocChunk = allocator->LastFreeChunk = NULL;
+
+	allocator->AllocBlocks = 0;
 }
 
 LEMON_MEMORY_API 
@@ -194,6 +198,8 @@ LEMON_MEMORY_API
 	//first check the last alloc chunk
 	if(allocator->LastAllocChunk && allocator->LastAllocChunk->AvailableBlocks){
 
+		allocator->AllocBlocks ++;
+
 		return LemonMemoryChunkAlloc(allocator->LastAllocChunk,blockSize);
 	}
 	//then loop chunk list
@@ -203,6 +209,8 @@ LEMON_MEMORY_API
 		if(iter->AvailableBlocks){
 
 			allocator->LastAllocChunk = iter;
+
+			allocator->AllocBlocks ++;
 
 			return LemonMemoryChunkAlloc(iter,blockSize);
 		}
@@ -222,6 +230,8 @@ LEMON_MEMORY_API
 
 	allocator->LastAllocChunk = chunk;
 
+	allocator->AllocBlocks ++;
+
 	return LemonMemoryChunkAlloc(chunk,blockSize);
 }
 
@@ -237,6 +247,8 @@ LEMON_MEMORY_API
 
 	if(chunk && LemonMemoryChunkCheck(chunk,block,blockSize)){
 
+		allocator->AllocBlocks --;
+
 		LemonMemoryChunkFree(chunk,block,blockSize);
 
 		return;
@@ -249,6 +261,8 @@ LEMON_MEMORY_API
 		if(LemonMemoryChunkCheck(chunk,block,blockSize)){
 
 			allocator->LastFreeChunk = chunk;
+
+			allocator->AllocBlocks --;
 
 			LemonMemoryChunkFree(chunk,block,blockSize);
 

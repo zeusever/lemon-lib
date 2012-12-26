@@ -102,6 +102,10 @@ LEMON_RUNQ_API
 
 	assert(LEMON_SUCCESS(errorCode));
 
+	LemonRunQReset(runQ,&errorCode);
+
+	assert(LEMON_SUCCESS(errorCode));
+
 	__LemonCloseRunQ(runQ);
 }
 
